@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meet the Board | Anteater Adventure Club</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+
+<script>
+
+    function openPopup(personId) {
+    const popup = document.getElementById(`popup-${personId}`);
+    
+    popup.classList.remove(...popup.classList);
+
+    popup.classList.add('popup');
+
+    const polaroid = document.querySelector(`[onclick="openPopup('${personId}')"]`);
+    const styleClass = polaroid.getAttribute('data-popup-style');
+
+    if (styleClass) {
+        popup.classList.add(styleClass);
+    }
+
+    popup.style.display = "block";
+    }
+
+  
+    function closePopup(id) {
+      document.getElementById('popup-' + id).style.display = 'none';
+    }
+  
+    window.onclick = function(event) {
+      document.querySelectorAll('.popup').forEach(popup => {
+        if (event.target === popup) {
+          popup.style.display = 'none';
+        }
+      });
+    }
+  </script>
+
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="membership.html">Membership</a></li>
+        <li><a href="event_gallery.html">Event Gallery</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="meet_the_board-main">
+    <h1>Meet the Board!</h1>
+    <h6>Click to learn more about each officer!</h6>
+
+    <div class="polaroid-gallery">
+    <!--ARISTANI-->
+        <div class="polaroid" onclick="openPopup('aristani')"
+            data-popup-style="aristani-style">
+          <img src="../images/board/aristani.jpg" alt="Aristani" />
+          <div class="caption">
+            <span class="name-font">Aristani Rodriguez-Gonzalez</span><br>
+            <span class="role-font">President & Founder </span>
+          </div>
+    </div>
+
+    <!--ALEXIS-->
+        <div class="polaroid" onclick="openPopup('alexis')">
+            <img src="../images/board/alexis.jpg" alt="Alexis" />
+            <div class="caption">
+                <span class="name-font">Alexis Ibarra</span><br>
+                <span class="role-font">General Secretary </span>
+              </div>
+    </div>
+
+    <!--LOKESH-->
+        <div class="polaroid" onclick="openPopup('lokesh')">
+            <img src="../images/board/lokesh.jpg" alt="Lokesh" />
+            <div class="caption">
+            <span class="name-font">Lokesh Sharma</span><br>
+            <span class="role-font">Webmaster</span>
+          </div>
+
+        </div>
+
+    <!--THOMAS-->
+        <div class="polaroid" onclick="openPopup('thomas')">
+            <img src="../images/board/thomas.jpg" alt="Thomas" />
+            <div class="caption">
+            <span class="name-font">Thomas Lobaton</span><br>
+            <span class="role-font">Fundraising Chair</span>
+            </div>
+        </div>
+
+    <!--SOFIA-->
+        <div class="polaroid" onclick="openPopup('sofia')">
+            <img src="../images/board/sofia.jpg" alt="Sofia" />
+            <div class="caption">
+            <span class="name-font">Sofia Barsan</span><br>
+            <span class="role-font">Outreach Coordinator & Club Advisor</span>
+            </div>
+        </div>
+
+    <!--DARON-->
+        <div class="polaroid" onclick="openPopup('daron')">
+            <img src="../images/board/daron.jpg" alt="Daron" />
+            <div class="caption">
+            <span class="name-font">Daron Kaloustian</span><br>
+            <span class="role-font">Treasurer</span>
+            </div>
+        </div>
+
+    <!--CHARLIE-->
+        <div class="polaroid" onclick="openPopup('charlie')">
+            <img src="../images/board/charlie.jpg" alt="Charlie" />
+            <div class="caption">
+            <span class="name-font">Charlie Weinberger</span><br>
+            <span class="role-font">General Officer & Co-Webmaster</span>
+            </div>
+        </div>
+
+    <!--RYAN-->
+        <div class="polaroid" onclick="openPopup('ryan')">
+            <img src="../images/board/ryan.jpg" alt="Ryan" />
+            <div class="caption">
+            <span class="name-font">Ryan Fenstermacher</span><br>
+            <span class="role-font">General Officer</span>
+            </div>
+        </div>
+
+    <!--KRISTINA-->
+    <div class="polaroid" onclick="openPopup('kristina')">
+        <img src="../images/board/kristina.jpg" alt="Kristina" />
+        <div class="caption">
+        <span class="name-font">Kristina Qu</span><br>
+        <span class="role-font">Visibility Team</span>
+        </div>
+    </div>
+
+    <!--JASON-->
+    <div class="polaroid" onclick="openPopup('jason')">
+        <img src="../images/board/jason.jpg" alt="Jason Zenarosa" />
+        <div class="caption">
+        <span class="name-font">Jason Zenarosa</span><br>
+        <span class="role-font">Vice President</span>
+        </div>
+    </div>
+    
+    </div> <!--grid close-->
+
+
+
+    <div id="popup-aristani" class="popup">
+        <div class="popup-content aristani-style">
+          <span class="close" onclick="closePopup('aristani')">&times;</span>
+          <span class="name-font aristani-name">Aristani Rodriguez-Gonzalez</span><br>
+          <span class="role-font">President & Founder </span>
+            <h3>Major</h3>
+                <p>Criminology, Law & Society</p>
+            <h3>Why I created AAC</h2>
+                <p>I created this club to offer my fellow students with accesible ways to explore Orange County. Eventually, it became a great way to foster community with all types of people since everyone is encouraged to join. I have continued to manage the club because I want to continue to explore nature and meet other amazing people while doing so!</p>
+            <h3>My favorite AAC Memory...</h3>
+                <p>Camping in Sequoia since it was the most isolating from the outside world and I had not been there before! Love exploring new places alongside others!</p>
+            <div class="instagram-link">
+                <a href="https://instagram.com/aristanii/" target="_blank" rel="noopener">
+                    <img src="../logos/instagram.svg" alt="Instagram" class="instagram-icon" />
+                </a>
+            </div>
+        </div>
+        </div>
+    </div>
+
+
+
+    <div id="popup-alexis" class="popup">
+        <div class="popup-content alexis-style">
+            <span class="close" onclick="closePopup('alexis')">&times;</span>
+            <span class="name-font alexis-name">Alexis Ibarra</span><br>
+            <span class="role-font">General Secretary</span>
+            <h3>Major</h3>
+                <p>Cognitive Science</p>
+            <h3>Why I joined AAC</h2>
+                <p>In my second year I really wanted to join a community, and AAC was incredibly welcoming and full of positive energy, and I already loved hiking so it was a great match.</p>
+            <h3>My favorite AAC Memory...</h3>
+                <p>Takin a fat nap after the chasm of doom.</p>
+            <div class="instagram-link">
+                <a href="https://www.instagram.com/freeform.ond/" target="_blank" rel="noopener">
+                    <img src="../logos/instagram.svg" alt="Instagram" class="instagram-icon" />
+                </a>
+            </div>
+        </div>
+        </div>
+    </div>
+
+
+    <div id="popup-lokesh" class="popup">
+        <div class="popup-content lokesh-style">
+            <span class="close" onclick="closePopup('lokesh')">&times;</span>
+            <span class="name-font lokesh-name">Lokesh Sharma</span><br>
+            <span class="role-font">Webmaster</span>
+            <h3>Major</h3>
+                <p>Computer Science</p>
+            <h3>Why I joined AAC</h2>
+                <p>I was looking to make new friends my first quarter at UCI and as a freshman I found everyone in AAC super welcoming, outgoing, and of course adventurous! After a few meetings and picnics I felt like I found a solid group of friends!</p>
+            <h3>My favorite AAC Memory...</h3>
+                <p>Walking around Las Vegas at 3AM with the club during our Fall '23 retreat!</p>
+            <div class="instagram-link">
+                <a href="https://www.instagram.com/lakeshoreee/" target="_blank" rel="noopener">
+                    <img src="../logos/instagram.svg" alt="Instagram" class="instagram-icon" />
+                </a>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div id="popup-thomas" class="popup">
+        <div class="popup-content thomas-style">
+            <span class="close" onclick="closePopup('thomas')">&times;</span>
+            <span class="name-font thomas-name">Thomas Lobaton</span><br>
+            <span class="role-font">Fundraising Chair</span>
+            <h3>Major</h3>
+                <p>Urban Studies</p>
+            <h3>Why I joined AAC</h2>
+                <p>I joined the club because I needed to be outdoors more and the potluck picnics made it really easy to get to meet people while I was still commuting to school. The weekend events also made it really fun to explore SoCal and experience more than just hiking or going to the beach.</p>
+            <h3>My favorite AAC Memory...</h3>
+                <p>The San Diego Farmers market and then going to the Birch Aquarium.</p>
+            <div class="instagram-link">
+                <a href="https://www.instagram.com/tom_the_train67/" target="_blank" rel="noopener">
+                    <img src="../logos/instagram.svg" alt="Instagram" class="instagram-icon" />
+                </a>
+            </div>
+        </div>
+        </div>
+    </div>
+
+
+
+    <div id="popup-sofia" class="popup">
+        <div class="popup-content sofia-style">
+            <span class="close" onclick="closePopup('sofia')">&times;</span>
+            <span class="name-font sofia-name">Sofia Barsan</span><br>
+            <span class="role-font">Outreach Coordinator & Club Advisor</span>
+            <h3>Major</h3>
+                <p>Language Science</p>
+            <h3>Why I joined AAC</h2>
+                <p>I love adventure and exploring the outdoors, and both of those are better in good company. I saw the club was going to Switzer Falls in LA and I had never seen a natural waterfall in person before, so why not? Everyone in the club was incredibly welcoming and accommodating, so I stayed, even joined the board, and its been countless adventures ever since </p>
+            <h3>My favorite AAC Memory...</h3>
+                <p>Literally running around, racing each other, on the Death Valley salt flats in Badwater Basin.</p>
+            <div class="instagram-link">
+                <a href="https://www.instagram.com/bealiberty/" target="_blank" rel="noopener">
+                    <img src="../logos/instagram.svg" alt="Instagram" class="instagram-icon" />
+                </a>
+            </div>
+        </div>
+        </div>
+    </div>
+
+
+
+    <div id="popup-daron" class="popup">
+        <div class="popup-content daron-style">
+            <span class="close" onclick="closePopup('daron')">&times;</span>
+            <span class="name-font daron-name">Daron Kaloustian</span><br>
+            <span class="role-font">Treasurer</span>
+            <h3>Major</h3>
+                <p>Business Economics</p>
+            <h3>Why I joined AAC</h2>
+                <p>I like nature so much and have grown to like it even more with the club.</p>
+            <h3>My favorite AAC Memory...</h3>
+                <p>Random outings to yum restaurants and outings to the beach.</p>
+            <div class="instagram-link">
+                <a href="https://www.instagram.com/daron_kal/" target="_blank" rel="noopener">
+                    <img src="../logos/instagram.svg" alt="Instagram" class="instagram-icon" />
+                </a>
+            </div>
+        </div>
+        </div>
+    </div>
+
+
+
+    <div id="popup-charlie" class="popup">
+        <div class="popup-content charlie-style">
+            <span class="close" onclick="closePopup('charlie')">&times;</span>
+            <span class="name-font charlie-name">Charlie Weinberger</span><br>
+            <span class="role-font">General Officer & Co-Webmaster</span>
+            <h3>Major</h3>
+                <p>Computer Science</p>
+            <h3>Why I joined AAC</h2>
+                <p>I joined the club to meet new people outside of my major and participate in fun outdoor events that get me to leave campus and explore the world!</p>
+            <h3>My favorite AAC Memory...</h3>
+                <p>Going hiking and exploring sand dunes in the desert with friends at our 2025 winter quarter Death Valley retreat!</p>
+            <div class="instagram-link">
+                <a href="https://www.instagram.com/charliebrown364/" target="_blank" rel="noopener">
+                    <img src="../logos/instagram.svg" alt="Instagram" class="instagram-icon" />
+                </a>
+            </div>
+        </div>
+        </div>
+    </div>
+
+
+    <div id="popup-ryan" class="popup">
+        <div class="popup-content ryan-style">
+            <span class="close" onclick="closePopup('ryan')">&times;</span>
+            <span class="name-font ryan-name">Ryan Fenstermacher</span><br>
+            <span class="role-font">General Officer</span>
+            <h3>Major</h3>
+                <p>Psychological Science</p>
+            <h3>Why I joined AAC</h2>
+                <p>I wanted to break out of Irvine and spend more time exploring the nature and communities in Southern California!</p>
+            <h3>My favorite AAC Memory...</h3>
+                <p>Going to Palm Springs after visiting the Salton Sea and getting stuck in a Christmas parade😭.</p>
+            <div class="instagram-link">
+                <a href="https://www.instagram.com/rfenstermac/" target="_blank" rel="noopener">
+                    <img src="../logos/instagram.svg" alt="Instagram" class="instagram-icon" />
+                </a>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div id="popup-jason" class="popup">
+        <div class="popup-content jason-style">
+            <span class="close" onclick="closePopup('jason')">&times;</span>
+            <span class="name-font jason-name">Jason Zenarosa</span><br>
+            <span class="role-font">Vice President</span>
+            <h3>Major</h3>
+                <p>Computer Science</p>
+            <h3>Why I joined AAC</h2>
+                <p></p>
+            <h3>My favorite AAC Memory...</h3>
+                <p></p>
+            <div class="instagram-link">
+                <a href="https://www.instagram.com/jsnznrs/?__d=1%2F" target="_blank" rel="noopener">
+                    <img src="../logos/instagram.svg" alt="Instagram" class="instagram-icon" />
+                </a>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div id="popup-kristina" class="popup">
+        <div class="popup-content kristina-style">
+            <span class="close" onclick="closePopup('kristina')">&times;</span>
+            <span class="name-font kristina-name">Kristina Qu</span><br>
+            <span class="role-font">Visibility Team</span>
+            <h3>Major</h3>
+                <p>Biological Sciences</p>
+            <h3>Why I joined AAC</h2>
+                <p>I love nature and outdoors adventures, this is a great place to do it and meet people who share the same passion.</p>
+            <h3>My favorite AAC Memory...</h3>
+                <p>Slept under the stars in Joshua Tree and saw the Milky Way for the first time in my life.</p>
+            <div class="instagram-link">
+                <a href="https://www.instagram.com/qu.kristina/" target="_blank" rel="noopener">
+                    <img src="../logos/instagram.svg" alt="Instagram" class="instagram-icon" />
+                </a>
+            </div>
+        </div>
+        </div>
+    </div>
+
+
+
+
+  </main>
+
+  <footer>
+    <p>© 2025 Anteater Adventure Club | Making Nature Accessible! 🌲</p>
+  </footer>
+
+</body>
+</html>

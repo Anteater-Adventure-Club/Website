@@ -1,0 +1,555 @@
+/* Reset some default styles */
+
+@font-face {
+    font-family: 'LazyDog';
+    src: url('fonts/Lazydog.otf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Chivo Regular';
+    src: url('fonts/Chivo-VariableFont_wght.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Chivo Italics';
+    src: url('fonts/Chivo-Italic-VariableFont_wght.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #FFF6EB;
+    color: #333;
+    line-height: 1.6;
+  }
+  
+  header {
+    background-color: #2e8b57;
+    color: #ffffff;
+    padding: 0;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  
+  nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  main {
+    padding: 2rem;
+  }
+  
+  section {
+    margin-bottom: 2rem;
+  }
+  
+  footer {
+    text-align: center;
+    padding: 1rem;
+    margin-top: 3rem;
+  }
+
+  h1 {
+    text-align:center;
+  }
+
+  html, body {
+    height: 100%
+  }
+
+  .centered-content {
+    margin-top: -10px;
+    height: calc(100vh - 70px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .center-inner {
+    font-family: 'Lazydog';
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem; /* space between heading and button */
+  }
+
+/* Header styling */
+  .center-inner h1 {
+    font-size: 4.2rem; /* or try 4rem, 2.5rem, etc. */
+  }
+  
+
+  /* Button styling */
+.cta-button {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 1rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #2e8b57;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-top: 1.5rem;
+    display: inline-block;
+    transition: background-color 0.3s;
+  }
+
+.cta-button:hover {
+background-color: #256e47;
+}
+
+.about-main h1 {
+    font-family: 'Lazydog';
+    font-size: 4.2rem; /* or try 4rem, 2.5rem, etc. */
+    text-align: left;
+    margin-left: 0rem;
+}
+
+.about-main h2 {
+    margin-top: 1.5rem;
+    font-size: 2.2rem; /* or try 4rem, 2.5rem, etc. */
+    font-family: 'Lazydog';
+
+}
+
+.about-main p {
+    font-family: 'Chivo Regular';
+    font-size: 1.2rem;
+}
+
+.about-connect {
+    margin-top: 4rem;
+    font-family: 'Lazydog';
+    font-size: 2.2rem; /* or try 4rem, 2.5rem, etc. */
+    text-align: center;
+
+}
+
+.about-connect p {
+    font-family: 'Chivo Regular';
+    font-size: 1.0rem; /* or try 4rem, 2.5rem, etc. */
+    padding-left: 25rem;
+    padding-right: 25rem;
+}
+
+.social-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.social-button {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 1rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 5px;
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+/* Specific colors for Discord and Instagram */
+.discord-button {
+    background-color: #5865F2; /* Discord*/
+}
+
+.discord-button:hover {
+    background-color: #4752C4;
+}
+
+.instagram-button {
+    background-color: #E1306C; /* Instagram*/
+}
+
+.instagram-button:hover {
+    background-color: #C13584;
+}
+
+.social-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+    font-family: 'Chivo Regular';
+    font-size: 1rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 5px;
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.social-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.meet_the_board-main h1 {
+    font-family: 'Lazydog';
+    font-size: 4.2rem; /* or try 4rem, 2.5rem, etc. */
+}
+
+.meet_the_board-main h6 {
+    font-family: 'Chivo Regular';
+    font-size: 1.5rem; /* or try 4rem, 2.5rem, etc. */
+    text-align: center;
+}
+
+.section-wrapper {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding-top: 4rem;
+    padding-bottom: 4rem
+  }
+
+  .section-wrapper.reverse {
+    flex-direction: row-reverse; /* Reverses the order: images on the left, content on the right */
+  }
+  
+
+  .section-content {
+    max-width: 600px;  /* Adjust width as needed */
+    padding-left: 2rem;
+    padding-right: 2rem;
+    margin-top: 2rem;
+  }
+
+  .section-image {
+    margin-left: 2.9rem; 
+    max-width: 300px; 
+    height: auto;
+  }
+  
+  .section-content.right-align {
+    margin-left: auto;
+    margin-right: 2rem; /* pushes it to the right */
+    text-align: right;
+  }
+  
+
+.popup-content h3 {
+    font-family: 'Lazydog';
+    font-size: 1.4rem;
+}
+
+.section-right {
+    text-align: right;
+    margin-right: 2rem; /* or whatever spacing feels right */
+    
+}
+
+/* MEET THE BOARD POLORIOD */
+
+.polaroid-gallery {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 cards per row */
+    gap: 2rem;
+    padding: 2rem;
+    justify-items: center; /* centers each card inside its grid cell */
+  }
+  
+  
+  .polaroid {
+    max-width: 240px; /* Adjust based on how many per row */
+    background-color: white;
+    padding: 1rem 1rem 2rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    cursor: pointer;
+    text-align: center;
+    border: 1px solid #ccc;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  
+  .polaroid:hover {
+    transform: scale(1.05);
+  }
+  
+  .polaroid img {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  .name-font {
+    font-family: 'Lazydog';
+    font-size: 1.5em;
+  }
+
+  .role-font {
+    font-family: 'Chivo Regular';
+    font-size: 1.1em;
+  }
+  
+  /* Popup modal */
+  .popup {
+    display: none; 
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+  
+  .popup-content {
+    background-color: white;
+    margin: 10% auto;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+  }
+  
+  .popup .close {
+    position: absolute;
+    top: 10px; right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+  }
+
+  .instagram-link {
+    margin-top: 1.5rem;
+    text-align: center;
+  }
+  
+  .instagram-icon {
+    width: 55px;
+    height: 40px;
+    transition: transform 0.2s ease;
+  }
+  
+  .instagram-icon:hover {
+    transform: scale(1.15);
+  }
+  
+
+  /* Individual Popup Colors Per Member */
+
+    /* ARISTANI */
+  .popup-content.aristani-style {
+    background-color: #FFEBEB;
+    padding: 2rem;
+    border-radius: 1rem;
+    
+  }
+
+  .name-font.aristani-name {
+    color: #FFADAD;
+    font-size: 30px;
+  }
+
+    /* ALEXIS */
+  .popup-content.alexis-style {
+    background-color: #FFEDD6;
+    padding: 2rem;
+    border-radius: 1rem;
+  }
+
+  .name-font.alexis-name {
+    color: #FFCA85;
+    font-size: 30px;
+  }
+
+    /* LOKESH */
+    .popup-content.lokesh-style {
+    background-color: #EBF2FF;
+    padding: 2rem;
+    border-radius: 1rem;
+    }
+
+    .name-font.lokesh-name {
+    color: #85AFFF;
+    font-size: 30px;
+    }
+
+    /* THOMAS */
+    .popup-content.thomas-style {
+    background-color: #FDFFD6;
+    padding: 2rem;
+    border-radius: 1rem;
+    }
+
+    .name-font.thomas-name {
+    color: #D5E000;
+    font-size: 30px;
+    }
+
+    /* SOFIA */
+    .popup-content.sofia-style {
+    background-color: #EEFFEB;
+    padding: 2rem;
+    border-radius: 1rem;
+    }
+
+    .name-font.sofia-name {
+    color: #97FF85;
+    font-size: 30px;
+    }
+
+    /* DARON */
+    .popup-content.daron-style {
+        background-color: #DCD6FF;
+        padding: 2rem;
+        border-radius: 1rem;
+        }
+    
+        .name-font.daron-name {
+        color: #9785FF;
+        font-size: 30px;
+    }
+
+    /* CHARLIE */
+    .popup-content.charlie-style {
+        background-color: #D6FCFF;
+        padding: 2rem;
+        border-radius: 1rem;
+        }
+    
+        .name-font.charlie-name {
+        color: #00D1E0;
+        font-size: 30px;
+    }
+
+    /* RYAN */
+    .popup-content.ryan-style {
+        background-color: #FFEBFF;
+        padding: 2rem;
+        border-radius: 1rem;
+        }
+    
+        .name-font.ryan-name {
+        color: #FFADFF;
+        font-size: 30px;
+    }
+
+      /* JASON */
+      .popup-content.jason-style {
+        background-color: #FFEDD6;
+        padding: 2rem;
+        border-radius: 1rem;
+        }
+    
+        .name-font.jason-name {
+        color: #FFCA85;
+        font-size: 30px;
+    }
+
+    /* KRISTINA */
+    .popup-content.kristina-style {
+        background-color: #FFEBEB;
+        padding: 2rem;
+        border-radius: 1rem;
+        }
+    
+        .name-font.kristina-name {
+        color: #FFADAD;
+        font-size: 30px;
+    }
+
+
+/* MEMBERSHIP PAGE */
+.membership-main h1{
+    font-family: 'LazyDog';
+    font-size: 3rem;
+
+}
+
+.membership-box {
+    width: 100%;
+    height: 250px;
+    padding: 2rem;
+    color: rgb(0, 0, 0);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    text-align: center;
+    margin: 2rem 0;             /* Vertical Gap*/
+    border-radius: 1rem;        
+    box-sizing: border-box;     
+  }
+  
+  /* Background Colors */
+  .box1 {
+    background-color: #D6FCFF;
+    font-family: 'LazyDog';
+  }
+  .box2 {
+    background-color: #D6E4FF;
+    font-family: 'LazyDog';
+
+  }
+  .box3 {
+    background-color: #DCFFD6;
+    font-family: 'LazyDog';
+
+  }
+
+
+
+
+/* Event Gallery*/
+
+.event_gallery-main h1 {
+  font-family: 'Lazydog';
+  font-size: 3.5rem; /* or try 4rem, 2.5rem, etc. */
+}
+
+.polaroid-gallery-events {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 4 cards per row */
+  gap: 2rem;
+  padding: 2rem;
+  justify-items: center; /* centers each card inside its grid cell */
+}
+
+.polaroid-events {
+  max-width: 500px; /* Adjust based on how many per row */
+  background-color: white;
+  padding: 1rem 1rem 2rem;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  cursor: pointer;
+  text-align: center;
+  border: 1px solid #ccc;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.polaroid-events:hover {
+  transform: scale(1.05);
+}
+
+.polaroid-events img {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin-bottom: 1rem;
+}
