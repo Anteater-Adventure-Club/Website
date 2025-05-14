@@ -40,11 +40,10 @@
 
 body {
   font-family: "Chivo";
-  line-height: 1.6;
+  background: var(--tan);
 }
 
 main {
-  background: var(--tan);
   color: var(--black);
   min-height: calc(100vh - 2 * var(--outside-padding));
   padding: var(--outside-padding);

@@ -23,8 +23,8 @@ export default function About() {
             <h2>Hikes</h2>
             <p>
               Explore weekly hikes across Orange County and Southern California
-              — scenic trails, great company, and adventure starting right from
-              UCI.
+              — scenic trails, great company, and adventure starting right here
+              at UCI
             </p>
           </div>
           <div className="section-images">
@@ -46,7 +46,7 @@ export default function About() {
         </div>
 
         {/* City Exploration */}
-        <div className="section">
+        <div className="section reverse">
           <div className="section-images">
             <Image
               src="/images/events/san_diego.JPG"
@@ -63,12 +63,12 @@ export default function About() {
               className="section-image"
             />
           </div>
-          <div className="section-text right-align">
+          <div className="section-text">
             <h2>City Exploration</h2>
             <p>
-              Adventure isn&apos;t just limited to nature. Join us on a city
-              exploration day, try new food, explore museums, feel the rush of
-              the city.
+              Adventure isn&apos;t just limited to nature — join us on a city
+              exploration, where we try new food, explore museums, and feel the
+              rush of a new city
             </p>
           </div>
         </div>
@@ -78,16 +78,11 @@ export default function About() {
           <div className="section-text">
             <h2>Quarterly Retreats</h2>
             <p>
-              Every quarter the club goes on a weekend long retreat which is
-              always the highlight of the quarter for many of our members. Past
-              retreat locations include:
+              Every quarter, the club goes on a weekend retreat, often the
+              highlight of the quarter for many of our members. Past retreat
+              locations include national parks like Sequoia and Death Valley,
+              lakes like Lake Arrowhead, and more!
             </p>
-            <br />
-            <p>- Josuha Tree National Park</p>
-            <p>- Red Rock Canyon State Park & Las Vegas</p>
-            <p>- Lake Arrowhead</p>
-            <p>- Sequoia National Park</p>
-            <p>- Death Valley National Park & Las Vegas</p>
           </div>
           <div className="section-images">
             <Image

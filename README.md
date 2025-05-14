@@ -17,6 +17,7 @@ This is github repository for the club website for the Anteater Adventure Club (
 - [ ] Add membership info to the membership page
 - [ ] Add more events + images to the gallery page
 - [ ] For all pages, improve styling
+- [ ] Make About page more responsive
 
 ### Questions
 - [ ] Should our links (discord, instagram, linktree) go in the footer, the membership page, the home page, and/or other pages?

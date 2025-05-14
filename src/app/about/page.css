@@ -3,7 +3,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 4rem;
+  gap: 6rem;
 
   h2 {
     font-family: "Lazydog";
@@ -25,44 +25,38 @@
 /* Event sections */
 
 .sections {
-  border: 1px solid red;
   display: flex;
   flex-direction: column;
   gap: 8rem;
-  max-width: 80%;
+  max-width: 75%;
 }
 
 .section {
-  border: 1px solid blue;
   display: flex;
   align-items: center;
-  gap: 2rem;
-}
-
-.right-align {
-  text-align: right;
 }
 
 .section-text {
-  border: 1px solid purple;
   flex: 0 0 40%;
 }
 
-/* TODO images opposite of text */
-
 .section-images {
-  border: 1px solid green;
   flex: 1;
   display: flex;
-  /* justify-content: center; */
+  justify-content: flex-end;
   align-items: center;
   gap: 2rem;
+}
+
+.reverse > * {
+  text-align: right;
+  justify-content: flex-start;
 }
 
 /* Social/Connect */
 
 .about-connect {
-  padding: 2rem;
+  padding: 4rem;
   width: 40rem;
   display: flex;
   flex-direction: column;
