@@ -1,10 +1,11 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import boardMembers from "@/data/boardMembers";
+import { X } from "lucide-react";
 import "./page.css";
+import officers from "@/data/officers";
 
 interface Colors {
   [key: string]: {
@@ -56,88 +57,94 @@ const colors: Colors = {
   },
 };
 
-const PolaroidCard = ({
-  member,
+function PolaroidCard({
+  officer,
   openPopup,
 }: {
-  member: BoardMember;
-  openPopup: (id: string) => void;
-}) => {
+  officer: Officer;
+  openPopup: (officer: Officer) => void;
+}) {
   return (
-    <div
-      className="polaroid"
-      onClick={() => openPopup(member.id)}
-      data-popup-style={`${member.id}-style`}
-    >
+    <div className="polaroid" onClick={() => openPopup(officer)}>
       <Image
-        src={`/images/board/${member.id}.jpg`}
-        alt={member.name}
+        src={`/images/officers/${officer.id}.jpg`}
+        alt={officer.name}
         width={1000}
         height={0}
       />
       <div className="polaroid-caption">
-        <h3>{member.name}</h3>
-        <p>{member.role}</p>
+        <h3>{officer.name}</h3>
+        <p>{officer.role}</p>
       </div>
     </div>
   );
-};
+}
 
-const PopupDetails = ({
-  member,
+function Popup({
+  officer,
   closePopup,
+  ref,
 }: {
-  member: BoardMember;
-  closePopup: (id: string) => void;
-}) => {
+  officer: Officer;
+  closePopup: () => void;
+  ref: React.RefObject<HTMLDivElement | null>;
+}) {
   return (
-    <div id={`popup-${member.id}`} className="popup">
+    <div className="popup">
       <div
-        className={`popup-content ${member.id}-style`}
-        style={{ backgroundColor: colors[member.id].backgroundColor }}
+        className="popup-content"
+        style={{ backgroundColor: colors[officer.id].backgroundColor }}
+        ref={ref}
       >
-        <span className="close" onClick={() => closePopup(member.id)}>
-          &times;
-        </span>
-        <h3 style={{ color: colors[member.id].color }}>{member.name}</h3>
-        <br />
-        <p>{member.role}</p>
-        <h3>Major</h3>
-        <p>{member.major}</p>
-        <h3>Why I {member.id === "aristani" ? "created" : "joined"} AAC</h3>
-        <p>{member.whyJoined}</p>
-        <h3>My favorite AAC Memory...</h3>
-        <p>{member.favoriteMemory}</p>
-        <div className="instagram-link">
-          <Link href={member.instagram} target="_blank" rel="noopener">
-            <Image
-              src="/logos/instagram.svg"
-              alt="Instagram Logo"
-              width={55}
-              height={40}
-              className="instagram-icon"
-            />
-          </Link>
+        <div className="popup-header">
+          <h3 style={{ color: colors[officer.id].color }}>{officer.name}</h3>
+          <div className="popup-buttons">
+            <Link href={officer.instagram} target="_blank" rel="noopener">
+              <Image
+                src="/logos/instagram.svg"
+                alt="Instagram Logo"
+                width={20}
+                height={0}
+                className="popup-instagram-icon"
+              />
+            </Link>
+            <X className="popup-close-icon" onClick={() => closePopup()} />
+          </div>
+        </div>
+        <div>
+          <h3 className="popup-prompt">Role</h3>
+          <p>{officer.role}</p>
+          <h3 className="popup-prompt">Major</h3>
+          <p>{officer.major}</p>
+          <h3 className="popup-prompt">
+            Why I {officer.id === "aristani" ? "created" : "joined"} AAC
+          </h3>
+          <p>{officer.whyJoined}</p>
+          <h3 className="popup-prompt">My favorite AAC Memory...</h3>
+          <p>{officer.favoriteMemory}</p>
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default function Board() {
-  const [activePopup, setActivePopup] = useState<string | null>(null);
+  const [activeOfficer, setActiveOfficer] = useState<Officer | null>(null);
 
-  const openPopup = (id: string) => {
-    setActivePopup(id);
-    // Add any additional styling needed for the popup to appear
-    document.getElementById(`popup-${id}`)?.classList.add("active");
-  };
+  const openPopup = (officer: Officer) => setActiveOfficer(officer);
+  const closePopup = () => setActiveOfficer(null);
 
-  const closePopup = (id: string) => {
-    setActivePopup(null);
-    // Remove the active class when closing
-    document.getElementById(`popup-${id}`)?.classList.remove("active");
-  };
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        closePopup();
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <div>
@@ -147,20 +154,22 @@ export default function Board() {
       </div>
 
       <div className="polaroid-gallery">
-        {boardMembers.map((member) => (
-          <PolaroidCard key={member.id} member={member} openPopup={openPopup} />
+        {officers.map((officer) => (
+          <PolaroidCard
+            key={officer.id}
+            officer={officer}
+            openPopup={openPopup}
+          />
         ))}
       </div>
 
-      {boardMembers.map((member) => (
-        <PopupDetails key={member.id} member={member} closePopup={closePopup} />
-      ))}
-
-      {activePopup && (
-        <div
-          className="popup-overlay"
-          onClick={() => closePopup(activePopup)}
-        ></div>
+      {activeOfficer && (
+        <Popup
+          key={activeOfficer.id}
+          officer={activeOfficer}
+          closePopup={closePopup}
+          ref={ref}
+        />
       )}
     </div>
   );

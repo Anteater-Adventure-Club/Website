@@ -6,8 +6,8 @@ This is github repository for the club website for the Anteater Adventure Club (
 
 ### Tech Stack / Code Organization
 - [ ] Make sure current [Next.js](https://nextjs.org/) version matches original HTML version
-- [ ] Convert polaroid & popup to shared component(s)
-  - [ ] Make sure popup works
+- [ ] Get gallery popup to work, same as how the board popup works
+- [ ] Convert polaroid & popup into shared component(s)
 - [ ] Properly set up fonts using [next/fonts](https://nextjs.org/docs/app/getting-started/fonts)
 - [ ] Convert current CSS to [Tailwind CSS](https://tailwindcss.com/) (optional)
 - [ ] Add [shadcn/ui](https://ui.shadcn.com/), or other component library (optional)
@@ -17,8 +17,7 @@ This is github repository for the club website for the Anteater Adventure Club (
 - [ ] Add membership info to the membership page
 - [ ] Add more events + images to the gallery page
 - [ ] For all pages, improve styling
-- [ ] Make About page more responsive
-- [ ] Make website responsive (for different screen sizes/aspect ratios)
+- [ ] Make the website responsive (for different screen sizes/aspect ratios)
 
 ### Questions
 - [ ] Should our links (discord, instagram, linktree) go in the footer, the membership page, the home page, and/or other pages?
@@ -29,7 +28,7 @@ This is github repository for the club website for the Anteater Adventure Club (
 - `public/` (all non-text data)
   - `fonts/`
   - `images/`
-    - `board/`
+    - `officers/`
     - `events/`
   - `logos/`
 - `src/` (all code)
@@ -43,7 +42,7 @@ This is github repository for the club website for the Anteater Adventure Club (
     - `Footer/`
     - `Header/`
   - `data/` (all text data, used throughout the codebase)
-    - `boardMembers.ts`
+    - `officers.ts`
     - `events.ts`
   - `types.d.ts` (all types, used throughout the codebase)
 - ... (config files)

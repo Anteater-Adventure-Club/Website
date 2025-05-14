@@ -1,4 +1,4 @@
-interface BoardMember {
+interface Officer {
   id: string;
   name: string;
   role: string;

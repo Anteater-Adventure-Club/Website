@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import events from "@/data/events";
+import "@/components/Polaroid/Polaroid.css";
 
 export default function EventGallery() {
   const [openPopup, setOpenPopup] = useState<PopupState | null>(null);

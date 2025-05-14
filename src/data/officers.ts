@@ -1,4 +1,4 @@
-const boardMembers: BoardMember[] = [
+const officers: Officer[] = [
   {
     id: "aristani",
     name: "Aristani Rodriguez-Gonzalez",
@@ -109,4 +109,4 @@ const boardMembers: BoardMember[] = [
   // Liam? Tristan? anyone else?
 ];
 
-export default boardMembers;
+export default officers;
