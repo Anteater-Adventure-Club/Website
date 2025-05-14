@@ -1,9 +1,60 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import boardMembers from "@/data/boardMembers";
 import "./page.css";
+
+interface Colors {
+  [key: string]: {
+    backgroundColor: string;
+    color: string;
+  };
+}
+
+const colors: Colors = {
+  aristani: {
+    backgroundColor: "#ffebeb",
+    color: "#ffadad",
+  },
+  alexis: {
+    backgroundColor: "#ffedd6",
+    color: "#ffca85",
+  },
+  lokesh: {
+    backgroundColor: "#ebf2ff",
+    color: "#85afff",
+  },
+  thomas: {
+    backgroundColor: "#fdffd6",
+    color: "#d5e000",
+  },
+  sofia: {
+    backgroundColor: "#eeffeb",
+    color: "#97ff85",
+  },
+  daron: {
+    backgroundColor: "#dcd6ff",
+    color: "#9785ff",
+  },
+  charlie: {
+    backgroundColor: "#d6fcff",
+    color: "#00d1e0",
+  },
+  ryan: {
+    backgroundColor: "#ffebff",
+    color: "#ffadff",
+  },
+  jason: {
+    backgroundColor: "#ffedd6",
+    color: "#ffca85",
+  },
+  kristina: {
+    backgroundColor: "#ffebeb",
+    color: "#ffadad",
+  },
+};
 
 const PolaroidCard = ({
   member,
@@ -41,11 +92,14 @@ const PopupDetails = ({
 }) => {
   return (
     <div id={`popup-${member.id}`} className="popup">
-      <div className={`popup-content ${member.id}-style`}>
+      <div
+        className={`popup-content ${member.id}-style`}
+        style={{ backgroundColor: colors[member.id].backgroundColor }}
+      >
         <span className="close" onClick={() => closePopup(member.id)}>
           &times;
         </span>
-        <h3 className={`${member.id}-name`}>{member.name}</h3>
+        <h3 style={{ color: colors[member.id].color }}>{member.name}</h3>
         <br />
         <p>{member.role}</p>
         <h3>Major</h3>
@@ -55,15 +109,15 @@ const PopupDetails = ({
         <h3>My favorite AAC Memory...</h3>
         <p>{member.favoriteMemory}</p>
         <div className="instagram-link">
-          <a href={member.instagram} target="_blank" rel="noopener">
+          <Link href={member.instagram} target="_blank" rel="noopener">
             <Image
               src="/logos/instagram.svg"
-              alt="Instagram"
+              alt="Instagram Logo"
               width={55}
               height={40}
               className="instagram-icon"
             />
-          </a>
+          </Link>
         </div>
       </div>
     </div>
