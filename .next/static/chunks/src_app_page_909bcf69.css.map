@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["file:///Users/charlieweinberger/Desktop/Code/AAC-website/src/app/page.css"],"sourcesContent":[".home {\n  height: calc(100vh - 2 * var(--header-height) - 2 * var(--outside-padding));\n  display: flex;\n  flex-direction: column;\n  justify-content: center;\n  align-items: center;\n  gap: 3rem;\n}\n\n.cta-button {\n  font-family: \"Lazydog\";\n  background-color: var(--green);\n  color: var(--white);\n  &:hover {\n    background-color: var(--green-dark);\n  }\n}\n"],"names":[],"mappings":"AAAA;;;;;;;;;AASA;;;;;;AAIE","debugId":null}}]
+}

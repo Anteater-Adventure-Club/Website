@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 39, "column": 0}, "map": {"version":3,"sources":["file:///Users/charlieweinberger/Desktop/Code/AAC-website/src/components/Header/Header.tsx"],"sourcesContent":["\"use client\";\n\nimport Link from \"next/link\";\nimport \"./Header.css\";\n\nexport default function Header() {\n  return (\n    <header>\n      <nav>\n        <Link href=\"/\">Home</Link>\n        <Link href=\"/about\">About</Link>\n        <Link href=\"/board\">Board</Link>\n        <Link href=\"/membership\">Membership</Link>\n        <Link href=\"/gallery\">Gallery</Link>\n      </nav>\n    </header>\n  );\n}\n"],"names":[],"mappings":";;;;AAEA;AAFA;;;;AAKe,SAAS;IACtB,qBACE,8OAAC;kBACC,cAAA,8OAAC;;8BACC,8OAAC,4JAAA,CAAA,UAAI;oBAAC,MAAK;8BAAI;;;;;;8BACf,8OAAC,4JAAA,CAAA,UAAI;oBAAC,MAAK;8BAAS;;;;;;8BACpB,8OAAC,4JAAA,CAAA,UAAI;oBAAC,MAAK;8BAAS;;;;;;8BACpB,8OAAC,4JAAA,CAAA,UAAI;oBAAC,MAAK;8BAAc;;;;;;8BACzB,8OAAC,4JAAA,CAAA,UAAI;oBAAC,MAAK;8BAAW;;;;;;;;;;;;;;;;;AAI9B","debugId":null}},
+    {"offset": {"line": 110, "column": 0}, "map": {"version":3,"sources":["file:///Users/charlieweinberger/Desktop/Code/AAC-website/src/components/Footer/Footer.tsx"],"sourcesContent":["\"use client\";\n\nimport \"./Footer.css\";\n\nexport default function Header() {\n  return (\n    <footer>\n      <p>&copy; 2025 Anteater Adventure Club | Making Nature Accessible! 🌲</p>\n    </footer>\n  );\n}\n"],"names":[],"mappings":";;;;AAAA;;;AAIe,SAAS;IACtB,qBACE,8OAAC;kBACC,cAAA,8OAAC;sBAAE;;;;;;;;;;;AAGT","debugId":null}}]
+}

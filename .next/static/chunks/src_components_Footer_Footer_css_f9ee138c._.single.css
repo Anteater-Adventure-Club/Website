@@ -1,0 +1,12 @@
+/* [project]/src/components/Footer/Footer.css [app-client] (css) */
+footer {
+  background-color: var(--green);
+  color: var(--white);
+  height: var(--header-height);
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  display: flex;
+}
+
+/*# sourceMappingURL=src_components_Footer_Footer_css_f9ee138c._.single.css.map*/

@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["file:///Users/charlieweinberger/Desktop/Code/AAC-website/src/app/membership/page.css"],"sourcesContent":[".membership-boxes {\n  margin-top: 2rem;\n  display: flex;\n  flex-direction: column;\n  gap: 2rem;\n}\n\n.membership-box {\n  height: 8rem;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  border-radius: 1rem;\n}\n\n.box1 {\n  background-color: #d6fcff;\n}\n.box2 {\n  background-color: #d6e4ff;\n}\n.box3 {\n  background-color: #dcffd6;\n}\n"],"names":[],"mappings":"AAAA;;;;;;;AAOA;;;;;;;;AAQA;;;;AAGA;;;;AAGA","debugId":null}}]
+}

@@ -1,0 +1,132 @@
+/* [project]/src/app/board/page.css [app-client] (css) */
+.meet_the_board-main h6 {
+  text-align: center;
+  font-family: Chivo;
+  font-size: 1.5rem;
+}
+
+.instagram-link {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.instagram-icon {
+  transition: transform .2s;
+}
+
+.instagram-icon:hover {
+  transform: scale(1.15);
+}
+
+.popup-content.aristani-style {
+  background-color: #ffebeb;
+  border-radius: 1rem;
+  padding: 2rem;
+}
+
+.name-font.aristani-name {
+  color: #ffadad;
+  font-size: 30px;
+}
+
+.popup-content.alexis-style {
+  background-color: #ffedd6;
+  border-radius: 1rem;
+  padding: 2rem;
+}
+
+.name-font.alexis-name {
+  color: #ffca85;
+  font-size: 30px;
+}
+
+.popup-content.lokesh-style {
+  background-color: #ebf2ff;
+  border-radius: 1rem;
+  padding: 2rem;
+}
+
+.name-font.lokesh-name {
+  color: #85afff;
+  font-size: 30px;
+}
+
+.popup-content.thomas-style {
+  background-color: #fdffd6;
+  border-radius: 1rem;
+  padding: 2rem;
+}
+
+.name-font.thomas-name {
+  color: #d5e000;
+  font-size: 30px;
+}
+
+.popup-content.sofia-style {
+  background-color: #eeffeb;
+  border-radius: 1rem;
+  padding: 2rem;
+}
+
+.name-font.sofia-name {
+  color: #97ff85;
+  font-size: 30px;
+}
+
+.popup-content.daron-style {
+  background-color: #dcd6ff;
+  border-radius: 1rem;
+  padding: 2rem;
+}
+
+.name-font.daron-name {
+  color: #9785ff;
+  font-size: 30px;
+}
+
+.popup-content.charlie-style {
+  background-color: #d6fcff;
+  border-radius: 1rem;
+  padding: 2rem;
+}
+
+.name-font.charlie-name {
+  color: #00d1e0;
+  font-size: 30px;
+}
+
+.popup-content.ryan-style {
+  background-color: #ffebff;
+  border-radius: 1rem;
+  padding: 2rem;
+}
+
+.name-font.ryan-name {
+  color: #ffadff;
+  font-size: 30px;
+}
+
+.popup-content.jason-style {
+  background-color: #ffedd6;
+  border-radius: 1rem;
+  padding: 2rem;
+}
+
+.name-font.jason-name {
+  color: #ffca85;
+  font-size: 30px;
+}
+
+.popup-content.kristina-style {
+  background-color: #ffebeb;
+  border-radius: 1rem;
+  padding: 2rem;
+}
+
+.name-font.kristina-name {
+  color: #ffadad;
+  font-size: 30px;
+}
+
+
+/*# sourceMappingURL=src_app_board_page_5b75668a.css.map*/

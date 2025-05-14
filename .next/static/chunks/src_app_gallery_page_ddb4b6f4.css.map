@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["file:///Users/charlieweinberger/Desktop/Code/AAC-website/src/app/gallery/page.css"],"sourcesContent":[".polaroid-gallery-events {\n  display: grid;\n  grid-template-columns: repeat(3, 1fr); /* 4 cards per row */\n  gap: 2rem;\n  padding: 2rem;\n  justify-items: center; /* centers each card inside its grid cell */\n}\n\n.polaroid-events {\n  max-width: 500px; /* Adjust based on how many per row */\n  background-color: white;\n  padding: 1rem 1rem 2rem;\n  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);\n  cursor: pointer;\n  text-align: center;\n  border: 1px solid #ccc;\n  transition: transform 0.2s;\n  flex-shrink: 0;\n}\n\n.polaroid-events:hover {\n  transform: scale(1.05);\n}\n\n.polaroid-events img {\n  width: 100%;\n  height: auto;\n  display: block;\n  margin-bottom: 1rem;\n}\n"],"names":[],"mappings":"AAAA;;;;;;;;AAQA;;;;;;;;;;;;AAYA;;;;AAIA","debugId":null}}]
+}

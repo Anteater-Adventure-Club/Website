@@ -1,0 +1,34 @@
+/* [project]/src/app/gallery/page.css [app-client] (css) */
+.polaroid-gallery-events {
+  grid-template-columns: repeat(3, 1fr);
+  justify-items: center;
+  gap: 2rem;
+  padding: 2rem;
+  display: grid;
+}
+
+.polaroid-events {
+  cursor: pointer;
+  text-align: center;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  flex-shrink: 0;
+  max-width: 500px;
+  padding: 1rem 1rem 2rem;
+  transition: transform .2s;
+  box-shadow: 0 4px 8px #0003;
+}
+
+.polaroid-events:hover {
+  transform: scale(1.05);
+}
+
+.polaroid-events img {
+  width: 100%;
+  height: auto;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+
+/*# sourceMappingURL=src_app_gallery_page_ddb4b6f4.css.map*/

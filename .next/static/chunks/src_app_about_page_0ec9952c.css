@@ -1,0 +1,93 @@
+/* [project]/src/app/about/page.css [app-client] (css) */
+.about {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6rem;
+  display: flex;
+}
+
+.about p {
+  font-size: 1.25rem;
+}
+
+.about-header {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
+.sections {
+  flex-direction: column;
+  gap: 8rem;
+  max-width: 75%;
+  display: flex;
+}
+
+.section {
+  align-items: center;
+  display: flex;
+}
+
+.section-text {
+  flex: 0 0 40%;
+}
+
+.section-images {
+  flex: 1;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 2rem;
+  display: flex;
+}
+
+.reverse > * {
+  text-align: right;
+  justify-content: flex-start;
+}
+
+.about-connect {
+  text-align: center;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40rem;
+  padding: 4rem;
+  display: flex;
+}
+
+.social-buttons {
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 2rem;
+  display: flex;
+}
+
+.social-button {
+  color: var(--white);
+  justify-content: center;
+  align-items: center;
+  gap: .5rem;
+  font-weight: bold;
+  display: flex;
+}
+
+.discord-button {
+  background-color: #5865f2;
+}
+
+.discord-button:hover {
+  background-color: #4752c4;
+}
+
+.instagram-button {
+  background-color: #e1306c;
+}
+
+.instagram-button:hover {
+  background-color: #c13584;
+}
+
+
+/*# sourceMappingURL=src_app_about_page_0ec9952c.css.map*/

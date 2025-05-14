@@ -1,0 +1,22 @@
+/* [project]/src/app/page.css [app-client] (css) */
+.home {
+  height: calc(100vh - 2 * var(--header-height)  - 2 * var(--outside-padding));
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 3rem;
+  display: flex;
+}
+
+.cta-button {
+  background-color: var(--green);
+  color: var(--white);
+  font-family: Lazydog;
+}
+
+.cta-button:hover {
+  background-color: var(--green-dark);
+}
+
+
+/*# sourceMappingURL=src_app_page_909bcf69.css.map*/

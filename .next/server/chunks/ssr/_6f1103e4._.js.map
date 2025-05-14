@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 7, "column": 0}, "map": {"version":3,"sources":["file:///Users/charlieweinberger/Desktop/Code/AAC-website/src/app/layout.tsx"],"sourcesContent":["import type { Metadata } from \"next\";\nimport \"./globals.css\";\nimport Header from \"@/components/Header\";\n\nexport const metadata: Metadata = {\n  title: \"Anteater Adventure Club\",\n  description:\n    \"Fostering a safe community while making the enjoyment of nature as accessible as possible!\",\n};\n\nexport default function RootLayout({\n  children,\n}: Readonly<{\n  children: React.ReactNode;\n}>) {\n  return (\n    <html lang=\"en\">\n      <body className=\"antialiased\">\n        <Header />\n        {children}\n      </body>\n    </html>\n  );\n}\n"],"names":[],"mappings":";;;;;;;;;;;;;AAIO,MAAM,WAAqB;IAChC,OAAO;IACP,aACE;AACJ;AAEe,SAAS,WAAW,EACjC,QAAQ,EAGR;IACA,qBACE,8OAAC;QAAK,MAAK;kBACT,cAAA,8OAAC;YAAK,WAAU;;8BACd,8OAAC;;;;;gBACA;;;;;;;;;;;;AAIT","debugId":null}},
+    {"offset": {"line": 53, "column": 0}, "map": {"version":3,"sources":["file:///Users/charlieweinberger/Desktop/Code/AAC-website/node_modules/next/src/server/route-modules/app-page/vendored/rsc/react-jsx-dev-runtime.ts"],"sourcesContent":["module.exports = require('../../module.compiled').vendored[\n  'react-rsc'\n].ReactJsxDevRuntime\n"],"names":["module","exports","require","vendored","ReactJsxDevRuntime"],"mappings":";AAAAA,OAAOC,OAAO,GAAGC,QAAQ,4HAAyBC,QAAQ,CACxD,YACD,CAACC,kBAAkB","ignoreList":[0],"debugId":null}}]
+}

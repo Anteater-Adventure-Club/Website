@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 7, "column": 0}, "map": {"version":3,"sources":["file:///Users/charlieweinberger/Desktop/Code/AAC-website/src/app/membership/page.tsx"],"sourcesContent":["\"use client\";\n\nimport \"./page.css\";\n\nexport default function Membership() {\n  return (\n    <div className=\"membership-main\">\n      <h1>What is AAC Membership?</h1>\n\n      <div className=\"membership-boxes\">\n        <div className=\"membership-box box1\">\n          <h3>1. Access to quarterly retreat</h3>\n        </div>\n        <div className=\"membership-box box2\">\n          <h3>2. Priority car ride assignnment</h3>\n        </div>\n        <div className=\"membership-box box3\">\n          <h3>3. Helps us create more amazing events</h3>\n        </div>\n      </div>\n    </div>\n  );\n}\n"],"names":[],"mappings":";;;;AAAA;;;AAIe,SAAS;IACtB,qBACE,6LAAC;QAAI,WAAU;;0BACb,6LAAC;0BAAG;;;;;;0BAEJ,6LAAC;gBAAI,WAAU;;kCACb,6LAAC;wBAAI,WAAU;kCACb,cAAA,6LAAC;sCAAG;;;;;;;;;;;kCAEN,6LAAC;wBAAI,WAAU;kCACb,cAAA,6LAAC;sCAAG;;;;;;;;;;;kCAEN,6LAAC;wBAAI,WAAU;kCACb,cAAA,6LAAC;sCAAG;;;;;;;;;;;;;;;;;;;;;;;AAKd;KAlBwB","debugId":null}}]
+}

@@ -1,0 +1,30 @@
+/* [project]/src/app/membership/page.css [app-client] (css) */
+.membership-boxes {
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 2rem;
+  display: flex;
+}
+
+.membership-box {
+  border-radius: 1rem;
+  justify-content: center;
+  align-items: center;
+  height: 8rem;
+  display: flex;
+}
+
+.box1 {
+  background-color: #d6fcff;
+}
+
+.box2 {
+  background-color: #d6e4ff;
+}
+
+.box3 {
+  background-color: #dcffd6;
+}
+
+
+/*# sourceMappingURL=src_app_membership_page_ab107f90.css.map*/

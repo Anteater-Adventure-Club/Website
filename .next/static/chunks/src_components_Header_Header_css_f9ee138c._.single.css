@@ -1,0 +1,17 @@
+/* [project]/src/components/Header/Header.css [app-client] (css) */
+header {
+  background-color: var(--green);
+  color: var(--white);
+  height: var(--header-height);
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  display: flex;
+}
+
+nav {
+  gap: 2rem;
+  display: flex;
+}
+
+/*# sourceMappingURL=src_components_Header_Header_css_f9ee138c._.single.css.map*/

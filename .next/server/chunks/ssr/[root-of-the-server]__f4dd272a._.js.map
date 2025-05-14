@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 39, "column": 0}, "map": {"version":3,"sources":["file:///Users/charlieweinberger/Desktop/Code/AAC-website/src/components/Header.tsx"],"sourcesContent":["\"use client\";\n\nimport Link from \"next/link\";\n\n// add logo?\n\nexport default function Header() {\n  return (\n    <header>\n      <nav>\n        <ul>\n          <li>\n            <Link href=\"/\">Home</Link>\n          </li>\n          <li>\n            <Link href=\"/about\">About</Link>\n          </li>\n          <li>\n            <Link href=\"/board\">Board</Link>\n          </li>\n          <li>\n            <Link href=\"/membership\">Membership</Link>\n          </li>\n          <li>\n            <Link href=\"/gallery\">Gallery</Link>\n          </li>\n        </ul>\n      </nav>\n    </header>\n  );\n}\n"],"names":[],"mappings":";;;;AAEA;AAFA;;;AAMe,SAAS;IACtB,qBACE,8OAAC;kBACC,cAAA,8OAAC;sBACC,cAAA,8OAAC;;kCACC,8OAAC;kCACC,cAAA,8OAAC,4JAAA,CAAA,UAAI;4BAAC,MAAK;sCAAI;;;;;;;;;;;kCAEjB,8OAAC;kCACC,cAAA,8OAAC,4JAAA,CAAA,UAAI;4BAAC,MAAK;sCAAS;;;;;;;;;;;kCAEtB,8OAAC;kCACC,cAAA,8OAAC,4JAAA,CAAA,UAAI;4BAAC,MAAK;sCAAS;;;;;;;;;;;kCAEtB,8OAAC;kCACC,cAAA,8OAAC,4JAAA,CAAA,UAAI;4BAAC,MAAK;sCAAc;;;;;;;;;;;kCAE3B,8OAAC;kCACC,cAAA,8OAAC,4JAAA,CAAA,UAAI;4BAAC,MAAK;sCAAW;;;;;;;;;;;;;;;;;;;;;;;;;;;AAMlC","debugId":null}}]
+}

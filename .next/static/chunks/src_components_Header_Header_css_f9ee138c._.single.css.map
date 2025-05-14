@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/src/components/Header/Header.css"],"sourcesContent":["/* Same as footer, for now */\nheader {\n  background-color: var(--green);\n  color: var(--white);\n  font-weight: bold;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  height: var(--header-height);\n}\n\nnav {\n  display: flex;\n  gap: 2rem;\n}\n"],"names":[],"mappings":"AACA;;;;;;;;;;AAUA"}}]
+}
