@@ -4,7 +4,7 @@ import "./page.css";
 
 export default function Membership() {
   return (
-    <main className="membership-main">
+    <div className="membership-main">
       <h1>What is AAC Membership?</h1>
 
       <div>
@@ -18,6 +18,6 @@ export default function Membership() {
           <h3>3. Helps us create more amazing events</h3>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

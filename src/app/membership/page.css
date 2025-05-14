@@ -1,8 +1,3 @@
-.membership-main h1 {
-  font-family: "LazyDog";
-  font-size: 3rem;
-}
-
 .membership-box {
   width: 100%;
   height: 250px;
@@ -21,13 +16,13 @@
 /* Background Colors */
 .box1 {
   background-color: #d6fcff;
-  font-family: "LazyDog";
+  font-family: "Lazydog";
 }
 .box2 {
   background-color: #d6e4ff;
-  font-family: "LazyDog";
+  font-family: "Lazydog";
 }
 .box3 {
   background-color: #dcffd6;
-  font-family: "LazyDog";
+  font-family: "Lazydog";
 }

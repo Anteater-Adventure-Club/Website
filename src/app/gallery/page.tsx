@@ -20,7 +20,7 @@ export default function EventGallery() {
   };
 
   return (
-    <main className="event-gallery-main">
+    <div className="event-gallery-main">
       <h1>Check Out our Previous Events!</h1>
 
       <div className="polaroid-gallery-events">
@@ -65,6 +65,6 @@ export default function EventGallery() {
           </div>
         ))}
       </div>
-    </main>
+    </div>
   );
 }

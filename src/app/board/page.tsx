@@ -87,7 +87,7 @@ export default function Board() {
   };
 
   return (
-    <main className="meet_the_board-main">
+    <div className="meet_the_board-main">
       <h1>Meet the Board!</h1>
       <h6>Click to learn more about each officer!</h6>
 
@@ -107,6 +107,6 @@ export default function Board() {
           onClick={() => closePopup(activePopup)}
         ></div>
       )}
-    </main>
+    </div>
   );
 }

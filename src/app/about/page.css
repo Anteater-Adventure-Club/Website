@@ -1,103 +1,102 @@
-.about-main h1 {
-  font-family: "Lazydog";
-  font-size: 4.2rem; /* or try 4rem, 2.5rem, etc. */
-  text-align: left;
-  margin-left: 0rem;
+.about {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4rem;
+
+  h2 {
+    font-family: "Lazydog";
+    font-size: 2.5rem;
+  }
+
+  p {
+    font-size: 1.25rem;
+  }
 }
 
-.about-main h2 {
-  margin-top: 1.5rem;
-  font-size: 2.2rem; /* or try 4rem, 2.5rem, etc. */
-  font-family: "Lazydog";
+.about-header {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
-.about-main p {
-  font-family: "Chivo Regular";
-  font-size: 1.2rem;
+/* Event sections */
+
+.sections {
+  border: 1px solid red;
+  display: flex;
+  flex-direction: column;
+  gap: 8rem;
+  max-width: 80%;
 }
+
+.section {
+  border: 1px solid blue;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.right-align {
+  text-align: right;
+}
+
+.section-text {
+  border: 1px solid purple;
+  flex: 0 0 40%;
+}
+
+/* TODO images opposite of text */
+
+.section-images {
+  border: 1px solid green;
+  flex: 1;
+  display: flex;
+  /* justify-content: center; */
+  align-items: center;
+  gap: 2rem;
+}
+
+/* Social/Connect */
 
 .about-connect {
-  margin-top: 4rem;
-  font-family: "Lazydog";
-  font-size: 2.2rem; /* or try 4rem, 2.5rem, etc. */
+  padding: 2rem;
+  width: 40rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   text-align: center;
-}
-
-.about-connect p {
-  font-family: "Chivo Regular";
-  font-size: 1rem; /* or try 4rem, 2.5rem, etc. */
-  padding-left: 25rem;
-  padding-right: 25rem;
 }
 
 .social-buttons {
   display: flex;
   justify-content: center;
-  gap: 1.5rem;
+  gap: 2rem;
   margin-top: 2rem;
 }
 
 .social-button {
-  font-family: "Segoe UI", sans-serif;
-  /* font-family: "Chivo Regular"; */
-  font-size: 1rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: 5px;
-  text-decoration: none;
-  color: white;
+  color: var(--white);
   font-weight: bold;
-  transition: background-color 0.3s;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
 }
 
-/* Specific colors for Discord and Instagram */
 .discord-button {
-  background-color: #5865f2; /* Discord*/
-}
-
-.discord-button:hover {
-  background-color: #4752c4;
+  background-color: #5865f2;
+  &:hover {
+    background-color: #4752c4;
+  }
 }
 
 .instagram-button {
-  background-color: #e1306c; /* Instagram*/
-}
-
-.instagram-button:hover {
-  background-color: #c13584;
-}
-
-/* */
-
-.section-wrapper {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  padding-top: 4rem;
-  padding-bottom: 4rem;
-}
-
-.section-wrapper.reverse {
-  flex-direction: row-reverse; /* Reverses the order: images on the left, content on the right */
-}
-
-.section-content {
-  max-width: 600px; /* Adjust width as needed */
-  padding-left: 2rem;
-  padding-right: 2rem;
-  margin-top: 2rem;
-}
-
-.section-image {
-  margin-left: 2.9rem;
-  height: auto;
-}
-
-.section-content.right-align {
-  margin-left: auto;
-  margin-right: 2rem; /* pushes it to the right */
-  text-align: right;
+  background-color: #e1306c;
+  &:hover {
+    background-color: #c13584;
+  }
 }

@@ -1,5 +1,10 @@
+/* Same as header, for now */
 footer {
-  text-align: center;
-  padding: 1rem;
-  margin-top: 3rem;
+  background-color: var(--green);
+  color: var(--white);
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--header-height);
 }

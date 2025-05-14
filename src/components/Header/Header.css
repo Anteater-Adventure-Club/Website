@@ -1,23 +1,15 @@
+/* Same as footer, for now */
 header {
-  background-color: #2e8b57;
-  color: #ffffff;
-  padding: 0;
-  height: 70px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-nav ul {
-  list-style: none;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-nav a {
-  color: white;
-  text-decoration: none;
+  background-color: var(--green);
+  color: var(--white);
   font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--header-height);
+}
+
+nav {
+  display: flex;
+  gap: 2rem;
 }

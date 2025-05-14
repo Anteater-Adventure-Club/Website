@@ -1,55 +1,67 @@
 @import "tailwindcss";
 
-/* Global styles */
+/* Global CSS variables */
 
 :root {
-  --background: #fff6eb;
-  --text: #333;
+  --tan: #fff6eb;
+  --green: #2e8b57;
+  --green-dark: #256e47;
+  --white: #fff;
+  --black: #333;
+  
+  --header-height: 4rem;
+  --outside-padding: 2rem;
 }
+
+/* Fonts */
+
+@font-face {
+  font-family: "Lazydog";
+  src: url("/fonts/Lazydog.otf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Chivo";
+  src: url("/fonts/Chivo-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Chivo";
+  src: url("/fonts/Chivo-Italic.ttf") format("truetype");
+  font-weight: normal;
+  font-style: italic; /* Italic */
+}
+
+/* Content */
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: "Segoe UI", sans-serif;
+  font-family: "Chivo";
   line-height: 1.6;
-  height: 100%;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
 }
 
 main {
-  padding: 2rem;
+  background: var(--tan);
+  color: var(--black);
+  min-height: calc(100vh - 2 * var(--outside-padding));
+  padding: var(--outside-padding);
 }
 
 h1 {
+  font-family: "Lazydog";
+  font-size: 4rem;
   text-align: center;
 }
 
-/* Font */
+/* Components */
 
-@font-face {
-  font-family: "LazyDog";
-  src: url("@/../public/fonts/Lazydog.otf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Chivo Regular";
-  src: url("@/../public/fonts/Chivo-VariableFont_wght.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Chivo Italics";
-  src: url("@/../public/fonts/Chivo-Italic-VariableFont_wght.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
+.button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 5px;
+  transition: background-color 0.2s;
 }
 
 /* Polaroid */
@@ -91,7 +103,7 @@ h1 {
 }
 
 .role-font {
-  font-family: "Chivo Regular";
+  font-family: "Chivo";
   font-size: 1.1em;
 }
 

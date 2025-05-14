@@ -1,10 +1,5 @@
-.meet_the_board-main h1 {
-  font-family: "Lazydog";
-  font-size: 4.2rem; /* or try 4rem, 2.5rem, etc. */
-}
-
 .meet_the_board-main h6 {
-  font-family: "Chivo Regular";
+  font-family: "Chivo";
   font-size: 1.5rem; /* or try 4rem, 2.5rem, etc. */
   text-align: center;
 }

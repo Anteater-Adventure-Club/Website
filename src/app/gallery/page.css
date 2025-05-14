@@ -1,8 +1,3 @@
-.event-gallery-main h1 {
-  font-family: "Lazydog";
-  font-size: 3.5rem; /* or try 4rem, 2.5rem, etc. */
-}
-
 .polaroid-gallery-events {
   display: grid;
   grid-template-columns: repeat(3, 1fr); /* 4 cards per row */
