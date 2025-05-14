@@ -1,3 +1,5 @@
+"use client";
+
 // add links to discord, instagram, linktree, and maybe email
 // add logo
 // add mission statement

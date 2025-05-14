@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 
@@ -25,15 +27,15 @@ export default function About() {
           <Image
             src="/images/hike_unknown.jpg"
             alt="Unknown Hike"
-            width="300"
-            height="300"
+            width={300}
+            height={300}
             className="section-image"
           />
           <Image
             src="/images/laguna_hike.jpg"
             alt="Laguna Hike"
-            width="300"
-            height="300"
+            width={300}
+            height={300}
             className="section-image"
           />
         </div>
@@ -42,15 +44,15 @@ export default function About() {
           <Image
             src="/images/san_diego.JPG"
             alt="San Diego Exploration"
-            width="300"
-            height="300"
+            width={300}
+            height={300}
             className="section-image"
           />
           <Image
             src="/images/la_city.jpg"
             alt="LA Exploration"
-            width="300"
-            height="300"
+            width={300}
+            height={300}
             className="section-image"
           />
 
@@ -82,15 +84,15 @@ export default function About() {
           <Image
             src="/images/death_valley.jpg"
             alt="Death Valley"
-            width="300"
-            height="300"
+            width={300}
+            height={300}
             className="section-image"
           />
           <Image
             src="/images/sequoia.jpg"
             alt="Sequoia"
-            width="300"
-            height="300"
+            width={300}
+            height={300}
             className="section-image"
           />
         </div>
@@ -113,8 +115,8 @@ export default function About() {
           <Image
             src="/logos/Discord.svg"
             alt="Discord Logo"
-            width="20"
-            height="20"
+            width={20}
+            height={20}
           />
           Join Discord
         </Link>
@@ -126,8 +128,8 @@ export default function About() {
           <Image
             src="/logos/instagram_white.svg"
             alt="Instagram Logo"
-            width="20"
-            height="20"
+            width={20}
+            height={20}
           />
           Follow on Instagram
         </Link>

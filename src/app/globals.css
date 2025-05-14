@@ -241,7 +241,6 @@ h1 {
 
 .section-image {
   margin-left: 2.9rem;
-  max-width: 300px;
   height: auto;
 }
 
@@ -340,8 +339,6 @@ h1 {
 }
 
 .instagram-icon {
-  width: 55px;
-  height: 40px;
   transition: transform 0.2s ease;
 }
 
