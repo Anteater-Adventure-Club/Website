@@ -21,13 +21,12 @@ const PolaroidCard = ({
       <Image
         src={`/images/board/${member.id}.jpg`}
         alt={member.name}
-        width={300}
-        height={300}
+        width={1000}
+        height={0}
       />
-      <div className="caption">
-        <span className="name-font">{member.name}</span>
-        <br />
-        <span className="role-font">{member.role}</span>
+      <div className="polaroid-caption">
+        <h3>{member.name}</h3>
+        <p>{member.role}</p>
       </div>
     </div>
   );
@@ -46,9 +45,9 @@ const PopupDetails = ({
         <span className="close" onClick={() => closePopup(member.id)}>
           &times;
         </span>
-        <span className={`name-font ${member.id}-name`}>{member.name}</span>
+        <h3 className={`${member.id}-name`}>{member.name}</h3>
         <br />
-        <span className="role-font">{member.role}</span>
+        <p>{member.role}</p>
         <h3>Major</h3>
         <p>{member.major}</p>
         <h3>Why I {member.id === "aristani" ? "created" : "joined"} AAC</h3>
@@ -87,9 +86,11 @@ export default function Board() {
   };
 
   return (
-    <div className="meet_the_board-main">
-      <h1>Meet the Board!</h1>
-      <h6>Click to learn more about each officer!</h6>
+    <div>
+      <div className="board-header">
+        <h1>Meet the Board!</h1>
+        <h4>Click to learn more about each officer!</h4>
+      </div>
 
       <div className="polaroid-gallery">
         {boardMembers.map((member) => (

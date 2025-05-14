@@ -4,10 +4,6 @@
   justify-content: center;
   align-items: center;
   gap: 6rem;
-
-  p {
-    font-size: 1.25rem;
-  }
 }
 
 .about-header {

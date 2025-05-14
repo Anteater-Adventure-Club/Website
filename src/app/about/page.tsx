@@ -10,10 +10,10 @@ export default function About() {
       {/* Header */}
       <div className="about-header">
         <h1>Our Mission...</h1>
-        <p>
+        <h4>
           Fostering a sense of community while making nature as accessible as
           possible!
-        </p>
+        </h4>
       </div>
 
       <div className="sections">
@@ -21,11 +21,11 @@ export default function About() {
         <div className="section">
           <div className="section-text">
             <h2>Hikes</h2>
-            <p>
+            <h4>
               Explore weekly hikes across Orange County and Southern California
               — scenic trails, great company, and adventure starting right here
               at UCI
-            </p>
+            </h4>
           </div>
           <div className="section-images">
             <Image
@@ -65,11 +65,11 @@ export default function About() {
           </div>
           <div className="section-text">
             <h2>City Exploration</h2>
-            <p>
+            <h4>
               Adventure isn&apos;t just limited to nature — join us on a city
               exploration, where we try new food, explore museums, and feel the
               rush of a new city
-            </p>
+            </h4>
           </div>
         </div>
 
@@ -77,12 +77,12 @@ export default function About() {
         <div className="section">
           <div className="section-text">
             <h2>Quarterly Retreats</h2>
-            <p>
+            <h4>
               Every quarter, the club goes on a weekend retreat, often the
               highlight of the quarter for many of our members. Past retreat
               locations include national parks like Sequoia and Death Valley,
               lakes like Lake Arrowhead, and more!
-            </p>
+            </h4>
           </div>
           <div className="section-images">
             <Image
@@ -106,10 +106,10 @@ export default function About() {
       {/* Socials */}
       <div className="about-connect">
         <h2>Join the Club!</h2>
-        <p>
+        <h4>
           Our primary form of communication is our club Discord server, but we
           also promote all of our events on our club Instagram.
-        </p>
+        </h4>
         <div className="social-buttons">
           <Link
             href="https://discord.gg/YOUR_DISCORD_LINK"

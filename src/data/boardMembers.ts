@@ -11,6 +11,15 @@ const boardMembers: BoardMember[] = [
     instagram: "https://instagram.com/aristanii/",
   },
   {
+    id: "jason",
+    name: "Jason Zenarosa",
+    role: "Vice President",
+    major: "Computer Science",
+    whyJoined: "",
+    favoriteMemory: "",
+    instagram: "https://www.instagram.com/jsnznrs/",
+  },
+  {
     id: "alexis",
     name: "Alexis Ibarra",
     role: "General Secretary",
@@ -21,15 +30,15 @@ const boardMembers: BoardMember[] = [
     instagram: "https://www.instagram.com/freeform.ond/",
   },
   {
-    id: "lokesh",
-    name: "Lokesh Sharma",
-    role: "Webmaster",
-    major: "Computer Science",
+    id: "daron",
+    name: "Daron Kaloustian",
+    role: "Treasurer",
+    major: "Business Economics",
     whyJoined:
-      "I was looking to make new friends my first quarter at UCI and as a freshman I found everyone in AAC super welcoming, outgoing, and of course adventurous! After a few meetings and picnics I felt like I found a solid group of friends!",
+      "I like nature so much and have grown to like it even more with the club.",
     favoriteMemory:
-      "Walking around Las Vegas at 3AM with the club during our Fall '23 retreat!",
-    instagram: "https://www.instagram.com/lakeshoreee/",
+      "Random outings to yum restaurants and outings to the beach.",
+    instagram: "https://www.instagram.com/daron_kal/",
   },
   {
     id: "thomas",
@@ -54,37 +63,26 @@ const boardMembers: BoardMember[] = [
     instagram: "https://www.instagram.com/bealiberty/",
   },
   {
-    id: "daron",
-    name: "Daron Kaloustian",
-    role: "Treasurer",
-    major: "Business Economics",
+    id: "lokesh",
+    name: "Lokesh Sharma",
+    role: "Webmaster",
+    major: "Computer Science",
     whyJoined:
-      "I like nature so much and have grown to like it even more with the club.",
+      "I was looking to make new friends my first quarter at UCI and as a freshman I found everyone in AAC super welcoming, outgoing, and of course adventurous! After a few meetings and picnics I felt like I found a solid group of friends!",
     favoriteMemory:
-      "Random outings to yum restaurants and outings to the beach.",
-    instagram: "https://www.instagram.com/daron_kal/",
+      "Walking around Las Vegas at 3AM with the club during our Fall '23 retreat!",
+    instagram: "https://www.instagram.com/lakeshoreee/",
   },
   {
     id: "charlie",
     name: "Charlie Weinberger",
-    role: "General Officer & Co-Webmaster",
+    role: "Webmaster",
     major: "Computer Science",
     whyJoined:
       "I joined the club to meet new people outside of my major and participate in fun outdoor events that get me to leave campus and explore the world!",
     favoriteMemory:
       "Going hiking and exploring sand dunes in the desert with friends at our 2025 winter quarter Death Valley retreat!",
     instagram: "https://www.instagram.com/charliebrown364/",
-  },
-  {
-    id: "ryan",
-    name: "Ryan Fenstermacher",
-    role: "General Officer",
-    major: "Psychological Science",
-    whyJoined:
-      "I wanted to break out of Irvine and spend more time exploring the nature and communities in Southern California!",
-    favoriteMemory:
-      "Going to Palm Springs after visiting the Salton Sea and getting stuck in a Christmas parade😭.",
-    instagram: "https://www.instagram.com/rfenstermac/",
   },
   {
     id: "kristina",
@@ -98,14 +96,17 @@ const boardMembers: BoardMember[] = [
     instagram: "https://www.instagram.com/qu.kristina/",
   },
   {
-    id: "jason",
-    name: "Jason Zenarosa",
-    role: "Vice President",
-    major: "Computer Science",
-    whyJoined: "",
-    favoriteMemory: "",
-    instagram: "https://www.instagram.com/jsnznrs/?__d=1%2F",
+    id: "ryan",
+    name: "Ryan Fenstermacher",
+    role: "General Officer",
+    major: "Psychological Science",
+    whyJoined:
+      "I wanted to break out of Irvine and spend more time exploring the nature and communities in Southern California!",
+    favoriteMemory:
+      "Going to Palm Springs after visiting the Salton Sea and getting stuck in a Christmas parade😭.",
+    instagram: "https://www.instagram.com/rfenstermac/",
   },
+  // Liam? Tristan? anyone else?
 ];
 
 export default boardMembers;

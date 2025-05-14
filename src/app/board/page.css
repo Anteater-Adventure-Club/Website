@@ -1,10 +1,6 @@
-.meet_the_board-main h6 {
-  font-family: "Chivo";
-  font-size: 1.5rem; /* or try 4rem, 2.5rem, etc. */
+.board-header {
   text-align: center;
 }
-
-/* Instagram Icon */
 
 .instagram-link {
   margin-top: 1.5rem;
@@ -13,10 +9,9 @@
 
 .instagram-icon {
   transition: transform 0.2s ease;
-}
-
-.instagram-icon:hover {
-  transform: scale(1.15);
+  &:hover {
+    transform: scale(1.15);
+  }
 }
 
 /* ARISTANI */
@@ -26,7 +21,7 @@
   border-radius: 1rem;
 }
 
-.name-font.aristani-name {
+.aristani-name {
   color: #ffadad;
   font-size: 30px;
 }
@@ -38,7 +33,7 @@
   border-radius: 1rem;
 }
 
-.name-font.alexis-name {
+.alexis-name {
   color: #ffca85;
   font-size: 30px;
 }
@@ -50,7 +45,7 @@
   border-radius: 1rem;
 }
 
-.name-font.lokesh-name {
+.lokesh-name {
   color: #85afff;
   font-size: 30px;
 }
@@ -62,7 +57,7 @@
   border-radius: 1rem;
 }
 
-.name-font.thomas-name {
+.thomas-name {
   color: #d5e000;
   font-size: 30px;
 }
@@ -74,7 +69,7 @@
   border-radius: 1rem;
 }
 
-.name-font.sofia-name {
+.sofia-name {
   color: #97ff85;
   font-size: 30px;
 }
@@ -86,7 +81,7 @@
   border-radius: 1rem;
 }
 
-.name-font.daron-name {
+.daron-name {
   color: #9785ff;
   font-size: 30px;
 }
@@ -98,7 +93,7 @@
   border-radius: 1rem;
 }
 
-.name-font.charlie-name {
+.charlie-name {
   color: #00d1e0;
   font-size: 30px;
 }
@@ -110,7 +105,7 @@
   border-radius: 1rem;
 }
 
-.name-font.ryan-name {
+.ryan-name {
   color: #ffadff;
   font-size: 30px;
 }
@@ -122,7 +117,7 @@
   border-radius: 1rem;
 }
 
-.name-font.jason-name {
+.jason-name {
   color: #ffca85;
   font-size: 30px;
 }
@@ -134,7 +129,7 @@
   border-radius: 1rem;
 }
 
-.name-font.kristina-name {
+.kristina-name {
   color: #ffadad;
   font-size: 30px;
 }

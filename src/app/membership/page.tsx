@@ -4,7 +4,7 @@ import "./page.css";
 
 export default function Membership() {
   return (
-    <div className="membership-main">
+    <div>
       <h1>What is AAC Membership?</h1>
 
       <div className="membership-boxes">

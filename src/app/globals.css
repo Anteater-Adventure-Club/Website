@@ -49,23 +49,24 @@ main {
   padding: var(--outside-padding);
 }
 
-h1,
-h2,
-h3 {
-  font-family: "Lazydog";
-}
-
 h1 {
+  font-family: "Lazydog";
   font-size: 4rem;
   text-align: center;
 }
 
 h2 {
+  font-family: "Lazydog";
   font-size: 2.5rem;
 }
 
 h3 {
+  font-family: "Lazydog";
   font-size: 1.5rem;
+}
+
+h4 {
+  font-size: 1.25rem;
 }
 
 /* Components */
@@ -80,43 +81,31 @@ h3 {
 
 .polaroid-gallery {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 4 cards per row */
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 2rem;
   padding: 2rem;
-  justify-items: center; /* centers each card inside its grid cell */
+  justify-items: center;
 }
 
 .polaroid {
-  max-width: 240px; /* Adjust based on how many per row */
+  max-width: 400px;
   background-color: white;
-  padding: 1rem 1rem 2rem;
+  padding: 1rem;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   text-align: center;
-  border: 1px solid #ccc;
   transition: transform 0.2s;
-  flex-shrink: 0;
+  
+  &:hover {
+    transform: scale(1.05);
+  }
 }
 
-.polaroid:hover {
-  transform: scale(1.05);
-}
-
-.polaroid img {
-  width: 100%;
-  height: auto;
-  display: block;
-  margin-bottom: 1rem;
-}
-
-.name-font {
-  font-family: "Lazydog";
-  font-size: 1.5em;
-}
-
-.role-font {
-  font-family: "Chivo";
-  font-size: 1.1em;
+.polaroid-caption {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 /* Popup modal */
