@@ -1,0 +1,47 @@
+.popup {
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.popup-content {
+  margin: 10% auto;
+  padding: 2rem;
+  border-radius: 1rem;
+  width: 80%;
+  max-width: 600px;
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.popup-buttons {
+  top: 1rem;
+  right: 2rem;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.popup-instagram-icon {
+  width: 1.4rem;
+  transition: transform 0.2s ease;
+  &:hover {
+    transform: scale(1.15);
+  }
+}
+
+.popup-close-icon {
+  cursor: pointer;
+}
+
+.popup-prompt {
+  margin-top: 1rem;
+}

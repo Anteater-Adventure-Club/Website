@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Image from "next/image";
 import events from "@/data/events";
-import "@/components/Polaroid/Polaroid.css";
 
 export default function EventGallery() {
   const [openPopup, setOpenPopup] = useState<PopupState | null>(null);
@@ -27,7 +26,7 @@ export default function EventGallery() {
         {events.map((event) => (
           <div key={event.id}>
             <div
-              className="polaroid"
+              className="polaroid-card"
               onClick={() => handleOpenPopup(event.id, event.popupStyle)}
             >
               <Image
