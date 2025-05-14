@@ -7,7 +7,7 @@ export default function Membership() {
     <div className="membership-main">
       <h1>What is AAC Membership?</h1>
 
-      <div>
+      <div className="membership-boxes">
         <div className="membership-box box1">
           <h3>1. Access to quarterly retreat</h3>
         </div>
