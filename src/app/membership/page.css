@@ -1,0 +1,33 @@
+.membership-main h1 {
+  font-family: "LazyDog";
+  font-size: 3rem;
+}
+
+.membership-box {
+  width: 100%;
+  height: 250px;
+  padding: 2rem;
+  color: rgb(0, 0, 0);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  text-align: center;
+  margin: 2rem 0; /* Vertical Gap*/
+  border-radius: 1rem;
+  box-sizing: border-box;
+}
+
+/* Background Colors */
+.box1 {
+  background-color: #d6fcff;
+  font-family: "LazyDog";
+}
+.box2 {
+  background-color: #d6e4ff;
+  font-family: "LazyDog";
+}
+.box3 {
+  background-color: #dcffd6;
+  font-family: "LazyDog";
+}

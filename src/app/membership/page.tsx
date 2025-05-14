@@ -1,11 +1,13 @@
 "use client";
 
+import "./page.css";
+
 export default function Membership() {
   return (
     <main className="membership-main">
       <h1>What is AAC Membership?</h1>
 
-      <div className="membership-sections">
+      <div>
         <div className="membership-box box1">
           <h3>1. Access to quarterly retreat</h3>
         </div>

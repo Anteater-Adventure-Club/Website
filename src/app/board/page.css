@@ -1,0 +1,145 @@
+.meet_the_board-main h1 {
+  font-family: "Lazydog";
+  font-size: 4.2rem; /* or try 4rem, 2.5rem, etc. */
+}
+
+.meet_the_board-main h6 {
+  font-family: "Chivo Regular";
+  font-size: 1.5rem; /* or try 4rem, 2.5rem, etc. */
+  text-align: center;
+}
+
+/* Instagram Icon */
+
+.instagram-link {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.instagram-icon {
+  transition: transform 0.2s ease;
+}
+
+.instagram-icon:hover {
+  transform: scale(1.15);
+}
+
+/* ARISTANI */
+.popup-content.aristani-style {
+  background-color: #ffebeb;
+  padding: 2rem;
+  border-radius: 1rem;
+}
+
+.name-font.aristani-name {
+  color: #ffadad;
+  font-size: 30px;
+}
+
+/* ALEXIS */
+.popup-content.alexis-style {
+  background-color: #ffedd6;
+  padding: 2rem;
+  border-radius: 1rem;
+}
+
+.name-font.alexis-name {
+  color: #ffca85;
+  font-size: 30px;
+}
+
+/* LOKESH */
+.popup-content.lokesh-style {
+  background-color: #ebf2ff;
+  padding: 2rem;
+  border-radius: 1rem;
+}
+
+.name-font.lokesh-name {
+  color: #85afff;
+  font-size: 30px;
+}
+
+/* THOMAS */
+.popup-content.thomas-style {
+  background-color: #fdffd6;
+  padding: 2rem;
+  border-radius: 1rem;
+}
+
+.name-font.thomas-name {
+  color: #d5e000;
+  font-size: 30px;
+}
+
+/* SOFIA */
+.popup-content.sofia-style {
+  background-color: #eeffeb;
+  padding: 2rem;
+  border-radius: 1rem;
+}
+
+.name-font.sofia-name {
+  color: #97ff85;
+  font-size: 30px;
+}
+
+/* DARON */
+.popup-content.daron-style {
+  background-color: #dcd6ff;
+  padding: 2rem;
+  border-radius: 1rem;
+}
+
+.name-font.daron-name {
+  color: #9785ff;
+  font-size: 30px;
+}
+
+/* CHARLIE */
+.popup-content.charlie-style {
+  background-color: #d6fcff;
+  padding: 2rem;
+  border-radius: 1rem;
+}
+
+.name-font.charlie-name {
+  color: #00d1e0;
+  font-size: 30px;
+}
+
+/* RYAN */
+.popup-content.ryan-style {
+  background-color: #ffebff;
+  padding: 2rem;
+  border-radius: 1rem;
+}
+
+.name-font.ryan-name {
+  color: #ffadff;
+  font-size: 30px;
+}
+
+/* JASON */
+.popup-content.jason-style {
+  background-color: #ffedd6;
+  padding: 2rem;
+  border-radius: 1rem;
+}
+
+.name-font.jason-name {
+  color: #ffca85;
+  font-size: 30px;
+}
+
+/* KRISTINA */
+.popup-content.kristina-style {
+  background-color: #ffebeb;
+  padding: 2rem;
+  border-radius: 1rem;
+}
+
+.name-font.kristina-name {
+  color: #ffadad;
+  font-size: 30px;
+}

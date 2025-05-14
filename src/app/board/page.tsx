@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import boardMembers from "@/data/boardMembers";
+import "./page.css";
 
 const PolaroidCard = ({
   member,

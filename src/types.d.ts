@@ -12,7 +12,7 @@ interface AACEvent {
   id: string;
   name: string;
   date: string;
-  image: string;
+  imageName: string;
   description: string;
   popupStyle: string;
 }

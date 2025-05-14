@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import "./page.css";
 
 export default function About() {
   return (
@@ -25,14 +26,14 @@ export default function About() {
           </div>
           <div className="polariod-hike"></div>
           <Image
-            src="/images/hike_unknown.jpg"
+            src="/images/events/hike_unknown.jpg"
             alt="Unknown Hike"
             width={300}
             height={300}
             className="section-image"
           />
           <Image
-            src="/images/laguna_hike.jpg"
+            src="/images/events/laguna_hike.jpg"
             alt="Laguna Hike"
             width={300}
             height={300}
@@ -42,14 +43,14 @@ export default function About() {
 
         <div className="section-wrapper left_side">
           <Image
-            src="/images/san_diego.JPG"
+            src="/images/events/san_diego.JPG"
             alt="San Diego Exploration"
             width={300}
             height={300}
             className="section-image"
           />
           <Image
-            src="/images/la_city.jpg"
+            src="/images/events/la_city.jpg"
             alt="LA Exploration"
             width={300}
             height={300}
@@ -82,14 +83,14 @@ export default function About() {
             <p>- Death Valley National Park & Las Vegas</p>
           </div>
           <Image
-            src="/images/death_valley.jpg"
+            src="/images/events/death_valley.jpg"
             alt="Death Valley"
             width={300}
             height={300}
             className="section-image"
           />
           <Image
-            src="/images/sequoia.jpg"
+            src="/images/events/sequoia.jpg"
             alt="Sequoia"
             width={300}
             height={300}

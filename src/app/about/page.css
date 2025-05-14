@@ -1,0 +1,103 @@
+.about-main h1 {
+  font-family: "Lazydog";
+  font-size: 4.2rem; /* or try 4rem, 2.5rem, etc. */
+  text-align: left;
+  margin-left: 0rem;
+}
+
+.about-main h2 {
+  margin-top: 1.5rem;
+  font-size: 2.2rem; /* or try 4rem, 2.5rem, etc. */
+  font-family: "Lazydog";
+}
+
+.about-main p {
+  font-family: "Chivo Regular";
+  font-size: 1.2rem;
+}
+
+.about-connect {
+  margin-top: 4rem;
+  font-family: "Lazydog";
+  font-size: 2.2rem; /* or try 4rem, 2.5rem, etc. */
+  text-align: center;
+}
+
+.about-connect p {
+  font-family: "Chivo Regular";
+  font-size: 1rem; /* or try 4rem, 2.5rem, etc. */
+  padding-left: 25rem;
+  padding-right: 25rem;
+}
+
+.social-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.social-button {
+  font-family: "Segoe UI", sans-serif;
+  /* font-family: "Chivo Regular"; */
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 5px;
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Specific colors for Discord and Instagram */
+.discord-button {
+  background-color: #5865f2; /* Discord*/
+}
+
+.discord-button:hover {
+  background-color: #4752c4;
+}
+
+.instagram-button {
+  background-color: #e1306c; /* Instagram*/
+}
+
+.instagram-button:hover {
+  background-color: #c13584;
+}
+
+/* */
+
+.section-wrapper {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+}
+
+.section-wrapper.reverse {
+  flex-direction: row-reverse; /* Reverses the order: images on the left, content on the right */
+}
+
+.section-content {
+  max-width: 600px; /* Adjust width as needed */
+  padding-left: 2rem;
+  padding-right: 2rem;
+  margin-top: 2rem;
+}
+
+.section-image {
+  margin-left: 2.9rem;
+  height: auto;
+}
+
+.section-content.right-align {
+  margin-left: auto;
+  margin-right: 2rem; /* pushes it to the right */
+  text-align: right;
+}

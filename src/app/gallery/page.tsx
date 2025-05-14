@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import events from "@/data/events";
+import "./page.css";
 
 export default function EventGallery() {
   const [openPopup, setOpenPopup] = useState<PopupState | null>(null);
@@ -30,7 +31,7 @@ export default function EventGallery() {
               onClick={() => handleOpenPopup(event.id, event.popupStyle)}
             >
               <Image
-                src={event.image}
+                src={`/images/events/${event.imageName}`}
                 alt={event.name}
                 width={300}
                 height={200}
