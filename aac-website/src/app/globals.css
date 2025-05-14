@@ -209,11 +209,6 @@ h1 {
   transition: background-color 0.3s;
 }
 
-.social-icon {
-  width: 20px;
-  height: 20px;
-}
-
 .meet_the_board-main h1 {
   font-family: "Lazydog";
   font-size: 4.2rem; /* or try 4rem, 2.5rem, etc. */
