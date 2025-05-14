@@ -21,6 +21,7 @@ This is github repository for the club website for the Anteater Adventure Club (
 
 ### Questions
 - [ ] Should our links (discord, instagram, linktree) go in the footer, the membership page, the home page, and/or other pages?
+- [ ] On pages that don't take up the full window height (currently the about/membership/gallery pages), should the footer automatically show, or should it be just below the initial window, requiring a little bit of scrolling to see?
 
 # File Layout
 
