@@ -1,0 +1,151 @@
+@import "tailwindcss";
+
+/* Global CSS variables */
+
+:root {
+  --tan: #fff6eb;
+  --green: #2e8b57;
+  --green-dark: #256e47;
+  --white: #fff;
+  --black: #333;
+
+  --header-height: 4rem;
+  --outside-padding: 2rem;
+}
+
+/* Fonts */
+
+@font-face {
+  font-family: "Lazydog";
+  src: url("/fonts/Lazydog.otf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Chivo";
+  src: url("/fonts/Chivo-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Chivo";
+  src: url("/fonts/Chivo-Italic.ttf") format("truetype");
+  font-weight: normal;
+  font-style: italic; /* Italic */
+}
+
+/* Content */
+
+body {
+  font-family: "Chivo";
+  background: var(--tan);
+}
+
+main {
+  color: var(--black);
+  min-height: calc(100vh - 2 * var(--outside-padding));
+  padding: var(--outside-padding);
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Lazydog";
+}
+
+h1 {
+  font-size: 4rem;
+  text-align: center;
+}
+
+h2 {
+  font-size: 2.5rem;
+}
+
+h3 {
+  font-size: 1.5rem;
+}
+
+/* Components */
+
+.button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 5px;
+  transition: background-color 0.2s;
+}
+
+/* Polaroid */
+
+.polaroid-gallery {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 cards per row */
+  gap: 2rem;
+  padding: 2rem;
+  justify-items: center; /* centers each card inside its grid cell */
+}
+
+.polaroid {
+  max-width: 240px; /* Adjust based on how many per row */
+  background-color: white;
+  padding: 1rem 1rem 2rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  text-align: center;
+  border: 1px solid #ccc;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.polaroid:hover {
+  transform: scale(1.05);
+}
+
+.polaroid img {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.name-font {
+  font-family: "Lazydog";
+  font-size: 1.5em;
+}
+
+.role-font {
+  font-family: "Chivo";
+  font-size: 1.1em;
+}
+
+/* Popup modal */
+
+.popup {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.popup-content {
+  background-color: white;
+  margin: 10% auto;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  position: relative;
+}
+
+.popup .close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  cursor: pointer;
+}

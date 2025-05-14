@@ -1,0 +1,15 @@
+/* Same as footer, for now */
+header {
+  background-color: var(--green);
+  color: var(--white);
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--header-height);
+}
+
+nav {
+  display: flex;
+  gap: 2rem;
+}

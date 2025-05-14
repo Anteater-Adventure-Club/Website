@@ -1,0 +1,24 @@
+.membership-boxes {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.membership-box {
+  height: 8rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 1rem;
+}
+
+.box1 {
+  background-color: #d6fcff;
+}
+.box2 {
+  background-color: #d6e4ff;
+}
+.box3 {
+  background-color: #dcffd6;
+}

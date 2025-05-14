@@ -1,0 +1,91 @@
+.about {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6rem;
+
+  p {
+    font-size: 1.25rem;
+  }
+}
+
+.about-header {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Event sections */
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 8rem;
+  max-width: 75%;
+}
+
+.section {
+  display: flex;
+  align-items: center;
+}
+
+.section-text {
+  flex: 0 0 40%;
+}
+
+.section-images {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 2rem;
+}
+
+.reverse > * {
+  text-align: right;
+  justify-content: flex-start;
+}
+
+/* Social/Connect */
+
+.about-connect {
+  padding: 4rem;
+  width: 40rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.social-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.social-button {
+  color: var(--white);
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.discord-button {
+  background-color: #5865f2;
+  &:hover {
+    background-color: #4752c4;
+  }
+}
+
+.instagram-button {
+  background-color: #e1306c;
+  &:hover {
+    background-color: #c13584;
+  }
+}

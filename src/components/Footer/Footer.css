@@ -1,0 +1,10 @@
+/* Same as header, for now */
+footer {
+  background-color: var(--green);
+  color: var(--white);
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--header-height);
+}

@@ -1,0 +1,17 @@
+.home {
+  height: calc(100vh - 2 * var(--header-height) - 2 * var(--outside-padding));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 3rem;
+}
+
+.cta-button {
+  font-family: "Lazydog";
+  background-color: var(--green);
+  color: var(--white);
+  &:hover {
+    background-color: var(--green-dark);
+  }
+}
