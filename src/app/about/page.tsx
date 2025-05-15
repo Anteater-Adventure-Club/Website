@@ -93,7 +93,7 @@ export default function About() {
               className="section-image"
             />
             <Image
-              src="/images/events/sequoia.JPG"
+              src="/images/events/sequoia.jpg"
               alt="Sequoia"
               width={300}
               height={300}

@@ -53,7 +53,7 @@ const events: AACEvent[] = [
     date: "June 12, 2024",
     description:
       "We went to Sequoia for a weekend trip! It was super fun and we got to see some amazing sights.",
-    imagePath: "/images/events/sequoia.JPG",
+    imagePath: "/images/events/sequoia.jpg",
   },
 ];
 
