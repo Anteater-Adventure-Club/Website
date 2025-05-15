@@ -93,7 +93,7 @@ export default function About() {
               className="section-image"
             />
             <Image
-              src="/images/events/sequoia.jpg"
+              src="/images/events/sequoia.JPG"
               alt="Sequoia"
               width={300}
               height={300}
@@ -116,7 +116,7 @@ export default function About() {
             target="_blank"
           >
             <Image
-              src="/logos/Discord.svg"
+              src="/logos/discord.svg"
               alt="Discord Logo"
               width={20}
               height={20}
