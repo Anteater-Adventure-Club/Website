@@ -9,6 +9,7 @@ const officers: Officer[] = [
     favoriteMemory:
       "Camping in Sequoia since it was the most isolating from the outside world and I had not been there before! Love exploring new places alongside others!",
     instagram: "https://instagram.com/aristanii/",
+    imagePath: "/images/officers/aristani.jpg"
   },
   {
     id: "jason",
@@ -18,6 +19,7 @@ const officers: Officer[] = [
     whyJoined: "",
     favoriteMemory: "",
     instagram: "https://www.instagram.com/jsnznrs/",
+    imagePath: "/images/officers/jason.jpg"
   },
   {
     id: "alexis",
@@ -28,6 +30,7 @@ const officers: Officer[] = [
       "In my second year I really wanted to join a community, and AAC was incredibly welcoming and full of positive energy, and I already loved hiking so it was a great match.",
     favoriteMemory: "Takin a fat nap after the chasm of doom.",
     instagram: "https://www.instagram.com/freeform.ond/",
+    imagePath: "/images/officers/alexis.jpg"
   },
   {
     id: "daron",
@@ -39,6 +42,7 @@ const officers: Officer[] = [
     favoriteMemory:
       "Random outings to yum restaurants and outings to the beach.",
     instagram: "https://www.instagram.com/daron_kal/",
+    imagePath: "/images/officers/daron.jpg"
   },
   {
     id: "thomas",
@@ -50,6 +54,7 @@ const officers: Officer[] = [
     favoriteMemory:
       "The San Diego Farmers market and then going to the Birch Aquarium.",
     instagram: "https://www.instagram.com/tom_the_train67/",
+    imagePath: "/images/officers/thomas.jpg"
   },
   {
     id: "sofia",
@@ -61,6 +66,7 @@ const officers: Officer[] = [
     favoriteMemory:
       "Literally running around, racing each other, on the Death Valley salt flats in Badwater Basin.",
     instagram: "https://www.instagram.com/bealiberty/",
+    imagePath: "/images/officers/sofia.jpg"
   },
   {
     id: "lokesh",
@@ -72,6 +78,7 @@ const officers: Officer[] = [
     favoriteMemory:
       "Walking around Las Vegas at 3AM with the club during our Fall '23 retreat!",
     instagram: "https://www.instagram.com/lakeshoreee/",
+    imagePath: "/images/officers/lokesh.JPG"
   },
   {
     id: "charlie",
@@ -83,6 +90,7 @@ const officers: Officer[] = [
     favoriteMemory:
       "Going hiking and exploring sand dunes in the desert with friends at our 2025 winter quarter Death Valley retreat!",
     instagram: "https://www.instagram.com/charliebrown364/",
+    imagePath: "/images/officers/charlie.jpg"
   },
   {
     id: "kristina",
@@ -94,6 +102,7 @@ const officers: Officer[] = [
     favoriteMemory:
       "Slept under the stars in Joshua Tree and saw the Milky Way for the first time in my life.",
     instagram: "https://www.instagram.com/qu.kristina/",
+    imagePath: "/images/officers/kristina.jpg"
   },
   {
     id: "ryan",
@@ -105,6 +114,7 @@ const officers: Officer[] = [
     favoriteMemory:
       "Going to Palm Springs after visiting the Salton Sea and getting stuck in a Christmas parade😭.",
     instagram: "https://www.instagram.com/rfenstermac/",
+    imagePath: "/images/officers/ryan.jpg"
   },
   // Liam? Tristan? anyone else?
 ];

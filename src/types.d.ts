@@ -6,18 +6,16 @@ interface Officer {
   whyJoined: string;
   favoriteMemory: string;
   instagram: string;
+  imagePath: string;
 }
 
 interface AACEvent {
   id: string;
   name: string;
   date: string;
-  imageName: string;
   description: string;
-  popupStyle: string;
+  imagePath: string;
 }
 
-interface PopupState {
-  id: string;
-  styleClass: string;
-}
+type PolaroidType = Officer | AACEvent;
+type PolaroidTypeName = "officer" | "event";

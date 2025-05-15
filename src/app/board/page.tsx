@@ -2,7 +2,7 @@
 
 import "./page.css";
 import officers from "@/data/officers";
-import Polaroid from "@/components/Polaroid/Polaroid";
+import { PolaroidGallery } from "@/components/Polaroid/Polaroid";
 
 export default function Board() {
   return (
@@ -11,7 +11,7 @@ export default function Board() {
         <h1>Meet the Board!</h1>
         <h4>Click to learn more about each officer!</h4>
       </div>
-      <Polaroid data={officers} />
+      <PolaroidGallery data={officers} dataType="officer" />
     </div>
   );
 }

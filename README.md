@@ -5,10 +5,9 @@ This is github repository for the club website for the Anteater Adventure Club (
 # To Do
 
 ### Tech Stack / Code Organization
-- [ ] Make sure current [Next.js](https://nextjs.org/) version matches original HTML version
-- [ ] Get gallery popup to work, same as how the board popup works
-- [ ] Convert polaroid & popup into shared component(s)
+- [ ] Get event gallery popup to work
 - [ ] Properly set up fonts using [next/fonts](https://nextjs.org/docs/app/getting-started/fonts)
+- [ ] Make sure current [Next.js](https://nextjs.org/) version matches original HTML version
 - [ ] Convert current CSS to [Tailwind CSS](https://tailwindcss.com/) (optional)
 - [ ] Add [shadcn/ui](https://ui.shadcn.com/), or other component library (optional)
 

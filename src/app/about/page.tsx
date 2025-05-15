@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import "./page.css";
 
 export default function About() {
@@ -29,7 +28,7 @@ export default function About() {
           </div>
           <div className="section-images">
             <Image
-              src="/images/events/hike_unknown.jpg"
+              src="/images/events/unknown_hike.jpg"
               alt="Unknown Hike"
               width={300}
               height={300}

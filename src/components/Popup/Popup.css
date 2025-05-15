@@ -14,6 +14,7 @@
   border-radius: 1rem;
   width: 80%;
   max-width: 600px;
+  background-color: var(--white);
 }
 
 .popup-header {
@@ -44,4 +45,94 @@
 
 .popup-prompt {
   margin-top: 1rem;
+}
+
+/* Aristani */
+.popup-background-aristani {
+  background-color: #ffebeb;
+}
+
+.popup-title-aristani {
+  color: #ffadad;
+}
+
+/* Alexis */
+.popup-background-alexis {
+  background-color: #ffedd6;
+}
+
+.popup-title-alexis {
+  color: #ffca85;
+}
+
+/* Lokesh */
+.popup-background-lokesh {
+  background-color: #ebf2ff;
+}
+
+.popup-title-lokesh {
+  color: #85afff;
+}
+
+/* Thomas */
+.popup-background-thomas {
+  background-color: #fdffd6;
+}
+
+.popup-title-thomas {
+  color: #d5e000;
+}
+
+/* Sofia */
+.popup-background-sofia {
+  background-color: #eeffeb;
+}
+
+.popup-title-sofia {
+  color: #97ff85;
+}
+
+/* Daron */
+.popup-background-daron {
+  background-color: #dcd6ff;
+}
+
+.popup-title-daron {
+  color: #9785ff;
+}
+
+/* Charlie */
+.popup-background-charlie {
+  background-color: #d6fcff;
+}
+
+.popup-title-charlie {
+  color: #00d1e0;
+}
+
+/* Ryan */
+.popup-background-ryan {
+  background-color: #ffebff;
+}
+
+.popup-title-ryan {
+  color: #ffadff;
+}
+
+/* Jason */
+.popup-background-jason {
+  background-color: #ffedd6;
+}
+
+.popup-title-jason {
+  color: #ffca85;
+}
+
+/* Kristina */
+.popup-background-kristina {
+  background-color: #ffebeb;
+}
+
+.popup-title-kristina {
+  color: #ffadad;
 }

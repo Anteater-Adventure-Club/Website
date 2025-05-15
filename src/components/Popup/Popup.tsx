@@ -4,64 +4,13 @@ import Link from "next/link";
 import { X } from "lucide-react";
 import "./Popup.css";
 
-interface Colors {
-  [key: string]: {
-    backgroundColor: string;
-    color: string;
-  };
+interface PopupProps {
+  datum: PolaroidType;
+  dataType: PolaroidTypeName;
+  closePopup: () => void;
 }
 
-const colors: Colors = {
-  aristani: {
-    backgroundColor: "#ffebeb",
-    color: "#ffadad",
-  },
-  alexis: {
-    backgroundColor: "#ffedd6",
-    color: "#ffca85",
-  },
-  lokesh: {
-    backgroundColor: "#ebf2ff",
-    color: "#85afff",
-  },
-  thomas: {
-    backgroundColor: "#fdffd6",
-    color: "#d5e000",
-  },
-  sofia: {
-    backgroundColor: "#eeffeb",
-    color: "#97ff85",
-  },
-  daron: {
-    backgroundColor: "#dcd6ff",
-    color: "#9785ff",
-  },
-  charlie: {
-    backgroundColor: "#d6fcff",
-    color: "#00d1e0",
-  },
-  ryan: {
-    backgroundColor: "#ffebff",
-    color: "#ffadff",
-  },
-  jason: {
-    backgroundColor: "#ffedd6",
-    color: "#ffca85",
-  },
-  kristina: {
-    backgroundColor: "#ffebeb",
-    color: "#ffadad",
-  },
-};
-
-export default function Popup({
-  officer,
-  closePopup,
-}: {
-  officer: Officer;
-  closePopup: () => void;
-}) {
-
+export default function Popup({ datum, dataType, closePopup }: PopupProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -74,15 +23,35 @@ export default function Popup({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [closePopup]);
 
+  if (dataType === "event") {
+    const event = datum as AACEvent;
+    return (
+      <div className="popup">
+        <div className="popup-content" ref={ref}>
+          <div className="popup-header">
+            <h3>{event.name}</h3>
+            <div className="popup-buttons">
+              <X className="popup-close-icon" onClick={() => closePopup()} />
+            </div>
+          </div>
+          <div>
+            <h3 className="popup-prompt">Date</h3>
+            <p>{event.date}</p>
+            <h3 className="popup-prompt">Event Info</h3>
+            <p>{event.description}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const officer = datum as Officer;
+
   return (
     <div className="popup">
-      <div
-        className="popup-content"
-        style={{ backgroundColor: colors[officer.id].backgroundColor }}
-        ref={ref}
-      >
+      <div className={`popup-content popup-background-${officer.id}`} ref={ref}>
         <div className="popup-header">
-          <h3 style={{ color: colors[officer.id].color }}>{officer.name}</h3>
+          <h3 className={`popup-title-${officer.id}`}>{officer.name}</h3>
           <div className="popup-buttons">
             <Link href={officer.instagram} target="_blank" rel="noopener">
               <Image
