@@ -14,6 +14,7 @@ interface AACEvent {
   name: string;
   date: string;
   description: string;
+  signUpLink?: string;
   imagePath: string;
 }
 

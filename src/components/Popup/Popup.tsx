@@ -39,6 +39,22 @@ export default function Popup({ datum, dataType, closePopup }: PopupProps) {
             <p>{event.date}</p>
             <h3 className="popup-prompt">Event Info</h3>
             <p>{event.description}</p>
+
+            {/*For future events show sign-up link */}
+            {event.signUpLink && (
+              <>
+                <h3 className="popup-prompt">Sign-Up here:</h3>
+                <a
+                  href={event.signUpLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="signup-link"
+                >
+                  Click here to sign up!
+            </a>
+          </>
+        )}
+
           </div>
         </div>
       </div>

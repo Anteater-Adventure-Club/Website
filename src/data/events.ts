@@ -1,5 +1,14 @@
 const events: AACEvent[] = [
   {
+    id: "8",
+    name: "Getty Genter + Japanese Food Festival",
+    date: "May 17, 2025",
+    description:
+      "We're going to be exploring the Getty Center in the day and then heading down to Santa Monica for tasty Japanese food at the Konomon Festival!",
+    imagePath: "/images/events/getty_center_and_japanese_food_fest.jpg",
+    signUpLink: "https://docs.google.com/forms/d/e/1FAIpQLSf-Hs11m6IdueX0450r_QI6bDvrEFCEDWB7zR_VInHre9H_hQ/viewform?usp=header",
+  },
+  {
     id: "1",
     name: "AAC x UCR Black Star Canyon Falls",
     date: "May 10, 2025",
