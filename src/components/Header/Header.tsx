@@ -9,8 +9,8 @@ export default function Header() {
       <nav>
         <Link href="/">Home</Link>
         <Link href="/about">About</Link>
-        <Link href="/board">Board</Link>
         <Link href="/gallery">Gallery</Link>
+        <Link href="/board">Board</Link>
         <Link href="/membership">Membership</Link>
       </nav>
     </header>
