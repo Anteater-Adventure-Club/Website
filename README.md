@@ -4,11 +4,6 @@ This is github repository for the club website for the Anteater Adventure Club (
 
 # To Do
 
-### Tech Stack / Code Organization
-- [ ] Properly set up fonts using [next/fonts](https://nextjs.org/docs/app/getting-started/fonts)
-- [ ] Convert current CSS to [Tailwind CSS](https://tailwindcss.com/) (optional)
-- [ ] Add [shadcn/ui](https://ui.shadcn.com/), or other component library (optional)
-
 ### Information + Styling
 - [ ] Add club overview & action items to the home page
 - [ ] Add membership info to the membership page
