@@ -38,6 +38,17 @@
 
 /* Content */
 
+header,
+footer {
+  background-color: var(--green);
+  color: var(--white);
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--header-height);
+}
+
 body {
   font-family: "Chivo";
   background: var(--tan);
@@ -75,8 +86,4 @@ h4 {
   padding: 0.75rem 1.5rem;
   border-radius: 0.5rem;
   transition: background-color 0.2s;
-}
-
-.text-center {
-  text-align: center;
 }

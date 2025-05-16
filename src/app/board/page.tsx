@@ -1,8 +1,7 @@
 "use client";
 
-import "./page.css";
-import officers from "@/data/officers";
 import { PolaroidGallery } from "@/components/Polaroid/Polaroid";
+import officers from "@/data/officers";
 
 export default function Board() {
   return (
