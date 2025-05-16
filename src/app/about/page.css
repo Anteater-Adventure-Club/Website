@@ -4,11 +4,6 @@
   align-items: center;
 }
 
-.about-header {
-  display: flex;
-  flex-direction: column;
-}
-
 /* Event sections */
 
 .sections {

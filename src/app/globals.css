@@ -76,3 +76,7 @@ h4 {
   border-radius: 0.5rem;
   transition: background-color 0.2s;
 }
+
+.text-center {
+  text-align: center;
+}

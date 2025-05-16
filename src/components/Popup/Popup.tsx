@@ -34,27 +34,28 @@ export default function Popup({ datum, dataType, closePopup }: PopupProps) {
               <X className="popup-close-icon" onClick={() => closePopup()} />
             </div>
           </div>
-          <div>
-            <h3 className="popup-prompt">Date</h3>
-            <p>{event.date}</p>
-            <h3 className="popup-prompt">Event Info</h3>
-            <p>{event.description}</p>
-
-            {/*For future events show sign-up link */}
+          <div className="popup-body">
+            <div>
+              <h3>Date</h3>
+              <p>{event.date}</p>
+            </div>
+            <div>
+              <h3>Event Info</h3>
+              <p>{event.description}</p>
+            </div>
+            {/* For future events show sign-up link */}
             {event.signUpLink && (
-              <>
-                <h3 className="popup-prompt">Sign-Up here:</h3>
-                <a
-                  href={event.signUpLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="signup-link"
-                >
+              <Link
+                href={event.signUpLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="signup-link"
+              >
+                <h3 className="signup-link-text">
                   Click here to sign up!
-            </a>
-          </>
-        )}
-
+                </h3>
+              </Link>
+            )}
           </div>
         </div>
       </div>

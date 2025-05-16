@@ -1,4 +1,4 @@
-const events: AACEvent[] = [
+const upcomingEvents: AACEvent[] = [
   {
     id: "8",
     name: "Getty Genter + Japanese Food Festival",
@@ -6,8 +6,11 @@ const events: AACEvent[] = [
     description:
       "We're going to be exploring the Getty Center in the day and then heading down to Santa Monica for tasty Japanese food at the Konomon Festival!",
     imagePath: "/images/events/getty_center_and_japanese_food_fest.jpg",
-    signUpLink: "https://docs.google.com/forms/d/e/1FAIpQLSf-Hs11m6IdueX0450r_QI6bDvrEFCEDWB7zR_VInHre9H_hQ/viewform?usp=header",
+    signUpLink: "https://forms.gle/rRekyuTjSXzAxZK28",
   },
+]
+
+const pastEvents: AACEvent[] = [
   {
     id: "1",
     name: "AAC x UCR Black Star Canyon Falls",
@@ -66,7 +69,4 @@ const events: AACEvent[] = [
   },
 ];
 
-export default events;
-
-
-/*test commit*/
+export { upcomingEvents, pastEvents };

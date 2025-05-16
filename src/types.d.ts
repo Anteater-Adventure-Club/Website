@@ -14,8 +14,8 @@ interface AACEvent {
   name: string;
   date: string;
   description: string;
-  signUpLink?: string;
   imagePath: string;
+  signUpLink?: string;
 }
 
 type PolaroidType = Officer | AACEvent;

@@ -8,7 +8,7 @@ export default function About() {
   return (
     <div className="about">
       {/* Header */}
-      <div className="about-header">
+      <div className="text-center">
         <h1>Our Mission...</h1>
         <h4>
           Fostering a sense of community while making nature as accessible as

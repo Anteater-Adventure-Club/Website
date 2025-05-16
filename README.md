@@ -7,13 +7,13 @@ This is github repository for the club website for the Anteater Adventure Club (
 ### Information + Styling
 - [ ] Add club overview & action items to the home page
 - [ ] Add membership info to the membership page
-- [ ] Add more events + images to the gallery page
+- [ ] Add more events + images to the events page
 - [ ] For all pages, improve styling
 - [ ] Make the website responsive (for different screen sizes/aspect ratios)
 
 ### Questions
 - [ ] Should our links (discord, instagram, linktree) go in the footer, the membership page, the home page, and/or other pages?
-- [ ] On pages that don't take up the full window height (currently the about/membership/gallery pages), should the footer automatically show, or should it be just below the initial window, requiring a little bit of scrolling to see?
+- [ ] On pages that don't take up the full window height (currently the about/membership/events pages), should the footer automatically show, or should it be just below the initial window, requiring a little bit of scrolling to see?
 
 # File Layout
 
@@ -27,7 +27,7 @@ This is github repository for the club website for the Anteater Adventure Club (
   - `app/` (all pages, i.e. `www.website.com/[page]`)
     - `about/`
     - `board/`
-    - `gallery/`
+    - `events/`
     - `membership/`
     - ... (layout, global styles, home page)
   - `components/` (all components, used throughout the codebase)
