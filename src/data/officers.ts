@@ -1,41 +1,20 @@
 const officers: Officer[] = [
   {
-    id: "aristani",
-    name: "Aristani Rodriguez-Gonzalez",
-    role: "President & Founder",
-    major: "Criminology, Law & Society",
+    id: "thomas",
+    name: "Thomas Lobaton",
+    role: "President",
+    major: "Urban Studies",
     whyJoined:
-      "I created this club to offer my fellow students with accesible ways to explore Orange County. Eventually, it became a great way to foster community with all types of people since everyone is encouraged to join. I have continued to manage the club because I want to continue to explore nature and meet other amazing people while doing so!",
+      "I joined the club because I needed to be outdoors more and the potluck picnics made it really easy to get to meet people while I was still commuting to school. The weekend events also made it really fun to explore SoCal and experience more than just hiking or going to the beach.",
     favoriteMemory:
-      "Camping in Sequoia since it was the most isolating from the outside world and I had not been there before! Love exploring new places alongside others!",
-    instagram: "https://instagram.com/aristanii/",
-    imagePath: "/images/officers/aristani.jpg",
-  },
-  {
-    id: "jason",
-    name: "Jason Zenarosa",
-    role: "Vice President",
-    major: "Computer Science",
-    whyJoined: "",
-    favoriteMemory: "",
-    instagram: "https://www.instagram.com/jsnznrs/",
-    imagePath: "/images/officers/jason.jpg",
-  },
-  {
-    id: "alexis",
-    name: "Alexis Ibarra",
-    role: "General Secretary",
-    major: "Cognitive Science",
-    whyJoined:
-      "In my second year I really wanted to join a community, and AAC was incredibly welcoming and full of positive energy, and I already loved hiking so it was a great match.",
-    favoriteMemory: "Takin a fat nap after the chasm of doom.",
-    instagram: "https://www.instagram.com/freeform.ond/",
-    imagePath: "/images/officers/alexis.jpg",
+      "The San Diego Farmers market and then going to the Birch Aquarium.",
+    instagram: "https://www.instagram.com/tom_the_train67/",
+    imagePath: "/images/officers/thomas.jpg",
   },
   {
     id: "daron",
     name: "Daron Kaloustian",
-    role: "Treasurer",
+    role: "Vice President",
     major: "Business Economics",
     whyJoined:
       "I like nature so much and have grown to like it even more with the club.",
@@ -55,18 +34,6 @@ const officers: Officer[] = [
       "Literally running around, racing each other, on the Death Valley salt flats in Badwater Basin.",
     instagram: "https://www.instagram.com/bealiberty/",
     imagePath: "/images/officers/sofia.jpg",
-  },
-  {
-    id: "thomas",
-    name: "Thomas Lobaton",
-    role: "Fundraising Chair",
-    major: "Urban Studies",
-    whyJoined:
-      "I joined the club because I needed to be outdoors more and the potluck picnics made it really easy to get to meet people while I was still commuting to school. The weekend events also made it really fun to explore SoCal and experience more than just hiking or going to the beach.",
-    favoriteMemory:
-      "The San Diego Farmers market and then going to the Birch Aquarium.",
-    instagram: "https://www.instagram.com/tom_the_train67/",
-    imagePath: "/images/officers/thomas.jpg",
   },
   {
     id: "lokesh",
@@ -104,19 +71,6 @@ const officers: Officer[] = [
     instagram: "https://www.instagram.com/qu.kristina/",
     imagePath: "/images/officers/kristina.jpg",
   },
-  {
-    id: "ryan",
-    name: "Ryan Fenstermacher",
-    role: "General Officer",
-    major: "Psychological Science",
-    whyJoined:
-      "I wanted to break out of Irvine and spend more time exploring the nature and communities in Southern California!",
-    favoriteMemory:
-      "Going to Palm Springs after visiting the Salton Sea and getting stuck in a Christmas parade😭.",
-    instagram: "https://www.instagram.com/rfenstermac/",
-    imagePath: "/images/officers/ryan.jpg",
-  },
-  // Liam? Tristan? anyone else?
 ];
 
 export default officers;

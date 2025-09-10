@@ -20,3 +20,14 @@ interface AACEvent {
 
 type PolaroidType = Officer | AACEvent;
 type PolaroidTypeName = "officer" | "event";
+
+interface PreviousOfficer {
+  id: string;
+  name: string;
+  role: string;
+}
+
+interface PreviousBoard {
+  year: string;
+  officers: PreviousOfficer[];
+}

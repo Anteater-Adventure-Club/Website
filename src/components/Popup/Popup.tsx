@@ -74,10 +74,7 @@ function OfficerPopup({
       <div className="popup-body">
         <PopupItem name="Role" content={officer.role} />
         <PopupItem name="Major" content={officer.major} />
-        <PopupItem
-          name={`Why I ${officer.id === "aristani" ? "created" : "joined"} AAC`}
-          content={officer.whyJoined}
-        />
+        <PopupItem name="Why I joined AAC" content={officer.whyJoined} />
         <PopupItem
           name="My favorite AAC Memory..."
           content={officer.favoriteMemory}

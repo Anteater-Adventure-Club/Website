@@ -65,33 +65,6 @@
   }
 }
 
-/* Aristani */
-.popup-background-aristani {
-  background-color: #ffebeb;
-}
-
-.popup-title-aristani {
-  color: #ffadad;
-}
-
-/* Alexis */
-.popup-background-alexis {
-  background-color: #ffedd6;
-}
-
-.popup-title-alexis {
-  color: #ffca85;
-}
-
-/* Lokesh */
-.popup-background-lokesh {
-  background-color: #ebf2ff;
-}
-
-.popup-title-lokesh {
-  color: #85afff;
-}
-
 /* Thomas */
 .popup-background-thomas {
   background-color: #fdffd6;
@@ -99,15 +72,6 @@
 
 .popup-title-thomas {
   color: #d5e000;
-}
-
-/* Sofia */
-.popup-background-sofia {
-  background-color: #eeffeb;
-}
-
-.popup-title-sofia {
-  color: #97ff85;
 }
 
 /* Daron */
@@ -119,6 +83,24 @@
   color: #9785ff;
 }
 
+/* Sofia */
+.popup-background-sofia {
+  background-color: #eeffeb;
+}
+
+.popup-title-sofia {
+  color: #97ff85;
+}
+
+/* Lokesh */
+.popup-background-lokesh {
+  background-color: #ebf2ff;
+}
+
+.popup-title-lokesh {
+  color: #85afff;
+}
+
 /* Charlie */
 .popup-background-charlie {
   background-color: #d6fcff;
@@ -126,24 +108,6 @@
 
 .popup-title-charlie {
   color: #00d1e0;
-}
-
-/* Ryan */
-.popup-background-ryan {
-  background-color: #ffebff;
-}
-
-.popup-title-ryan {
-  color: #ffadff;
-}
-
-/* Jason */
-.popup-background-jason {
-  background-color: #ffedd6;
-}
-
-.popup-title-jason {
-  color: #ffca85;
 }
 
 /* Kristina */
@@ -154,3 +118,39 @@
 .popup-title-kristina {
   color: #ffadad;
 }
+
+/* Aristani */
+/* .popup-background-aristani {
+  background-color: #ffebeb;
+}
+
+.popup-title-aristani {
+  color: #ffadad;
+} */
+
+/* Jason */
+/* .popup-background-jason {
+  background-color: #ffedd6;
+}
+
+.popup-title-jason {
+  color: #ffca85;
+} */
+
+/* Alexis */
+/* .popup-background-alexis {
+  background-color: #ffedd6;
+}
+
+.popup-title-alexis {
+  color: #ffca85;
+} */
+
+/* Ryan */
+/* .popup-background-ryan {
+  background-color: #ffebff;
+}
+
+.popup-title-ryan {
+  color: #ffadff;
+} */
