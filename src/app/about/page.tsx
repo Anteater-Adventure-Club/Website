@@ -29,14 +29,14 @@ export default function About() {
           </div>
           <div className="section-images">
             <Image
-              src="/images/events/unknown_hike.jpg"
+              src="/images/events/24-25/unknown_hike.jpg"
               alt="Unknown Hike"
               width={300}
               height={300}
               className="section-image"
             />
             <Image
-              src="/images/events/laguna_hike.jpg"
+              src="/images/events/24-25/laguna_hike.jpg"
               alt="Laguna Hike"
               width={300}
               height={300}
@@ -49,14 +49,14 @@ export default function About() {
         <div className="section reverse">
           <div className="section-images">
             <Image
-              src="/images/events/la_city.jpg"
+              src="/images/events/24-25/la_city.jpg"
               alt="LA Exploration"
               width={300}
               height={300}
               className="section-image"
             />
             <Image
-              src="/images/events/san_diego.JPG"
+              src="/images/events/24-25/san_diego.JPG"
               alt="San Diego Exploration"
               width={300}
               height={300}
@@ -86,14 +86,14 @@ export default function About() {
           </div>
           <div className="section-images">
             <Image
-              src="/images/events/death_valley.jpg"
+              src="/images/events/24-25/death_valley.jpg"
               alt="Death Valley"
               width={300}
               height={300}
               className="section-image"
             />
             <Image
-              src="/images/events/sequoia.jpg"
+              src="/images/events/24-25/sequoia.jpg"
               alt="Sequoia"
               width={300}
               height={300}
