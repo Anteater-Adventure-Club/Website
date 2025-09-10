@@ -4,10 +4,15 @@ This is github repository for the Anteater Adventure Club's (AAC) club website. 
 
 # File Layout
 
-- `public/` = non-text data (fonts, images, etc.)
-- `src/` = code
+- `public/` = non-text data
+  - `fonts/`
+  - `images/`
+    - `events` = images for all events, groped by year
+    - `officers` = images for current officers
+  - `logos/`
+- `src/` = code/text data
   - `app/` = individual pages, i.e. `www.website.com/[page]` (e.g. about, board, events, membeship)
   - `components/` = individual UI components
-  - `data/` = officer and event text data
-  - `types.d.ts` = custom TypeScript types/interfaces
+  - `data/` = text data for events, current officers, and previous officers 
+  - `types.d.ts` = custom types/interfaces, used throughout the codebase
 - ... = config files
