@@ -1,40 +1,13 @@
 # What's This?
 
-This is github repository for the club website for the Anteater Adventure Club (AAC). AAC is a club at UCI with the mission of fostering a sense of community while making nature as accessible as possible. This website is built with React and Next.js.
-
-# To Do
-
-### Information + Styling
-- [ ] Add club overview & action items to the home page
-- [ ] Add membership info to the membership page
-- [ ] Add more events + images to the events page
-- [ ] For all pages, improve styling
-- [ ] Make the website responsive (for different screen sizes/aspect ratios)
-
-### Questions
-- [ ] Should our links (discord, instagram, linktree) go in the footer, the membership page, the home page, and/or other pages?
-- [ ] On pages that don't take up the full window height (currently the about/membership/events pages), should the footer automatically show, or should it be just below the initial window, requiring a little bit of scrolling to see?
+This is github repository for the Anteater Adventure Club's (AAC) club website. AAC is a UCI organization with a mission to foster a sense of community while making nature as accessible as possible! This website is built with React, Next.js, and Tailwind CSS.
 
 # File Layout
 
-- `public/` (all non-text data)
-  - `fonts/`
-  - `images/`
-    - `officers/`
-    - `events/`
-  - `logos/`
-- `src/` (all code)
-  - `app/` (all pages, i.e. `www.website.com/[page]`)
-    - `about/`
-    - `board/`
-    - `events/`
-    - `membership/`
-    - ... (layout, global styles, home page)
-  - `components/` (all components, used throughout the codebase)
-    - `Footer/`
-    - `Header/`
-  - `data/` (all text data, used throughout the codebase)
-    - `officers.ts`
-    - `events.ts`
-  - `types.d.ts` (all types, used throughout the codebase)
-- ... (config files)
+- `public/` = non-text data (fonts, images, etc.)
+- `src/` = code
+  - `app/` = individual pages, i.e. `www.website.com/[page]` (e.g. about, board, events, membeship)
+  - `components/` = individual UI components
+  - `data/` = officer and event text data
+  - `types.d.ts` = custom TypeScript types/interfaces
+- ... = config files
