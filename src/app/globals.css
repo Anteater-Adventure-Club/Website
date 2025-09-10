@@ -56,7 +56,7 @@ body {
 
 main {
   color: var(--black);
-  min-height: calc(100vh - 2 * var(--outside-padding));
+  min-height: calc(100vh - var(--header-height) - 2 * var(--outside-padding));
   padding: var(--outside-padding);
 }
 
