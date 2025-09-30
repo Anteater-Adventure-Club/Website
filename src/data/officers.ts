@@ -1,5 +1,17 @@
 const officers: Officer[] = [
   {
+    id: "aristani",
+    name: "Aristani Rodriguez-Gonzalez",
+    role: "Founder",
+    major: "Criminology, Law & Society",
+    whyJoined:
+      "I created this club to offer my fellow students with accesible ways to explore Orange County. Eventually, it became a great way to foster community with all types of people since everyone is encouraged to join. I have continued to manage the club because I want to continue to explore nature and meet other amazing people while doing so!",
+    favoriteMemory:
+      "Camping in Sequoia since it was the most isolating from the outside world and I had not been there before! Love exploring new places alongside others!",
+    instagram: "https://instagram.com/aristanii/",
+    imagePath: "/images/officers/aristani.jpg",
+  },
+  {
     id: "thomas",
     name: "Thomas Lobaton",
     role: "President",
@@ -24,6 +36,26 @@ const officers: Officer[] = [
     imagePath: "/images/officers/daron.jpg",
   },
   {
+    id: "nathan",
+    name: "Nathan Lara",
+    role: "Secretary",
+    major: "",
+    whyJoined: "",
+    favoriteMemory: "",
+    instagram: "",
+    imagePath: "",
+  },
+  {
+    id: "smey",
+    name: "Smey",
+    role: "Treasurer",
+    major: "",
+    whyJoined: "",
+    favoriteMemory: "",
+    instagram: "",
+    imagePath: "",
+  },
+  {
     id: "sofia",
     name: "Sofia Barsan",
     role: "Outreach Coordinator & Club Advisor",
@@ -36,16 +68,14 @@ const officers: Officer[] = [
     imagePath: "/images/officers/sofia.jpg",
   },
   {
-    id: "lokesh",
-    name: "Lokesh Sharma",
-    role: "Webmaster",
-    major: "Computer Science",
-    whyJoined:
-      "I was looking to make new friends my first quarter at UCI and as a freshman I found everyone in AAC super welcoming, outgoing, and of course adventurous! After a few meetings and picnics I felt like I found a solid group of friends!",
-    favoriteMemory:
-      "Walking around Las Vegas at 3AM with the club during our Fall '23 retreat!",
-    instagram: "https://www.instagram.com/lakeshoreee/",
-    imagePath: "/images/officers/lokesh.JPG",
+    id: "parker",
+    name: "Parker Woodbury",
+    role: "Historian",
+    major: "",
+    whyJoined: "",
+    favoriteMemory: "",
+    instagram: "",
+    imagePath: "",
   },
   {
     id: "charlie",
@@ -70,6 +100,16 @@ const officers: Officer[] = [
       "Slept under the stars in Joshua Tree and saw the Milky Way for the first time in my life.",
     instagram: "https://www.instagram.com/qu.kristina/",
     imagePath: "/images/officers/kristina.jpg",
+  },
+  {
+    id: "liam",
+    name: "Liam Harrington",
+    role: "Visibility Team",
+    major: "",
+    whyJoined: "",
+    favoriteMemory: "",
+    instagram: "",
+    imagePath: "",
   },
 ];
 
