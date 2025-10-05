@@ -1,5 +1,7 @@
 # What's This?
 
+[still in progress]
+
 This is github repository for the Anteater Adventure Club's (AAC) club website. AAC is a UCI organization with a mission to foster a sense of community while making nature as accessible as possible! This website is built with React, Next.js, and Tailwind CSS.
 
 # File Layout

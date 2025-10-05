@@ -47,7 +47,7 @@ const officers: Officer[] = [
   },
   {
     id: "smey",
-    name: "Smey",
+    name: "Sokraksmey \"Smey\" Heng",
     role: "Treasurer",
     major: "",
     whyJoined: "",
@@ -55,17 +55,27 @@ const officers: Officer[] = [
     instagram: "",
     imagePath: "",
   },
+  // {
+  //   id: "sofia",
+  //   name: "Sofia Barsan",
+  //   role: "Outreach Coordinator & Club Advisor",
+  //   major: "Language Science",
+  //   whyJoined:
+  //     "I love adventure and exploring the outdoors, and both of those are better in good company. I saw the club was going to Switzer Falls in LA and I had never seen a natural waterfall in person before, so why not? Everyone in the club was incredibly welcoming and accommodating, so I stayed, even joined the board, and its been countless adventures ever since",
+  //   favoriteMemory:
+  //     "Literally running around, racing each other, on the Death Valley salt flats in Badwater Basin.",
+  //   instagram: "https://www.instagram.com/bealiberty/",
+  //   imagePath: "/images/officers/sofia.jpg",
+  // },
   {
-    id: "sofia",
-    name: "Sofia Barsan",
-    role: "Outreach Coordinator & Club Advisor",
-    major: "Language Science",
-    whyJoined:
-      "I love adventure and exploring the outdoors, and both of those are better in good company. I saw the club was going to Switzer Falls in LA and I had never seen a natural waterfall in person before, so why not? Everyone in the club was incredibly welcoming and accommodating, so I stayed, even joined the board, and its been countless adventures ever since",
-    favoriteMemory:
-      "Literally running around, racing each other, on the Death Valley salt flats in Badwater Basin.",
-    instagram: "https://www.instagram.com/bealiberty/",
-    imagePath: "/images/officers/sofia.jpg",
+    id: "gabe",
+    name: "Gabe",
+    role: "Fundraising Chair",
+    major: "",
+    whyJoined: "",
+    favoriteMemory: "",
+    instagram: "",
+    imagePath: "",
   },
   {
     id: "parker",
@@ -88,18 +98,6 @@ const officers: Officer[] = [
       "Going hiking and exploring sand dunes in the desert with friends at our 2025 winter quarter Death Valley retreat!",
     instagram: "https://www.instagram.com/charliebrown364/",
     imagePath: "/images/officers/charlie.jpg",
-  },
-  {
-    id: "kristina",
-    name: "Kristina Qu",
-    role: "Visibility Team",
-    major: "Biological Sciences",
-    whyJoined:
-      "I love nature and outdoors adventures, this is a great place to do it and meet people who share the same passion.",
-    favoriteMemory:
-      "Slept under the stars in Joshua Tree and saw the Milky Way for the first time in my life.",
-    instagram: "https://www.instagram.com/qu.kristina/",
-    imagePath: "/images/officers/kristina.jpg",
   },
   {
     id: "liam",
