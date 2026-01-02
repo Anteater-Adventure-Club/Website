@@ -1,17 +1,5 @@
 const officers: Officer[] = [
   {
-    id: "aristani",
-    name: "Aristani Rodriguez-Gonzalez",
-    role: "Founder",
-    major: "Criminology, Law & Society",
-    whyJoined:
-      "I created this club to offer my fellow students with accesible ways to explore Orange County. Eventually, it became a great way to foster community with all types of people since everyone is encouraged to join. I have continued to manage the club because I want to continue to explore nature and meet other amazing people while doing so!",
-    favoriteMemory:
-      "Camping in Sequoia since it was the most isolating from the outside world and I had not been there before! Love exploring new places alongside others!",
-    instagram: "https://instagram.com/aristanii/",
-    imagePath: "/images/officers/aristani.jpg",
-  },
-  {
     id: "thomas",
     name: "Thomas Lobaton",
     role: "President",
@@ -55,18 +43,18 @@ const officers: Officer[] = [
     instagram: "",
     imagePath: "",
   },
-  // {
-  //   id: "sofia",
-  //   name: "Sofia Barsan",
-  //   role: "Outreach Coordinator & Club Advisor",
-  //   major: "Language Science",
-  //   whyJoined:
-  //     "I love adventure and exploring the outdoors, and both of those are better in good company. I saw the club was going to Switzer Falls in LA and I had never seen a natural waterfall in person before, so why not? Everyone in the club was incredibly welcoming and accommodating, so I stayed, even joined the board, and its been countless adventures ever since",
-  //   favoriteMemory:
-  //     "Literally running around, racing each other, on the Death Valley salt flats in Badwater Basin.",
-  //   instagram: "https://www.instagram.com/bealiberty/",
-  //   imagePath: "/images/officers/sofia.jpg",
-  // },
+  {
+    id: "sofia",
+    name: "Sofia Barsan",
+    role: "Outreach Coordinator & Club Advisor",
+    major: "Language Science",
+    whyJoined:
+      "I love adventure and exploring the outdoors, and both of those are better in good company. I saw the club was going to Switzer Falls in LA and I had never seen a natural waterfall in person before, so why not? Everyone in the club was incredibly welcoming and accommodating, so I stayed, even joined the board, and its been countless adventures ever since",
+    favoriteMemory:
+      "Literally running around, racing each other, on the Death Valley salt flats in Badwater Basin.",
+    instagram: "https://www.instagram.com/bealiberty/",
+    imagePath: "/images/officers/sofia.jpg",
+  },
   {
     id: "gabe",
     name: "Gabe",

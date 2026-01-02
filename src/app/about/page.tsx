@@ -3,8 +3,63 @@
 import Image from "next/image";
 import Link from "next/link";
 import "./page.css";
+import { PolaroidCard } from "@/components/Polaroid/Polaroid";
+
+// Image data for polaroid cards
+const hikeImages: AACEvent[] = [
+  {
+    id: "unknown-hike",
+    name: "Unknown Hike",
+    date: "Weekly Hikes",
+    description: "Exploring scenic trails across Orange County and Southern California",
+    imagePath: "/images/events/24-25/unknown_hike.jpg",
+  },
+  {
+    id: "laguna-hike",
+    name: "Laguna Hike",
+    date: "Weekly Hikes",
+    description: "Exploring scenic trails across Orange County and Southern California",
+    imagePath: "/images/events/24-25/laguna_hike.jpg",
+  },
+];
+
+const cityImages: AACEvent[] = [
+  {
+    id: "la-city",
+    name: "LA Exploration",
+    date: "City Exploration",
+    description: "Adventure isn't just limited to nature — join us on a city exploration",
+    imagePath: "/images/events/24-25/la_city.jpg",
+  },
+  {
+    id: "san-diego",
+    name: "San Diego Exploration",
+    date: "City Exploration",
+    description: "Adventure isn't just limited to nature — join us on a city exploration",
+    imagePath: "/images/events/24-25/san_diego.JPG",
+  },
+];
+
+const retreatImages: AACEvent[] = [
+  {
+    id: "death-valley",
+    name: "Death Valley",
+    date: "Quarterly Retreats",
+    description: "Every quarter, the club goes on a weekend retreat",
+    imagePath: "/images/events/24-25/death_valley.jpg",
+  },
+  {
+    id: "sequoia",
+    name: "Sequoia",
+    date: "Quarterly Retreats",
+    description: "Every quarter, the club goes on a weekend retreat",
+    imagePath: "/images/events/24-25/sequoia.jpg",
+  },
+];
 
 export default function About() {
+  const openPopup = () => {}; // Placeholder - popup functionality can be added later if needed
+
   return (
     <div className="about">
       {/* Header */}
@@ -28,40 +83,26 @@ export default function About() {
             </h4>
           </div>
           <div className="section-images">
-            <Image
-              src="/images/events/24-25/unknown_hike.jpg"
-              alt="Unknown Hike"
-              width={300}
-              height={300}
-              className="section-image"
-            />
-            <Image
-              src="/images/events/24-25/laguna_hike.jpg"
-              alt="Laguna Hike"
-              width={300}
-              height={300}
-              className="section-image"
-            />
+            {hikeImages.map((image) => (
+              <PolaroidCard
+                key={image.id}
+                datum={image}
+                openPopup={openPopup}
+              />
+            ))}
           </div>
         </div>
 
         {/* City Exploration */}
         <div className="section reverse">
           <div className="section-images">
-            <Image
-              src="/images/events/24-25/la_city.jpg"
-              alt="LA Exploration"
-              width={300}
-              height={300}
-              className="section-image"
-            />
-            <Image
-              src="/images/events/24-25/san_diego.JPG"
-              alt="San Diego Exploration"
-              width={300}
-              height={300}
-              className="section-image"
-            />
+            {cityImages.map((image) => (
+              <PolaroidCard
+                key={image.id}
+                datum={image}
+                openPopup={openPopup}
+              />
+            ))}
           </div>
           <div className="section-text">
             <h2>City Exploration</h2>
@@ -85,20 +126,13 @@ export default function About() {
             </h4>
           </div>
           <div className="section-images">
-            <Image
-              src="/images/events/24-25/death_valley.jpg"
-              alt="Death Valley"
-              width={300}
-              height={300}
-              className="section-image"
-            />
-            <Image
-              src="/images/events/24-25/sequoia.jpg"
-              alt="Sequoia"
-              width={300}
-              height={300}
-              className="section-image"
-            />
+            {retreatImages.map((image) => (
+              <PolaroidCard
+                key={image.id}
+                datum={image}
+                openPopup={openPopup}
+              />
+            ))}
           </div>
         </div>
       </div>

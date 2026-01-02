@@ -1,13 +1,4 @@
-const upcomingEvents: AACEvent[] = [
-  {
-    id: "9",
-    name: "Anteater Involvement Fair",
-    date: "September 22, 2025, 11am - 4pm",
-    description:
-      "Join us at the Anteater Involvement Fair to learn more about the club!",
-    imagePath: "/images/events/25-26/aldrich_park.jpg",
-  },
-];
+const upcomingEvents: AACEvent[] = [];
 
 const pastEvents: AACEvent[] = [
   {
@@ -73,6 +64,14 @@ const pastEvents: AACEvent[] = [
     description:
       "We explored the Getty Center and visited Santa Monica for tasty Japanese food at the Konomon Festival!",
     imagePath: "/images/events/24-25/getty_center_and_japanese_food_fest.jpg",
+  },
+  {
+    id: "9",
+    name: "Anteater Involvement Fair",
+    date: "September 22, 2025, 11am - 4pm",
+    description:
+      "Join us at the Anteater Involvement Fair to learn more about the club!",
+    imagePath: "/images/events/25-26/aldrich_park.jpg",
   },
 ];
 
