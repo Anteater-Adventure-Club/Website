@@ -5,10 +5,10 @@ const officers: Officer[] = [
     role: "President",
     major: "Urban Studies",
     whyJoined:
-      "I joined the club because I needed to be outdoors more and the potluck picnics made it really easy to get to meet people while I was still commuting to school. The weekend events also made it really fun to explore SoCal and experience more than just hiking or going to the beach.",
+      "I joined AAC at first mostly because of the range of opportunities to get involved. The picnics, weekend events, general meetings, and retreats made it really easy to get to know people and find friends.",
     favoriteMemory:
-      "The San Diego Farmers market and then going to the Birch Aquarium.",
-    instagram: "https://www.instagram.com/tom_the_train67/",
+      "One of my favorite memories was stargazing at one of our Joshua Tree retreats. It was pretty cool because I'd never really seen stars that clear before, not to mention how the campfire and music really set a rustic mood. Also, that time I fell in the river at Zion.",
+    instagram: "https://www.instagram.com/tomthetrain67/",
     imagePath: "/images/officers/thomas.jpg",
   },
   {
@@ -21,7 +21,7 @@ const officers: Officer[] = [
     favoriteMemory:
       "Random outings to yum restaurants and outings to the beach.",
     instagram: "https://www.instagram.com/daron_kal/",
-    imagePath: "/images/officers/daron.jpg",
+    imagePath: "/images/officers/blank_profile.jpg",
   },
   {
     id: "nathan",
@@ -31,29 +31,17 @@ const officers: Officer[] = [
     whyJoined: "",
     favoriteMemory: "",
     instagram: "",
-    imagePath: "",
+    imagePath: "/images/officers/blank_profile.jpg",
   },
   {
     id: "smey",
-    name: "Sokraksmey \"Smey\" Heng",
+    name: "Sokraksmey Heng",
     role: "Treasurer",
-    major: "",
-    whyJoined: "",
-    favoriteMemory: "",
-    instagram: "",
-    imagePath: "",
-  },
-  {
-    id: "sofia",
-    name: "Sofia Barsan",
-    role: "Outreach Coordinator & Club Advisor",
-    major: "Language Science",
-    whyJoined:
-      "I love adventure and exploring the outdoors, and both of those are better in good company. I saw the club was going to Switzer Falls in LA and I had never seen a natural waterfall in person before, so why not? Everyone in the club was incredibly welcoming and accommodating, so I stayed, even joined the board, and its been countless adventures ever since",
-    favoriteMemory:
-      "Literally running around, racing each other, on the Death Valley salt flats in Badwater Basin.",
-    instagram: "https://www.instagram.com/bealiberty/",
-    imagePath: "/images/officers/sofia.jpg",
+    major: "Public Health Policy",
+    whyJoined: "I joined AAC to meet new people and visit different places in California! The club is very sociable and very welcoming!",
+    favoriteMemory: "My favorite AAC memory is spring 2025 retreat to Zion! It was my first time in Utah and I am so glad to experience it my friends in AAC.",
+    instagram: "https://www.instagram.com/smey.heng/",
+    imagePath: "/images/officers/smey.jpg",
   },
   {
     id: "gabe",
@@ -63,7 +51,7 @@ const officers: Officer[] = [
     whyJoined: "",
     favoriteMemory: "",
     instagram: "",
-    imagePath: "",
+    imagePath: "/images/officers/blank_profile.jpg",
   },
   {
     id: "parker",
@@ -73,7 +61,19 @@ const officers: Officer[] = [
     whyJoined: "",
     favoriteMemory: "",
     instagram: "",
-    imagePath: "",
+    imagePath: "/images/officers/blank_profile.jpg",
+  },
+  {
+    id: "lokesh",
+    name: "Lokesh Sharma",
+    role: "Webmaster",
+    major: "Computer Science",
+    whyJoined:
+      "I joined AAC my freshman year to meet new people, go on hikes, and explore the LA/OC area!",
+    favoriteMemory:
+      "Our Spring '25 retreat to Zion National Park.",
+    instagram: "https://www.instagram.com/lakeshoreee/",
+    imagePath: "/images/officers/lokesh.jpg",
   },
   {
     id: "charlie",
@@ -85,7 +85,44 @@ const officers: Officer[] = [
     favoriteMemory:
       "Going hiking and exploring sand dunes in the desert with friends at our 2025 winter quarter Death Valley retreat!",
     instagram: "https://www.instagram.com/charliebrown364/",
-    imagePath: "/images/officers/charlie.jpg",
+    imagePath: "/images/officers/blank_profile.jpg",
+  },
+  {
+    id: "eric",
+    name:"Eric Ostdiek",
+    role: "Event Coordinator",
+    major: "Computer Science",
+    whyJoined:
+      "I liked the people I met in the club and the activities I went to were fun. Also I’m a huge fan of camping so the retreats are awesome for me.",
+    favoriteMemory:
+      "Christmas party gingerbread house making was probably one of my favorites. A great demonstration of major problems, quick thinking, and creativity from everyone",
+    instagram: "https://www.instagram.com/e.ostdiek/",
+    imagePath: "/images/officers/eric.jpg",
+
+  },
+  {
+    id: "henkka",
+    name: "Henkka Bosworth",
+    role: "Event Coordinator",
+    major: "Quantitative Economics",
+    whyJoined:
+      "I was looking for more friends and to get some time away from campus!",
+    favoriteMemory:
+      "My favorite AAC Memory was sitting around the campfire outside of Zion National Park and listening to ghost stories.",
+    instagram: "https://www.instagram.com/henkka2ks/",
+    imagePath: "/images/officers/henkka.jpg",
+  },
+  {
+    id: "macey",
+    name: "Macey",
+    role: "Event Coordinator",
+    major: "Biology",
+    whyJoined:
+      "I joined AAC my freshman year to meet new people, go on hikes, and explore the LA/OC area!",
+    favoriteMemory:
+      "Our Spring '25 retreat to Zion National Park.",
+    instagram: "https://www.instagram.com/lakeshoreee/",
+    imagePath: "/images/officers/blank_profile.jpg",
   },
   {
     id: "liam",
@@ -95,7 +132,29 @@ const officers: Officer[] = [
     whyJoined: "",
     favoriteMemory: "",
     instagram: "",
-    imagePath: "",
+    imagePath: "/images/officers/blank_profile.jpg",
+  },
+  {
+    id: "kayla",
+    name: "Kayla",
+    role: "Visibility Team",
+    major: "Criminology",
+    whyJoined: "",
+    favoriteMemory: "",
+    instagram: "",
+    imagePath: "/images/officers/blank_profile.jpg",
+  },
+  {
+    id: "sofia",
+    name: "Sofia Barsan",
+    role: "Staff Advisor",
+    major: "Language Science",
+    whyJoined:
+      "I love adventure and exploring the outdoors, and both of those are better in good company. I saw the club was going to Switzer Falls in LA and I had never seen a natural waterfall in person before, so why not? Everyone in the club was incredibly welcoming and accommodating, so I stayed, even joined the board, and its been countless adventures ever since",
+    favoriteMemory:
+      "Literally running around, racing each other, on the Death Valley salt flats in Badwater Basin.",
+    instagram: "https://www.instagram.com/bealiberty/",
+    imagePath: "/images/officers/blank_profile.jpg",
   },
 ];
 

@@ -3,7 +3,7 @@
 export default function Header() {
   return (
     <footer>
-      <p>&copy; 2025 Anteater Adventure Club | Making Nature Accessible! 🌲</p>
+      <p>&copy; 2026 Anteater Adventure Club | Making Nature Accessible! 🌲</p>
     </footer>
   );
 }
