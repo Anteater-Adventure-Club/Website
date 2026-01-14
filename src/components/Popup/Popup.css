@@ -83,13 +83,40 @@
   color: #9785ff;
 }
 
-/* Sofia */
-.popup-background-sofia {
-  background-color: #eeffeb;
+/* Nathan */
+.popup-background-nathan {
+  background-color: #BDEFDA;
 }
 
-.popup-title-sofia {
-  color: #97ff85;
+.popup-title-nathan {
+  color: #4AD39A;
+}
+
+/* Smey */
+.popup-background-smey {
+  background-color: #F7CAE6;
+}
+
+.popup-title-smey {
+  color: #EA71BB;
+}
+
+/* Gabe */
+.popup-background-gabe {
+  background-color: #F1A8A7;
+}
+
+.popup-title-gabe {
+  color: #E1403D;
+}
+
+/* Parker */
+.popup-background-parker {
+  background-color: #FDC49B;
+}
+
+.popup-title-parker {
+  color: #FA710F;
 }
 
 /* Lokesh */
@@ -110,14 +137,68 @@
   color: #00d1e0;
 }
 
-/* Kristina */
+/* Eric */
+.popup-background-eric {
+  background-color: #FFF7C2;
+}
+
+.popup-title-eric {
+  color: #FFDE0A;
+}
+
+/* Henkka */
+.popup-background-henkka {
+  background-color: #BCE0F0;
+}
+
+.popup-title-henkka {
+  color: #2D99C8;
+}
+
+/* Macey */
+.popup-background-macey {
+  background-color: #CCF5E8;
+}
+
+.popup-title-macey {
+  color: #55DDB2;
+}
+
+/* Liam */
+.popup-background-liam {
+  background-color: #B8B8FF;
+}
+
+.popup-title-liam {
+  color: #5C5CFF;
+}
+
+/* Kayla */
+.popup-background-kayla {
+  background-color: #F0DBFA;
+}
+
+.popup-title-kayla {
+  color: #C46FEB;
+}
+
+/* Sofia */
+.popup-background-sofia {
+  background-color: #eeffeb;
+}
+
+.popup-title-sofia {
+  color: #97ff85;
+}
+
+/* Kristina
 .popup-background-kristina {
   background-color: #ffebeb;
 }
 
 .popup-title-kristina {
   color: #ffadad;
-}
+} */
 
 /* Aristani */
 /* .popup-background-aristani {
