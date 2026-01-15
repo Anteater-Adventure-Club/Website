@@ -17,11 +17,11 @@ const officers: Officer[] = [
     role: "Vice President",
     major: "Business Economics",
     whyJoined:
-      "I like nature so much and have grown to like it even more with the club.",
+      "Nature exploration and friendships 🌴",
     favoriteMemory:
-      "Random outings to yum restaurants and outings to the beach.",
-    instagram: "https://www.instagram.com/daron_kal/",
-    imagePath: "/images/officers/blank_profile.jpg",
+      "Beautiful retreat in the woods of Sequoia",
+    instagram: "",
+    imagePath: "/images/officers/daron.png",
   },
   {
     id: "nathan",
@@ -116,13 +116,13 @@ const officers: Officer[] = [
     id: "macey",
     name: "Macey",
     role: "Event Coordinator",
-    major: "Biology",
+    major: "Biological Sciences",
     whyJoined:
-      "I joined AAC my freshman year to meet new people, go on hikes, and explore the LA/OC area!",
+      "In joining AAC, I wanted to gain more opportunities to get outside, explore, and meet amazing people.",
     favoriteMemory:
-      "Our Spring '25 retreat to Zion National Park.",
-    instagram: "https://www.instagram.com/lakeshoreee/",
-    imagePath: "/images/officers/blank_profile.jpg",
+      "My favorite AAC Memory is climbing rocks and swimming at the beach in San Clemente.",
+    instagram: "https://www.instagram.com/maceyy_k/",
+    imagePath: "/images/officers/macey.jpg",
   },
   {
     id: "liam",
