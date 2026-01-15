@@ -81,11 +81,11 @@ const officers: Officer[] = [
     role: "Webmaster",
     major: "Computer Science",
     whyJoined:
-      "I joined the club to meet new people outside of my major and participate in fun outdoor events that get me to leave campus and explore the world!",
+      "I joined AAC to meet new people outside of my major and to participate in fun outdoor events that get me to leave campus and explore SoCal (and beyond)!",
     favoriteMemory:
-      "Going hiking and exploring sand dunes in the desert with friends at our 2025 winter quarter Death Valley retreat!",
+      "My favorite AAC memory is hiking Valencia Peak (1300ft elevation) on our F25 Central Coast retreat, and then coming back to our campsite to eat freshly-cooked ramen and sit around the campfire!",
     instagram: "https://www.instagram.com/charliebrown364/",
-    imagePath: "/images/officers/blank_profile.jpg",
+    imagePath: "/images/officers/charlie.jpg",
   },
   {
     id: "eric",
@@ -136,7 +136,7 @@ const officers: Officer[] = [
   },
   {
     id: "kayla",
-    name: "Kayla",
+    name: "Kayla Kim",
     role: "Visibility Team",
     major: "Criminology and Psychology",
     whyJoined: "I have always enjoyed hiking, camping, and exploring new places, so I was looking for opportunities like that at UCI. Eventually I found out about AAC, and it was the perfect combination of those! Plus, it allowed me to meet so many new friends!",
@@ -154,7 +154,7 @@ const officers: Officer[] = [
     favoriteMemory:
       "Literally running around, racing each other, on the Death Valley salt flats in Badwater Basin.",
     instagram: "https://www.instagram.com/bealiberty/",
-    imagePath: "/images/officers/blank_profile.jpg",
+    imagePath: "/images/officers/sofia2026.jpg",
   },
 ];
 
