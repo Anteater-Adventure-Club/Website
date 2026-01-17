@@ -6,6 +6,12 @@
   justify-items: center;
 }
 
+@media (max-width: 1023px) {
+  .polaroid-gallery {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+
 .polaroid-card {
   max-width: 400px;
   height: min-content;

@@ -45,7 +45,7 @@ const officers: Officer[] = [
   },
   {
     id: "gabe",
-    name: "Gabe",
+    name: "Gabe Dodge",
     role: "Fundraising Chair",
     major: "",
     whyJoined: "",
@@ -114,7 +114,7 @@ const officers: Officer[] = [
   },
   {
     id: "macey",
-    name: "Macey",
+    name: "Macey Kuhi",
     role: "Event Coordinator",
     major: "Biological Sciences",
     whyJoined:
