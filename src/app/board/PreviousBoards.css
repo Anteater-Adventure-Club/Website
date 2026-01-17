@@ -1,0 +1,80 @@
+.previous-board-container {
+  margin: 2rem 0;
+}
+
+.previous-board-toggle {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background-color: var(--green);
+  color: var(--white);
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+
+.previous-board-toggle:hover {
+  background-color: var(--green-dark);
+}
+
+.toggle-icon {
+  font-size: 2rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.previous-board-content {
+  margin-top: 1rem;
+  padding: 2rem;
+  background-color: var(--white);
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.previous-board-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.previous-board-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+
+.previous-board-name {
+  font-weight: bold;
+}
+
+.previous-board-role {
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+@media (max-width: 1200px) {
+  .previous-board-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .previous-board-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .previous-board-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 448px) {
+  .previous-board-grid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}

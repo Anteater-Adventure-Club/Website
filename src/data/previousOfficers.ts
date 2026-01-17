@@ -65,7 +65,7 @@ const previousBoards: PreviousBoard[] = [
   {
     year: "2024-2025",
     officers: officersIn2425
-  }
+  },
 ];
 
 export default previousBoards;
