@@ -17,6 +17,7 @@
 .section {
   display: flex;
   align-items: center;
+  gap: 4rem;
 }
 
 .section-text {
@@ -29,6 +30,12 @@
   justify-content: flex-end;
   align-items: center;
   gap: 2rem;
+}
+
+@media (max-width: 896px) {
+  .section-image-1 {
+    display: none;
+  }
 }
 
 .reverse > * {

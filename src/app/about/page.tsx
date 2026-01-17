@@ -11,14 +11,16 @@ const hikeImages: AACEvent[] = [
     id: "unknown-hike",
     name: "Unknown Hike",
     date: "Weekly Hikes",
-    description: "Exploring scenic trails across Orange County and Southern California",
+    description:
+      "Exploring scenic trails across Orange County and Southern California",
     imagePath: "/images/events/24-25/unknown_hike.jpg",
   },
   {
     id: "laguna-hike",
     name: "Laguna Hike",
     date: "Weekly Hikes",
-    description: "Exploring scenic trails across Orange County and Southern California",
+    description:
+      "Exploring scenic trails across Orange County and Southern California",
     imagePath: "/images/events/24-25/laguna_hike.jpg",
   },
 ];
@@ -28,14 +30,16 @@ const cityImages: AACEvent[] = [
     id: "la-city",
     name: "LA Exploration",
     date: "City Exploration",
-    description: "Adventure isn't just limited to nature — join us on a city exploration",
+    description:
+      "Adventure isn't just limited to nature — join us on a city exploration",
     imagePath: "/images/events/24-25/la_city.jpg",
   },
   {
     id: "san-diego",
     name: "San Diego Exploration",
     date: "City Exploration",
-    description: "Adventure isn't just limited to nature — join us on a city exploration",
+    description:
+      "Adventure isn't just limited to nature — join us on a city exploration",
     imagePath: "/images/events/24-25/san_diego.JPG",
   },
 ];
@@ -57,9 +61,45 @@ const retreatImages: AACEvent[] = [
   },
 ];
 
-export default function About() {
+function Section({
+  title,
+  description,
+  images,
+  reverse = false,
+}: {
+  title: string;
+  description: string;
+  images: AACEvent[];
+  reverse?: boolean;
+}) {
   const openPopup = () => {}; // Placeholder - popup functionality can be added later if needed
 
+  return (
+    <div className={`section ${reverse ? "reverse" : ""}`}>
+      {!reverse && (
+        <div className="section-text">
+          <h2>{title}</h2>
+          <h4>{description}</h4>
+        </div>
+      )}
+      <div className="section-images">
+        {images.map((image, index) => (
+          <div key={index} className={`section-image-${index}`}>
+            <PolaroidCard datum={image} openPopup={openPopup} />
+          </div>
+        ))}
+      </div>
+      {reverse && (
+        <div className="section-text">
+          <h2>{title}</h2>
+          <h4>{description}</h4>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function About() {
   return (
     <div className="about">
       {/* Header */}
@@ -73,71 +113,30 @@ export default function About() {
 
       <div className="sections">
         {/* Hikes */}
-        <div className="section">
-          <div className="section-text">
-            <h2>Hikes</h2>
-            <h4>
-              Explore weekly hikes across Orange County and Southern California
-              — scenic trails, great company, and adventure starting right here
-              at UCI
-            </h4>
-          </div>
-          <div className="section-images">
-            {hikeImages.map((image) => (
-              <PolaroidCard
-                key={image.id}
-                datum={image}
-                openPopup={openPopup}
-              />
-            ))}
-          </div>
-        </div>
+        <Section
+          title="Hikes"
+          description="Explore weekly hikes across Orange County and Southern California — scenic trails, great company, and adventure starting right here at UCI"
+          images={hikeImages}
+        />
 
         {/* City Exploration */}
-        <div className="section reverse">
-          <div className="section-images">
-            {cityImages.map((image) => (
-              <PolaroidCard
-                key={image.id}
-                datum={image}
-                openPopup={openPopup}
-              />
-            ))}
-          </div>
-          <div className="section-text">
-            <h2>City Exploration</h2>
-            <h4>
-              Adventure isn&apos;t just limited to nature — join us on a city
-              exploration, where we try new food, explore museums, and feel the
-              rush of a new city
-            </h4>
-          </div>
-        </div>
+        <Section
+          title="City Exploration"
+          description="Adventure isn't just limited to nature — join us on a city exploration, where we try new food, explore museums, and feel the rush of a new city"
+          images={cityImages}
+          reverse={true}
+        />
 
         {/* Quarterly Retreats */}
-        <div className="section">
-          <div className="section-text">
-            <h2>Quarterly Retreats</h2>
-            <h4>
-              Every quarter, the club goes on a weekend retreat, often the
-              highlight of the quarter for many of our members. Past retreat
-              locations include national parks like Sequoia and Death Valley,
-              lakes like Lake Arrowhead, and more!
-            </h4>
-          </div>
-          <div className="section-images">
-            {retreatImages.map((image) => (
-              <PolaroidCard
-                key={image.id}
-                datum={image}
-                openPopup={openPopup}
-              />
-            ))}
-          </div>
-        </div>
+        <Section
+          title="Quarterly Retreats"
+          description="Every quarter, the club goes on a weekend retreat, often the highlight of the quarter for many of our members. Past retreat locations include national parks like Sequoia and Death Valley, lakes like Lake Arrowhead, and more!"
+          images={retreatImages}
+        />
       </div>
 
-            <div className="socials">
+      {/* Join CTA */}
+      <div className="socials">
         <h2>Join the Club!</h2>
         <h4>
           Our primary form of communication is our club Discord server, but we
