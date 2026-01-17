@@ -150,7 +150,7 @@ export default function About() {
         </h4>
         <div className="social-buttons">
           <Link
-            href="https://discord.gg/YOUR_DISCORD_LINK"
+            href="https://discord.com/invite/F7FqKQushk"
             className="button social-button discord-button"
             target="_blank"
           >
