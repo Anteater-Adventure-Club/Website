@@ -1,6 +1,6 @@
 "use client";
 
-import { PolaroidGallery } from "@/components/Polaroid/Polaroid";
+import { PolaroidGallery } from "@/components/PolaroidGallery/PolaroidGallery";
 import officers from "@/data/officers";
 import previousBoards from "@/data/previousOfficers";
 import PreviousBoard from "./PreviousBoard";

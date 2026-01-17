@@ -1,6 +1,6 @@
 "use client";
 
-import { PolaroidGallery } from "@/components/Polaroid/Polaroid";
+import { PolaroidGallery } from "@/components/PolaroidGallery/PolaroidGallery";
 import { upcomingEvents, pastEvents } from "@/data/events";
 
 export default function Events() {

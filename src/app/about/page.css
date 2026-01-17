@@ -7,8 +7,7 @@
 /* Event sections */
 
 .sections {
-  margin: 4rem 0;
-  max-width: 72%;
+  margin: 4rem 2rem;
   display: flex;
   flex-direction: column;
   gap: 4rem;
@@ -17,30 +16,28 @@
 .section {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4rem;
 }
 
+.section:nth-child(even) {
+  flex-direction: row-reverse;
+}
+
 .section-text {
-  flex: 0 0 40%;
+  width: 40%;
 }
 
 .section-images {
-  flex: 1;
   display: flex;
-  justify-content: flex-end;
   align-items: center;
   gap: 2rem;
 }
 
-@media (max-width: 896px) {
+@media (max-width: 1024px) {
   .section-image-1 {
     display: none;
   }
-}
-
-.reverse > * {
-  text-align: right;
-  justify-content: flex-start;
 }
 
 /* Socials */

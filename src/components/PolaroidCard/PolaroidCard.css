@@ -1,0 +1,27 @@
+.polaroid-card {
+  /* max-width: 400px; */
+  width: 300px;
+  /* height: min-content; */
+  background-color: white;
+  padding: 1rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.2s;
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+.polaroid-gallery .polaroid-card {
+  max-width: 400px;
+  width: auto;
+  height: min-content;
+}
+
+.polaroid-caption {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
