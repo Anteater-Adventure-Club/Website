@@ -5,8 +5,6 @@ import Link from "next/link";
 import "./page.css";
 import { PolaroidCard } from "@/components/PolaroidCard/PolaroidCard";
 
-// TODO: add potluck picnics
-
 // TODO: consider replacing hike/city with just "weekend event"
 
 // Image data for polaroid cards
