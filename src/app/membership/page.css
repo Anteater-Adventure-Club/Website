@@ -107,6 +107,18 @@
   display: flex;
   gap: 1.5rem;
   align-items: flex-start;
+  padding: 1.5rem;
+  border-radius: 1rem;
+}
+
+.benefit-item:nth-child(odd) {
+  background-color: rgba(46, 139, 87, 0.1);
+  border-left: 4px solid var(--green);
+}
+
+.benefit-item:nth-child(even) {
+  background-color: rgba(46, 139, 87, 0.05);
+  border-left: 4px solid var(--green-dark);
 }
 
 .benefit-number {
@@ -121,6 +133,11 @@
   font-weight: bold;
   font-size: 1.25rem;
   flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.benefit-item:nth-child(even) .benefit-number {
+  background-color: var(--green-dark);
 }
 
 .benefit-content {
