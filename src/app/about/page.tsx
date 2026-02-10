@@ -141,7 +141,7 @@ export default function About() {
 
       {/* Join CTA */}
       <div className="socials">
-        <h2>Join the Club!</h2>
+        <h2>Connect with us!</h2>
         <h4>
           Our primary form of communication is our club Discord server, but we
           also promote all of our events on our club Instagram.
