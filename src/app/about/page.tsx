@@ -19,7 +19,7 @@ const hikeImages: AACEvent[] = [
   {
     id: "laguna-hike",
     name: "Laguna Hike",
-    date: "X/X/XX",
+    date: "June 12, 2024",
     description: "",
     imagePath: "/images/events/24-25/laguna_hike.jpg",
   },
