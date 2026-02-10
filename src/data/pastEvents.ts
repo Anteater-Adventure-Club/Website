@@ -74,7 +74,7 @@ const pastEvents: AACEvent[] = [
   {
     id: "10",
     name: "Anteater Involvement Fair",
-    date: "September 22, 2025, 11am - 4pm",
+    date: "September 22, 2025",
     description:
       "Join us at the Anteater Involvement Fair to learn more about the club!",
     imagePath: "/images/events/25-26/aldrich_park.jpg",
