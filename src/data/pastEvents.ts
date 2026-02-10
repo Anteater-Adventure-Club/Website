@@ -1,5 +1,3 @@
-const upcomingEvents: AACEvent[] = [];
-
 const pastEvents: AACEvent[] = [
   {
     id: "1",
@@ -83,4 +81,4 @@ const pastEvents: AACEvent[] = [
   },
 ];
 
-export { upcomingEvents, pastEvents };
+export { pastEvents };
