@@ -154,7 +154,7 @@ const officers: Officer[] = [
     favoriteMemory:
       "Literally running around, racing each other, on the Death Valley salt flats in Badwater Basin.",
     instagram: "https://www.instagram.com/bealiberty/",
-    imagePath: "/images/officers/sofia2026.jpg",
+    imagePath: "/images/officers/sofia.jpg",
   },
 ];
 
