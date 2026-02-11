@@ -1,0 +1,18 @@
+.events-page {
+  padding: 0 1rem;
+}
+
+.events-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.section-title {
+  text-align: center;
+}
+
+.calendar-wrapper {
+  margin: 1.25rem auto;
+  max-width: 80rem;
+  padding: 0 1rem;
+}
