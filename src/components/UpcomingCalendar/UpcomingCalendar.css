@@ -17,7 +17,7 @@
   text-align: center;
   font-size: 0.875rem;
   font-weight: 700;
-  color: #4b5563;
+  color: #333333;
 }
 
 .weekday {
@@ -33,7 +33,7 @@
 .calendar-day {
   position: relative;
   padding: 1.25rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #333333;
   border-radius: 0.5rem;
   text-align: center;
   cursor: pointer;
@@ -45,7 +45,7 @@
   position: absolute;
   width: 28px;
   height: 28px;
-  background-color: #ef4444; /* red */
+  background-color: #ef4444;
   border-radius: 50%;
   top: 50%;
   left: 50%;
@@ -65,18 +65,34 @@
 }
 
 /* Day with event */
-.calendar-day.has-event {
+.calendar-day.event-regular {
   background-color: #fef08a;
 }
 
-.calendar-day.has-event:hover {
+.calendar-day.event-regular:hover {
   background-color: #fde047;
+}
+
+.calendar-day.event-potlock-picnic {
+  background-color: #bbf7d0;
+}
+
+.calendar-day.event-potlock-picnic:hover {
+  background-color: #79f1a3;
+}
+
+.calendar-day.event-weekly-meeting {
+  background-color: #bfdbfe;
+}
+
+.calendar-day.event-weekly-meeting:hover {
+  background-color: #68abfd;
 }
 
 .event-details {
   margin-top: 1.5rem;
   padding: 1rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #333333;
   border-radius: 0.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
@@ -89,7 +105,7 @@
 .event-date {
   margin-top: 0.5rem;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #333333;
 }
 
 .event-description {

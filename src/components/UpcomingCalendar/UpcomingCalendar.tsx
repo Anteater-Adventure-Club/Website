@@ -56,20 +56,20 @@ export default function UpcomingCalendar({ events }: UpcomingCalendarProps) {
             currentMonth === today.getMonth() &&
             currentYear === today.getFullYear();
 
-          const hasEvent = events.some((e) => {
+            const eventForDay = events.find((e) => {
             const eventDate = new Date(e.date);
             return (
-              eventDate.getDate() === day &&
-              eventDate.getMonth() === currentMonth &&
-              eventDate.getFullYear() === currentYear
+                eventDate.getDate() === day &&
+                eventDate.getMonth() === currentMonth &&
+                eventDate.getFullYear() === currentYear
             );
-          });
+            });
 
           return (
             <div
               key={day}
               onClick={() => handleClick(day)}
-              className={`calendar-day ${hasEvent ? "has-event" : ""} ${isToday ? "today" : ""}`}
+              className={`calendar-day ${eventForDay ? `event-${eventForDay.type?.replace(/\s+/g, "-")}` : ""} ${isToday ? "today" : ""}`}
             >
               <span>{day}</span>
             </div>

@@ -1,69 +1,82 @@
 @import "tailwindcss";
 
-/* Global CSS variables */
-
 :root {
-  --tan: #fff6eb;
-  --green: #2e8b57;
-  --green-dark: #256e47;
-  --white: #fff;
-  --black: #333;
+  --tan: #f8f5f0;
+  --forest: #1f4d3b;
+  --forest-light: #2f6b53;
+  --accent: #7da27f;
+  --white: #ffffff;
+  --black: #2a2a2a;
+  --border: rgba(0, 0, 0, 0.08);
 
-  --header-height: 4rem;
-  --outside-padding: 2rem;
+  --header-height: 4.5rem;
+  --outside-padding: 3rem;
 }
-
-/* Fonts */
 
 @font-face {
   font-family: "Lazydog";
   src: url("/fonts/Lazydog.otf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
 }
 
 @font-face {
   font-family: "Chivo";
   src: url("/fonts/Chivo-Regular.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
 }
 
 @font-face {
   font-family: "Chivo";
   src: url("/fonts/Chivo-Italic.ttf") format("truetype");
-  font-weight: normal;
-  font-style: italic; /* Italic */
-}
-
-/* Content */
-
-header,
-footer {
-  background-color: var(--green);
-  color: var(--white);
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: var(--header-height);
+  font-style: italic;
 }
 
 body {
-  font-family: "Chivo";
+  font-family: "Chivo", sans-serif;
   background: var(--tan);
+  color: var(--black);
+  margin: 0;
+}
+
+header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: var(--header-height);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.6);
+  border-bottom: 1px solid var(--border);
+
+  transition: background 0.3s ease;
+  z-index: 1000;
+}
+
+header:hover {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+footer {
+  margin-top: 4rem;
+  padding: 2rem 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #666;
+  border-top: 1px solid var(--border);
 }
 
 main {
-  color: var(--black);
-  min-height: calc(100vh - var(--header-height) - 2 * var(--outside-padding));
   padding: var(--outside-padding);
+  padding-top: calc(var(--header-height) + 2rem);
+  min-height: 100vh;
 }
 
 h1 {
   font-family: "Lazydog";
   font-size: 4rem;
-  text-align: center;
+  letter-spacing: 1px;
 }
 
 h2 {
@@ -76,32 +89,32 @@ h3 {
   font-size: 1.5rem;
 }
 
-h4 {
-  font-size: 1.25rem;
+p {
+  line-height: 1.6;
 }
 
 @media (max-width: 896px) {
-  h1 {
-    font-size: 2.5rem;
-  }
-  h2 {
-    font-size: 2rem;
-  }
-  h3 {
-    font-size: 1.25rem;
-  }
-  h4 {
-    font-size: 1rem;
-  }
-  p {
-    font-size: 0.75rem;
-  }
+  h1 { font-size: 2.5rem; }
+  h2 { font-size: 2rem; }
+  h3 { font-size: 1.25rem; }
+  p  { font-size: 0.9rem; }
 }
 
-/* Components */
-
 .button {
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  transition: background-color 0.2s;
+  padding: 0.85rem 1.75rem;
+  border-radius: 999px;
+  transition: all 0.25s ease;
+  font-weight: 600;
+}
+
+.cta-button {
+  font-family: "Lazydog";
+  background-color: var(--forest);
+  color: var(--white);
+  box-shadow: 0 6px 18px rgba(31, 77, 59, 0.25);
+}
+
+.cta-button:hover {
+  background-color: var(--forest-light);
+  transform: translateY(-2px);
 }

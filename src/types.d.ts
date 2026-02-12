@@ -16,6 +16,7 @@ interface AACEvent {
   description: string;
   imagePath: string;
   signUpLink?: string;
+  type?: "regular" | "potlock picnic" | "weekly meeting";
 }
 
 type PolaroidType = Officer | AACEvent;

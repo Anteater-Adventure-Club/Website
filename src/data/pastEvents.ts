@@ -1,6 +1,14 @@
 const pastEvents: AACEvent[] = [
   {
     id: "1",
+    name: "Sturtevant Falls Hike",
+    date: "January 31, 2026",
+    description:
+      "AAC hiked to Sturtevant Falls in the San Gabriel Mountains! It was a scenic 3.5-mile hike through a lush canyon, culminating in a beautiful waterfall!",
+    imagePath: "/images/events/25-26/sturtevant_falls.jpeg",
+  },
+  {
+    id: "2",
     name: "Eucalyptus Trail Hike & Temple Visit",
     date: "January 17, 2026",
     description:
@@ -8,7 +16,7 @@ const pastEvents: AACEvent[] = [
     imagePath: "/images/events/25-26/hike_mandir.jpeg",
   },
   {
-    id: "2",
+    id: "3",
     name: "Balboa Island",
     date: "January 10, 2026",
     description:
@@ -16,63 +24,15 @@ const pastEvents: AACEvent[] = [
     imagePath: "/images/events/25-26/balboa_pier.jpg",
   },
   {
-    id: "3",
-    name: "Getty Center + Japanese Food Festival",
-    date: "May 17, 2025",
-    description:
-      "We explored the Getty Center and visited Santa Monica for tasty Japanese food at the Konomon Festival!",
-    imagePath: "/images/events/24-25/getty_center_and_japanese_food_fest.jpg",
-  },
-  {
     id: "4",
-    name: "AAC x UCR Black Star Canyon Falls",
-    date: "May 10, 2025",
+    name: "Crystal Cove Beach Walk",
+    date: "October 18, 2025",
     description:
-      "On Saturday AAC went to Black Star Canyon for a collab with UCR's Running Club!",
-    imagePath: "/images/events/24-25/AACxUCR_black_star_canyon_falls.jpg",
+      "On Saturday the club took a trip to Crystal Cove for a beach walk! We enjoyed the scenic views of the ocean and explored the tide pools along the way!",
+    imagePath: "/images/events/25-26/crystal_cove_beach_walk.jpg",
   },
   {
     id: "5",
-    name: "Death Valley",
-    date: "June 12, 2024",
-    description:
-      "We went to Death Valley for a weekend trip! It was super fun and we got to see some amazing sights.",
-    imagePath: "/images/events/24-25/death_valley.jpg",
-  },
-  {
-    id: "6",
-    name: "LA City",
-    date: "June 12, 2024",
-    description:
-      "Imagine going to LA City and seeing the sights! We went to the Griffith Observatory and saw the Hollywood sign.",
-    imagePath: "/images/events/24-25/la_city.jpg",
-  },
-  {
-    id: "7",
-    name: "Laguna Hike",
-    date: "June 12, 2024",
-    description:
-      "Laguna Hike was a great time! We got to see some amazing views and take some awesome pictures.",
-    imagePath: "/images/events/24-25/laguna_hike.jpg",
-  },
-  {
-    id: "8",
-    name: "San Diego",
-    date: "June 12, 2024",
-    description:
-      "San Diego was a blast! We went to the beach and had a great time.",
-    imagePath: "/images/events/24-25/san_diego.JPG",
-  },
-  {
-    id: "9",
-    name: "Sequoia",
-    date: "June 12, 2024",
-    description:
-      "We went to Sequoia for a weekend trip! It was super fun and we got to see some amazing sights.",
-    imagePath: "/images/events/24-25/sequoia.jpg",
-  },
-  {
-    id: "10",
     name: "Anteater Involvement Fair",
     date: "September 22, 2025",
     description:

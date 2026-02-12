@@ -2,18 +2,27 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import "./Header.css";
 import { Menu, X } from "lucide-react";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
+  const pathname = usePathname();
+
   const closeMenu = () => setIsMenuOpen(false);
+
+  const isActive = (path: string) => {
+    if (path === "/") {
+      return pathname === "/";
+    }
+    return pathname.startsWith(path);
+  };
 
   return (
     <header>
       <div className="header-container">
-        {/* Hamburger button - visible on mobile */}
+        {/* Hamburger button */}
         <button
           className="hamburger-button"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -23,35 +32,65 @@ export default function Header() {
           {isMenuOpen ? <X /> : <Menu />}
         </button>
 
-        {/* Desktop navigation - visible on screens >= 640px */}
+        {/* Desktop Navigation */}
         <nav className="desktop-nav">
-          <Link href="/">Home</Link>
-          <Link href="/about">About</Link>
-          <Link href="/events">Events</Link>
-          <Link href="/board">Board</Link>
-          <Link href="/membership">Membership</Link>
+          <Link href="/" className={isActive("/") ? "active" : ""}>
+            Home
+          </Link>
+          <Link href="/about" className={isActive("/about") ? "active" : ""}>
+            About
+          </Link>
+          <Link href="/events" className={isActive("/events") ? "active" : ""}>
+            Events
+          </Link>
+          <Link href="/board" className={isActive("/board") ? "active" : ""}>
+            Board
+          </Link>
+          <Link href="/membership" className={isActive("/membership") ? "active" : ""}>
+            Membership
+          </Link>
         </nav>
       </div>
 
-      {/* Mobile menu overlay */}
+      {/* Mobile Menu Overlay */}
       <div
         className={`mobile-menu-overlay ${isMenuOpen ? "open" : ""}`}
         onClick={closeMenu}
       >
         <nav className="mobile-nav" onClick={(e) => e.stopPropagation()}>
-          <Link href="/" onClick={closeMenu}>
+          <Link
+            href="/"
+            onClick={closeMenu}
+            className={isActive("/") ? "active" : ""}
+          >
             Home
           </Link>
-          <Link href="/about" onClick={closeMenu}>
+          <Link
+            href="/about"
+            onClick={closeMenu}
+            className={isActive("/about") ? "active" : ""}
+          >
             About
           </Link>
-          <Link href="/events" onClick={closeMenu}>
+          <Link
+            href="/events"
+            onClick={closeMenu}
+            className={isActive("/events") ? "active" : ""}
+          >
             Events
           </Link>
-          <Link href="/board" onClick={closeMenu}>
+          <Link
+            href="/board"
+            onClick={closeMenu}
+            className={isActive("/board") ? "active" : ""}
+          >
             Board
           </Link>
-          <Link href="/membership" onClick={closeMenu}>
+          <Link
+            href="/membership"
+            onClick={closeMenu}
+            className={isActive("/membership") ? "active" : ""}
+          >
             Membership
           </Link>
         </nav>
