@@ -6,12 +6,13 @@ const redirects: Record<string, string> = {
   // more events (e.g. weekend event, gen meeting sign in form, etc.)
 };
 
-export default function RedirectPage({
+export default async function RedirectPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const destination = redirects[params.slug];
+  const { slug } = await params;
+  const destination = redirects[slug];
 
   if (!destination) {
     notFound();
