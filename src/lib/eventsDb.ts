@@ -3,6 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 import { upcomingEvents } from "@/data/upcomingEvents";
+import { pastEvents } from "@/data/pastEvents";
 
 type EventStatus = "upcoming" | "past";
 
@@ -26,8 +27,15 @@ type TableInfoRow = {
 
 const DB_DIRECTORY = path.join(process.cwd(), "data");
 const DB_PATH = path.join(DB_DIRECTORY, "events.sqlite");
-const SEEDED_EVENTS: (AACEvent & { status: EventStatus })[] = [
+const SEEDED_UPCOMING_EVENTS: (AACEvent & { status: EventStatus })[] = [
   ...upcomingEvents.map((event) => ({ ...event, status: "upcoming" as const })),
+];
+const SEEDED_PAST_EVENTS: (AACEvent & { status: EventStatus })[] = [
+  ...pastEvents.map((event) => ({ ...event, status: "past" as const })),
+];
+const SEEDED_EVENTS: (AACEvent & { status: EventStatus })[] = [
+  ...SEEDED_UPCOMING_EVENTS,
+  ...SEEDED_PAST_EVENTS,
 ];
 
 const globalForDb = globalThis as typeof globalThis & {
@@ -273,8 +281,13 @@ export function listEvents(status?: string): AACEvent[] {
     const rows = normalizedStatus
       ? (stmt.all(normalizedStatus) as EventRow[])
       : (stmt.all() as EventRow[]);
+    const mappedEvents = rows.map(mapRow);
 
-    return sortEvents(rows.map(mapRow), normalizedStatus);
+    if (normalizedStatus === "past" && mappedEvents.length === 0) {
+      return sortEvents(SEEDED_PAST_EVENTS, "past");
+    }
+
+    return sortEvents(mappedEvents, normalizedStatus);
   } catch {
     return sortEvents(fallback, normalizedStatus);
   }
@@ -381,4 +394,48 @@ export function deleteEvent(id: string): boolean {
   };
 
   return (result.changes ?? 0) > 0;
+}
+
+export function seedPastFallbackIfEmpty(): {
+  seeded: number;
+  totalPast: number;
+} {
+  ensureInitialized();
+  const db = getDb();
+
+  const totalPastRow = db
+    .prepare("SELECT COUNT(*) AS total FROM events WHERE status = 'past'")
+    .get() as { total: number };
+
+  if (totalPastRow.total > 0) {
+    return { seeded: 0, totalPast: totalPastRow.total };
+  }
+
+  const insert = db.prepare(`
+    INSERT OR IGNORE INTO events (
+      id, name, date, description, image_path, sign_up_link, event_type, status
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  let seeded = 0;
+  for (const event of SEEDED_PAST_EVENTS) {
+    const result = insert.run(
+      event.id,
+      event.name,
+      event.date,
+      event.description,
+      event.imagePath,
+      event.signUpLink ?? null,
+      event.type ?? null,
+      "past",
+    ) as { changes?: number };
+
+    seeded += result.changes ?? 0;
+  }
+
+  const updatedPastRow = db
+    .prepare("SELECT COUNT(*) AS total FROM events WHERE status = 'past'")
+    .get() as { total: number };
+
+  return { seeded, totalPast: updatedPastRow.total };
 }
