@@ -1,12 +1,63 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { PolaroidGallery } from "@/components/PolaroidGallery/PolaroidGallery";
-import { upcomingEvents } from "@/data/upcomingEvents";
-import { pastEvents } from "@/data/pastEvents";
 import UpcomingCalendar from "@/components/UpcomingCalendar/UpcomingCalendar";
 import "./Events.css";
 
+async function fetchEvents(status: "upcoming" | "past"): Promise<AACEvent[]> {
+  const response = await fetch(`/api/events?status=${status}`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${status} events`);
+  }
+
+  const payload = (await response.json()) as { data: AACEvent[] };
+  return payload.data;
+}
+
 export default function Events() {
+  const [upcomingEvents, setUpcomingEvents] = useState<AACEvent[]>([]);
+  const [pastEvents, setPastEvents] = useState<AACEvent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      try {
+        const [upcoming, past] = await Promise.all([
+          fetchEvents("upcoming"),
+          fetchEvents("past"),
+        ]);
+
+        if (!mounted) {
+          return;
+        }
+
+        setUpcomingEvents(upcoming);
+        setPastEvents(past);
+      } catch {
+        if (!mounted) {
+          return;
+        }
+
+        setError("Could not load events right now.");
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    load();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <div className="events-page">
       <div className="events-header">
@@ -14,16 +65,22 @@ export default function Events() {
         <h4>Click on any date or past event to learn more</h4>
       </div>
 
-      <h2 className="section-title">Upcoming Events</h2>
+      {isLoading && <p>Loading events...</p>}
+      {error && <p>{error}</p>}
 
-      <div className="calendar-wrapper">
-        <UpcomingCalendar events={upcomingEvents} />
-      </div>
+      {!isLoading && !error && (
+        <>
+          <h2 className="section-title">Upcoming Events</h2>
 
-      <h2 className="section-title">Past Events</h2>
+          <div className="calendar-wrapper">
+            <UpcomingCalendar events={upcomingEvents} />
+          </div>
 
-      <PolaroidGallery data={pastEvents} dataType="event" />
+          <h2 className="section-title">Past Events</h2>
+
+          <PolaroidGallery data={pastEvents} dataType="event" />
+        </>
+      )}
     </div>
   );
 }
-
