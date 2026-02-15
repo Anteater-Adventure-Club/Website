@@ -32,10 +32,24 @@ export default function UpcomingCalendar({ events }: UpcomingCalendarProps) {
 
   return (
     <div className="calendar-container">
-        
-    <div className="calendar-header">
+      <div className="calendar-header">
         {monthName} {currentYear}
-    </div>
+      </div>
+
+      <div className="calendar-legend" aria-label="Event type legend">
+        <div className="legend-item">
+          <span className="legend-color event-regular" aria-hidden="true" />
+          <span>Event</span>
+        </div>
+        <div className="legend-item">
+          <span className="legend-color event-weekly-meeting" aria-hidden="true" />
+          <span>Weekly Meeting</span>
+        </div>
+        <div className="legend-item">
+          <span className="legend-color event-potlock-picnic" aria-hidden="true" />
+          <span>Potluck Picnic</span>
+        </div>
+      </div>
 
       {/* Days of Week */}
       <div className="calendar-weekdays">

@@ -9,6 +9,30 @@
   margin-bottom: 1rem;
 }
 
+.calendar-legend {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  color: #333333;
+}
+
+.legend-color {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
 .calendar-weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -69,6 +93,10 @@
   background-color: #fef08a;
 }
 
+.legend-color.event-regular {
+  background-color: #fef08a;
+}
+
 .calendar-day.event-regular:hover {
   background-color: #fde047;
 }
@@ -77,11 +105,19 @@
   background-color: #bbf7d0;
 }
 
+.legend-color.event-potlock-picnic {
+  background-color: #bbf7d0;
+}
+
 .calendar-day.event-potlock-picnic:hover {
   background-color: #79f1a3;
 }
 
 .calendar-day.event-weekly-meeting {
+  background-color: #bfdbfe;
+}
+
+.legend-color.event-weekly-meeting {
   background-color: #bfdbfe;
 }
 
