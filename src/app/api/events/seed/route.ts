@@ -25,6 +25,16 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = seedPastFallbackIfEmpty();
-  return NextResponse.json({ data: result });
+  try {
+    const result = await seedPastFallbackIfEmpty();
+    return NextResponse.json({ data: result });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: "Failed to seed past events",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    );
+  }
 }

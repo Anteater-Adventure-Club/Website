@@ -1,13 +1,12 @@
-import fs from "node:fs";
-import path from "node:path";
-import crypto from "node:crypto";
-import { DatabaseSync } from "node:sqlite";
 import { upcomingEvents } from "@/data/upcomingEvents";
 import { pastEvents } from "@/data/pastEvents";
 
 type EventStatus = "upcoming" | "past";
 
-type EventRow = {
+type CreateEventInput = Omit<AACEvent, "id">;
+type UpdateEventInput = Partial<Omit<AACEvent, "id">>;
+
+type SupabaseEventRow = {
   id: string;
   name: string;
   date: string;
@@ -18,211 +17,51 @@ type EventRow = {
   status: EventStatus;
 };
 
-type CreateEventInput = Omit<AACEvent, "id">;
-type UpdateEventInput = Partial<Omit<AACEvent, "id">>;
-type TableInfoRow = {
-  name: string;
-  dflt_value: string | null;
-};
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const EVENTS_TABLE = process.env.EVENTS_TABLE ?? "events";
 
-const DB_DIRECTORY = path.join(process.cwd(), "data");
-const DB_PATH = path.join(DB_DIRECTORY, "events.sqlite");
-const SEEDED_UPCOMING_EVENTS: (AACEvent & { status: EventStatus })[] = [
-  ...upcomingEvents.map((event) => ({ ...event, status: "upcoming" as const })),
-];
-const SEEDED_PAST_EVENTS: (AACEvent & { status: EventStatus })[] = [
-  ...pastEvents.map((event) => ({ ...event, status: "past" as const })),
-];
-const SEEDED_EVENTS: (AACEvent & { status: EventStatus })[] = [
+const SEEDED_UPCOMING_EVENTS: AACEvent[] = upcomingEvents.map((event) => ({
+  ...event,
+  status: "upcoming",
+}));
+
+const SEEDED_PAST_EVENTS: AACEvent[] = pastEvents.map((event) => ({
+  ...event,
+  status: "past",
+}));
+
+const SEEDED_EVENTS: AACEvent[] = [
   ...SEEDED_UPCOMING_EVENTS,
   ...SEEDED_PAST_EVENTS,
 ];
 
-const globalForDb = globalThis as typeof globalThis & {
-  aacEventsDb?: DatabaseSync;
-  aacEventsInitialized?: boolean;
-};
-
-function getDb(): DatabaseSync {
-  if (!globalForDb.aacEventsDb) {
-    fs.mkdirSync(DB_DIRECTORY, { recursive: true });
-    const database = new DatabaseSync(DB_PATH);
-    database.exec(`
-      PRAGMA busy_timeout = 5000;
-      PRAGMA journal_mode = WAL;
-    `);
-    globalForDb.aacEventsDb = database;
-  }
-
-  return globalForDb.aacEventsDb;
+function hasSupabaseConfig(): boolean {
+  return Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
 }
 
-function createSchema(database: DatabaseSync) {
-  database.exec(`
-    CREATE TABLE IF NOT EXISTS events (
-      id TEXT PRIMARY KEY NOT NULL DEFAULT (
-        lower(
-          substr(hex(randomblob(16)),1,8) || '-' ||
-          substr(hex(randomblob(16)),9,4) || '-' ||
-          substr(hex(randomblob(16)),13,4) || '-' ||
-          substr(hex(randomblob(16)),17,4) || '-' ||
-          substr(hex(randomblob(16)),21,12)
-        )
-      ),
-      name TEXT NOT NULL,
-      date TEXT NOT NULL,
-      description TEXT NOT NULL,
-      image_path TEXT NOT NULL DEFAULT '',
-      sign_up_link TEXT,
-      event_type TEXT,
-      status TEXT NOT NULL CHECK(status IN ('upcoming', 'past')),
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+function ensureSupabaseConfig() {
+  if (!hasSupabaseConfig()) {
+    throw new Error(
+      "Supabase is not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
     );
-
-    CREATE TRIGGER IF NOT EXISTS events_fill_empty_id
-    AFTER INSERT ON events
-    FOR EACH ROW
-    WHEN NEW.id = ''
-    BEGIN
-      UPDATE events
-      SET id = lower(
-        substr(hex(randomblob(16)),1,8) || '-' ||
-        substr(hex(randomblob(16)),9,4) || '-' ||
-        substr(hex(randomblob(16)),13,4) || '-' ||
-        substr(hex(randomblob(16)),17,4) || '-' ||
-        substr(hex(randomblob(16)),21,12)
-      )
-      WHERE rowid = NEW.rowid;
-    END;
-  `);
-}
-
-function migrateEventsSchemaIfNeeded(database: DatabaseSync) {
-  const tableInfo = database
-    .prepare("PRAGMA table_info(events)")
-    .all() as TableInfoRow[];
-
-  const idColumn = tableInfo.find((column) => column.name === "id");
-  const hasIdDefault = Boolean(idColumn?.dflt_value);
-
-  if (hasIdDefault) {
-    return;
-  }
-
-  database.exec(`
-    ALTER TABLE events RENAME TO events_old;
-
-    CREATE TABLE events (
-      id TEXT PRIMARY KEY NOT NULL DEFAULT (
-        lower(
-          substr(hex(randomblob(16)),1,8) || '-' ||
-          substr(hex(randomblob(16)),9,4) || '-' ||
-          substr(hex(randomblob(16)),13,4) || '-' ||
-          substr(hex(randomblob(16)),17,4) || '-' ||
-          substr(hex(randomblob(16)),21,12)
-        )
-      ),
-      name TEXT NOT NULL,
-      date TEXT NOT NULL,
-      description TEXT NOT NULL,
-      image_path TEXT NOT NULL DEFAULT '',
-      sign_up_link TEXT,
-      event_type TEXT,
-      status TEXT NOT NULL CHECK(status IN ('upcoming', 'past')),
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-
-    INSERT INTO events (
-      id, name, date, description, image_path, sign_up_link, event_type, status, created_at, updated_at
-    )
-    SELECT
-      CASE
-        WHEN id IS NULL OR id = '' THEN lower(
-          substr(hex(randomblob(16)),1,8) || '-' ||
-          substr(hex(randomblob(16)),9,4) || '-' ||
-          substr(hex(randomblob(16)),13,4) || '-' ||
-          substr(hex(randomblob(16)),17,4) || '-' ||
-          substr(hex(randomblob(16)),21,12)
-        )
-        ELSE id
-      END,
-      name, date, description, image_path, sign_up_link, event_type, status, created_at, updated_at
-    FROM events_old;
-
-    DROP TABLE events_old;
-
-    CREATE TRIGGER IF NOT EXISTS events_fill_empty_id
-    AFTER INSERT ON events
-    FOR EACH ROW
-    WHEN NEW.id = ''
-    BEGIN
-      UPDATE events
-      SET id = lower(
-        substr(hex(randomblob(16)),1,8) || '-' ||
-        substr(hex(randomblob(16)),9,4) || '-' ||
-        substr(hex(randomblob(16)),13,4) || '-' ||
-        substr(hex(randomblob(16)),17,4) || '-' ||
-        substr(hex(randomblob(16)),21,12)
-      )
-      WHERE rowid = NEW.rowid;
-    END;
-  `);
-}
-
-function seedInitialEvents(database: DatabaseSync) {
-  const insert = database.prepare(`
-    INSERT OR IGNORE INTO events (
-      id, name, date, description, image_path, sign_up_link, event_type, status
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-
-  const seed = SEEDED_EVENTS;
-
-  try {
-    for (const event of seed) {
-      insert.run(
-        event.id,
-        event.name,
-        event.date,
-        event.description,
-        event.imagePath,
-        event.signUpLink ?? null,
-        event.type ?? null,
-        event.status,
-      );
-    }
-  } catch (error) {
-    const isLocked =
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      (error as { code?: string }).code === "ERR_SQLITE_ERROR";
-
-    if (!isLocked) {
-      throw error;
-    }
   }
 }
 
-function ensureInitialized() {
-  if (globalForDb.aacEventsInitialized) {
-    return;
-  }
-
-  const database = getDb();
-  createSchema(database);
-  migrateEventsSchemaIfNeeded(database);
-  seedInitialEvents(database);
-  globalForDb.aacEventsInitialized = true;
+function supabaseHeaders(extra: Record<string, string> = {}) {
+  return {
+    "Content-Type": "application/json",
+    apikey: SUPABASE_SERVICE_ROLE_KEY as string,
+    Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY as string}`,
+    ...extra,
+  };
 }
 
 function normalizeStatus(status?: string): EventStatus {
   return status === "past" ? "past" : "upcoming";
 }
 
-function mapRow(row: EventRow): AACEvent {
+function toEvent(row: SupabaseEventRow): AACEvent {
   return {
     id: row.id,
     name: row.name,
@@ -252,190 +91,212 @@ function sortEvents(events: AACEvent[], status?: "upcoming" | "past"): AACEvent[
   return events;
 }
 
-export function listEvents(status?: string): AACEvent[] {
+async function supabaseFetch(path: string, init?: RequestInit): Promise<Response> {
+  ensureSupabaseConfig();
+  const base = SUPABASE_URL as string;
+  return fetch(`${base}/rest/v1/${path}`, init);
+}
+
+function fallbackEvents(status?: string): AACEvent[] {
   const normalizedStatus =
     status === "upcoming" || status === "past" ? status : undefined;
   const fallback = normalizedStatus
     ? SEEDED_EVENTS.filter((event) => event.status === normalizedStatus)
     : SEEDED_EVENTS;
 
-  if (!fs.existsSync(DB_PATH)) {
-    return sortEvents(fallback, normalizedStatus);
-  }
-
-  try {
-    const db = getDb();
-    const stmt = normalizedStatus
-      ? db.prepare(`
-          SELECT id, name, date, description, image_path, sign_up_link, event_type, status
-          FROM events
-          WHERE status = ?
-          ORDER BY created_at DESC
-        `)
-      : db.prepare(`
-          SELECT id, name, date, description, image_path, sign_up_link, event_type, status
-          FROM events
-          ORDER BY created_at DESC
-        `);
-
-    const rows = normalizedStatus
-      ? (stmt.all(normalizedStatus) as EventRow[])
-      : (stmt.all() as EventRow[]);
-    const mappedEvents = rows.map(mapRow);
-
-    if (normalizedStatus === "past" && mappedEvents.length === 0) {
-      return sortEvents(SEEDED_PAST_EVENTS, "past");
-    }
-
-    return sortEvents(mappedEvents, normalizedStatus);
-  } catch {
-    return sortEvents(fallback, normalizedStatus);
-  }
+  return sortEvents(fallback, normalizedStatus);
 }
 
-export function getEventById(id: string): AACEvent | null {
-  if (!fs.existsSync(DB_PATH)) {
+export async function listEvents(status?: string): Promise<AACEvent[]> {
+  const normalizedStatus =
+    status === "upcoming" || status === "past" ? status : undefined;
+
+  if (!hasSupabaseConfig()) {
+    return fallbackEvents(normalizedStatus);
+  }
+
+  const filters: string[] = [
+    "select=id,name,date,description,image_path,sign_up_link,event_type,status",
+  ];
+
+  if (normalizedStatus) {
+    filters.push(`status=eq.${encodeURIComponent(normalizedStatus)}`);
+    filters.push(`order=date.${normalizedStatus === "past" ? "desc" : "asc"}`);
+  } else {
+    filters.push("order=date.desc");
+  }
+
+  const response = await supabaseFetch(`${EVENTS_TABLE}?${filters.join("&")}`, {
+    headers: supabaseHeaders(),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    return fallbackEvents(normalizedStatus);
+  }
+
+  const rows = (await response.json()) as SupabaseEventRow[];
+  return sortEvents(rows.map(toEvent), normalizedStatus);
+}
+
+export async function getEventById(id: string): Promise<AACEvent | null> {
+  if (!hasSupabaseConfig()) {
     return SEEDED_EVENTS.find((event) => event.id === id) ?? null;
   }
 
-  try {
-    const row = getDb()
-      .prepare(`
-        SELECT id, name, date, description, image_path, sign_up_link, event_type, status
-        FROM events
-        WHERE id = ?
-      `)
-      .get(id) as EventRow | undefined;
-
-    return row ? mapRow(row) : null;
-  } catch {
-    return SEEDED_EVENTS.find((event) => event.id === id) ?? null;
-  }
-}
-
-export function createEvent(payload: CreateEventInput): AACEvent {
-  ensureInitialized();
-  const db = getDb();
-  const id = crypto.randomUUID();
-  const status = normalizeStatus(payload.status);
-
-  db.prepare(`
-    INSERT INTO events (
-      id, name, date, description, image_path, sign_up_link, event_type, status
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
-    id,
-    payload.name,
-    payload.date,
-    payload.description,
-    payload.imagePath,
-    payload.signUpLink ?? null,
-    payload.type ?? null,
-    status,
+  const response = await supabaseFetch(
+    `${EVENTS_TABLE}?select=id,name,date,description,image_path,sign_up_link,event_type,status&id=eq.${encodeURIComponent(id)}&limit=1`,
+    {
+      headers: supabaseHeaders(),
+      cache: "no-store",
+    },
   );
 
-  const created = getEventById(id);
-  if (!created) {
-    throw new Error("Failed to create event");
-  }
-
-  return created;
-}
-
-export function updateEvent(id: string, payload: UpdateEventInput): AACEvent | null {
-  ensureInitialized();
-  const db = getDb();
-  const existing = getEventById(id);
-  if (!existing) {
+  if (!response.ok) {
     return null;
   }
 
-  const nextStatus = payload.status
-    ? normalizeStatus(payload.status)
-    : existing.status ?? "upcoming";
+  const rows = (await response.json()) as SupabaseEventRow[];
+  return rows.length > 0 ? toEvent(rows[0]) : null;
+}
 
-  const merged: AACEvent = {
-    ...existing,
-    ...payload,
-    id,
-    status: nextStatus,
+export async function createEvent(payload: CreateEventInput): Promise<AACEvent> {
+  ensureSupabaseConfig();
+
+  const body = {
+    name: payload.name,
+    date: payload.date,
+    description: payload.description,
+    image_path: payload.imagePath,
+    sign_up_link: payload.signUpLink ?? null,
+    event_type: payload.type ?? null,
+    status: normalizeStatus(payload.status),
   };
 
-  db.prepare(`
-    UPDATE events
-    SET
-      name = ?,
-      date = ?,
-      description = ?,
-      image_path = ?,
-      sign_up_link = ?,
-      event_type = ?,
-      status = ?
-    WHERE id = ?
-  `).run(
-    merged.name,
-    merged.date,
-    merged.description,
-    merged.imagePath,
-    merged.signUpLink ?? null,
-    merged.type ?? null,
-    merged.status,
-    id,
+  const response = await supabaseFetch(EVENTS_TABLE, {
+    method: "POST",
+    headers: supabaseHeaders({ Prefer: "return=representation" }),
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const details = await response.text();
+    throw new Error(`Failed to create event: ${details}`);
+  }
+
+  const rows = (await response.json()) as SupabaseEventRow[];
+  if (!rows[0]) {
+    throw new Error("Failed to create event");
+  }
+
+  return toEvent(rows[0]);
+}
+
+export async function updateEvent(
+  id: string,
+  payload: UpdateEventInput,
+): Promise<AACEvent | null> {
+  ensureSupabaseConfig();
+
+  const body: Record<string, unknown> = {};
+
+  if (payload.name !== undefined) body.name = payload.name;
+  if (payload.date !== undefined) body.date = payload.date;
+  if (payload.description !== undefined) body.description = payload.description;
+  if (payload.imagePath !== undefined) body.image_path = payload.imagePath;
+  if (payload.signUpLink !== undefined) body.sign_up_link = payload.signUpLink;
+  if (payload.type !== undefined) body.event_type = payload.type;
+  if (payload.status !== undefined) body.status = normalizeStatus(payload.status);
+
+  if (Object.keys(body).length === 0) {
+    return getEventById(id);
+  }
+
+  const response = await supabaseFetch(
+    `${EVENTS_TABLE}?id=eq.${encodeURIComponent(id)}`,
+    {
+      method: "PATCH",
+      headers: supabaseHeaders({ Prefer: "return=representation" }),
+      body: JSON.stringify(body),
+    },
   );
 
-  return getEventById(id);
+  if (!response.ok) {
+    const details = await response.text();
+    throw new Error(`Failed to update event: ${details}`);
+  }
+
+  const rows = (await response.json()) as SupabaseEventRow[];
+  return rows.length > 0 ? toEvent(rows[0]) : null;
 }
 
-export function deleteEvent(id: string): boolean {
-  ensureInitialized();
-  const db = getDb();
-  const result = db.prepare("DELETE FROM events WHERE id = ?").run(id) as {
-    changes?: number;
-  };
+export async function deleteEvent(id: string): Promise<boolean> {
+  ensureSupabaseConfig();
 
-  return (result.changes ?? 0) > 0;
+  const response = await supabaseFetch(
+    `${EVENTS_TABLE}?id=eq.${encodeURIComponent(id)}`,
+    {
+      method: "DELETE",
+      headers: supabaseHeaders({ Prefer: "return=representation" }),
+    },
+  );
+
+  if (!response.ok) {
+    const details = await response.text();
+    throw new Error(`Failed to delete event: ${details}`);
+  }
+
+  const rows = (await response.json()) as SupabaseEventRow[];
+  return rows.length > 0;
 }
 
-export function seedPastFallbackIfEmpty(): {
+export async function seedPastFallbackIfEmpty(): Promise<{
   seeded: number;
   totalPast: number;
-} {
-  ensureInitialized();
-  const db = getDb();
+}> {
+  ensureSupabaseConfig();
 
-  const totalPastRow = db
-    .prepare("SELECT COUNT(*) AS total FROM events WHERE status = 'past'")
-    .get() as { total: number };
-
-  if (totalPastRow.total > 0) {
-    return { seeded: 0, totalPast: totalPastRow.total };
+  const existingPast = await listEvents("past");
+  if (existingPast.length > 0) {
+    return { seeded: 0, totalPast: existingPast.length };
   }
 
-  const insert = db.prepare(`
-    INSERT OR IGNORE INTO events (
-      id, name, date, description, image_path, sign_up_link, event_type, status
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-
-  let seeded = 0;
-  for (const event of SEEDED_PAST_EVENTS) {
-    const result = insert.run(
-      event.id,
-      event.name,
-      event.date,
-      event.description,
-      event.imagePath,
-      event.signUpLink ?? null,
-      event.type ?? null,
-      "past",
-    ) as { changes?: number };
-
-    seeded += result.changes ?? 0;
+  if (SEEDED_PAST_EVENTS.length === 0) {
+    return { seeded: 0, totalPast: 0 };
   }
 
-  const updatedPastRow = db
-    .prepare("SELECT COUNT(*) AS total FROM events WHERE status = 'past'")
-    .get() as { total: number };
+  const payload = SEEDED_PAST_EVENTS.map((event) => ({
+    id: event.id,
+    name: event.name,
+    date: event.date,
+    description: event.description,
+    image_path: event.imagePath,
+    sign_up_link: event.signUpLink ?? null,
+    event_type: event.type ?? null,
+    status: "past",
+  }));
 
-  return { seeded, totalPast: updatedPastRow.total };
+  const response = await supabaseFetch(
+    `${EVENTS_TABLE}?on_conflict=id`,
+    {
+      method: "POST",
+      headers: supabaseHeaders({
+        Prefer: "resolution=merge-duplicates,return=representation",
+      }),
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    const details = await response.text();
+    throw new Error(`Failed to seed past events: ${details}`);
+  }
+
+  const rows = (await response.json()) as SupabaseEventRow[];
+  const totalPast = (await listEvents("past")).length;
+
+  return {
+    seeded: rows.length,
+    totalPast,
+  };
 }

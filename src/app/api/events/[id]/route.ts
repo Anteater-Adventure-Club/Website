@@ -10,7 +10,7 @@ type RouteContext = {
 
 export async function GET(_: Request, context: RouteContext) {
   const { id } = await context.params;
-  const event = getEventById(id);
+  const event = await getEventById(id);
 
   if (!event) {
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
@@ -44,22 +44,43 @@ export async function PATCH(request: Request, context: RouteContext) {
     );
   }
 
-  const updatedEvent = updateEvent(id, eventPayload);
+  try {
+    const updatedEvent = await updateEvent(id, eventPayload);
 
-  if (!updatedEvent) {
-    return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    if (!updatedEvent) {
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ data: updatedEvent });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: "Failed to update event",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    );
   }
-
-  return NextResponse.json({ data: updatedEvent });
 }
 
 export async function DELETE(_: Request, context: RouteContext) {
   const { id } = await context.params;
-  const deleted = deleteEvent(id);
 
-  if (!deleted) {
-    return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  try {
+    const deleted = await deleteEvent(id);
+
+    if (!deleted) {
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: "Failed to delete event",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    );
   }
-
-  return NextResponse.json({ success: true });
 }

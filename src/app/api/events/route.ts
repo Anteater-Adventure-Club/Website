@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     searchParams.get("category") ??
     undefined;
 
-  const events = listEvents(status);
+  const events = await listEvents(status);
   return NextResponse.json({ data: events });
 }
 
@@ -50,6 +50,16 @@ export async function POST(request: Request) {
     );
   }
 
-  const createdEvent = createEvent({ ...payload, status });
-  return NextResponse.json({ data: createdEvent }, { status: 201 });
+  try {
+    const createdEvent = await createEvent({ ...payload, status });
+    return NextResponse.json({ data: createdEvent }, { status: 201 });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: "Failed to create event",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    );
+  }
 }

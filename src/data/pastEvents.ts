@@ -1,4 +1,40 @@
+// TEMP FALLBACK FOR PAST EVENTS - TO BE REPLACED WITH EVENTS DATABASE
 const pastEvents: AACEvent[] = [
+    {
+    id: "seed-past-6",
+    name: "Hot Tub Kickback (Camino del Sol Pool)",
+    date: "October 25, 2025",
+    description: "AAC hosted a chill pool and hot tub evening on Saturday at the Camino Del Sol community pool! We had a great time relaxing and socializing after a long week of studying.",
+    imagePath: "/images/events/25-26/camino_pool.jpg",
+  },
+  {
+    id: "seed-past-7",
+    name: "Griffith Park/Observatory Day Trip",
+    date: "November 2, 2025",
+    description: "On Sunday, AAC took a trip to Griffith Park and the Observatory! We enjoyed the scenic views of LA from the park, and explored the exhibits at the observatory!",
+    imagePath: "/images/events/25-26/griffith_park.png",
+  },
+  {
+    id: "seed-past-8",
+    name: "AAC x Astronomy Collab @ Turtle Rock",
+    date: "November 5, 2025",
+    description: "AAC collaborated with the Astro Club this Wednesday for a stargazing event at Turtle Rock! We enjoyed the scenic views of the night sky after a brief hike!",
+    imagePath: "/images/events/25-26/aac_astro_collab.jpg",
+  },
+  {
+    id: "seed-past-9",
+    name: "AAC x Ocean Club: Surfing @ Newport Beach",
+    date: "November 9, 2025",
+    description: "AAC collaborated with the Ocean Club this Sunday for a surfing event at Newport Beach! We had a great time catching waves and enjoying the ocean breeze!",
+    imagePath: "/images/events/25-26/aac_ocean_collab.jpg",
+  },
+  {
+    id: "seed-past-10",
+    name: "OC Zoo and Irvine Regional Park Day Trip",
+    date: "January 24, 2026",
+    description: "This Saturday, AAC took a trip to the OC Zoo and Irvine Regional Park! We enjoyed the scenic views of the park and had a picnic in the afternoon!",
+    imagePath: "/images/events/25-26/oc_zoo.jpg",
+  },
   {
     id: "seed-past-1",
     name: "Sturtevant Falls Hike",

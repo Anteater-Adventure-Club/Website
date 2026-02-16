@@ -1,42 +1,83 @@
 .home {
-  height: calc(100vh - var(--header-height));
-  display: flex;
+  min-height: calc(100vh - var(--header-height));
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
   align-items: center;
-  justify-content: center;
-
-  background-image: url("/images/events/25-26/F25_recap.png");
-  background-size: cover;
-  background-position: center;
-  position: relative;
+  padding: 3rem 5vw;
+  background: #f8f5f0;
 }
 
-.home::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(248, 245, 240, 0.55);
-  backdrop-filter: blur(3px);
-}
-
-.home-content {
-  position: relative;
-  z-index: 2;
-
+.home-left {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 3rem;
-
-  text-align: center;
+  gap: 2rem;
+  align-items: flex-start;
 }
 
-.home-content h1 {
-  padding: 1.5rem 3rem;
-  border-radius: 24px;
-
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(10px);
-
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+.home-title .word-anteater {
+  font-size: 1.7em;
 }
 
+.home-title .word-adventure {
+  font-size: 0.95em;
+}
+
+.home-title .word-club {
+  font-size: 0.95em;
+}
+
+.home-right {
+  position: relative;
+  height: 560px; /* more vertical room */
+}
+
+.home-polaroid {
+  position: absolute;
+  width: min(280px, 40vw);
+}
+
+.card-1 {
+  top: 20px;
+  left: 4%;
+  transform: rotate(-8deg);
+  z-index: 1;
+}
+
+.card-2 {
+  top: 180px;  /* much lower */
+  left: 30%;   /* shifted right */
+  transform: rotate(4deg);
+  z-index: 2;
+}
+
+.card-3 {
+  top: 400px;  /* much lower again */
+  left: 53%;   /* shifted more right */
+  transform: rotate(-3deg);
+  z-index: 3;
+}
+
+@media (max-width: 900px) {
+  .home {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .home-left {
+    align-items: center;
+    text-align: center;
+  }
+
+  .home-right {
+    height: 360px;
+  }
+
+  .home-polaroid {
+    width: min(220px, 55vw);
+  }
+
+  .card-1 { left: 8%; }
+  .card-2 { left: 26%; }
+  .card-3 { left: 44%; }
+}
