@@ -28,37 +28,38 @@
 }
 
 .home-right {
-  position: relative;
-  height: 560px; /* more vertical room */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.polaroid-row {
+  width: min(760px, 95%);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 1.75rem;
+  transition: opacity 0.32s ease, transform 0.32s ease;
 }
 
 .home-polaroid {
-  position: absolute;
-  width: min(280px, 40vw);
+  width: min(260px, 34vw);
 }
 
-.card-1 {
-  top: 20px;
-  left: 4%;
-  transform: rotate(-8deg);
-  z-index: 1;
+.home-polaroid:nth-child(1) {
+  transform: rotate(-4deg);
 }
 
-.card-2 {
-  top: 180px;  /* much lower */
-  left: 30%;   /* shifted right */
+.home-polaroid:nth-child(2) {
   transform: rotate(4deg);
-  z-index: 2;
 }
 
-.card-3 {
-  top: 400px;  /* much lower again */
-  left: 53%;   /* shifted more right */
-  transform: rotate(-3deg);
-  z-index: 3;
+.polaroid-row.swapping {
+  opacity: 0.3;
+  transform: translateY(10px) scale(0.985);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1000px) {
   .home {
     grid-template-columns: 1fr;
     gap: 1rem;
@@ -69,15 +70,12 @@
     text-align: center;
   }
 
-  .home-right {
-    height: 360px;
+  .polaroid-row {
+    width: min(520px, 100%);
+    gap: 1rem;
   }
 
   .home-polaroid {
-    width: min(220px, 55vw);
+    width: min(200px, 55vw);
   }
-
-  .card-1 { left: 8%; }
-  .card-2 { left: 26%; }
-  .card-3 { left: 44%; }
 }

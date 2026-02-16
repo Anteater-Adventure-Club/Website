@@ -5,23 +5,55 @@ import Link from "next/link";
 import { PolaroidCard } from "@/components/PolaroidCard/PolaroidCard";
 import "./page.css";
 
-function pickThreeRandom(events: AACEvent[]) {
+function shuffleEvents(events: AACEvent[]) {
   const shuffled = [...events].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, 3);
+  return shuffled;
+}
+
+function getVisiblePair(events: AACEvent[], start: number): AACEvent[] {
+  if (events.length === 0) {
+    return [];
+  }
+
+  if (events.length === 1) {
+    return [events[0]];
+  }
+
+  return [events[start % events.length], events[(start + 1) % events.length]];
 }
 
 export default function Home() {
   const [cards, setCards] = useState<AACEvent[]>([]);
+  const [pairStart, setPairStart] = useState(0);
+  const [isSwapping, setIsSwapping] = useState(false);
   const noop = () => {};
 
   useEffect(() => {
     async function load() {
       const res = await fetch("/api/events?status=past");
       const json = (await res.json()) as { data: AACEvent[] };
-      setCards(pickThreeRandom(json.data));
+      setCards(shuffleEvents(json.data));
     }
     load();
   }, []);
+
+  useEffect(() => {
+    if (cards.length <= 2) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setIsSwapping(true);
+      setTimeout(() => {
+        setPairStart((prev) => (prev + 2) % cards.length);
+        setIsSwapping(false);
+      }, 400);
+    }, 9000); // Currently set to ~9 seconds
+
+    return () => clearInterval(interval);
+  }, [cards]);
+
+  const visibleCards = getVisiblePair(cards, pairStart);
 
   return (
     <div className="home">
@@ -35,9 +67,13 @@ export default function Home() {
       </section>
 
       <section className="home-right">
-        {cards[0] && <div className="home-polaroid card-1"><PolaroidCard datum={cards[0]} openPopup={noop} /></div>}
-        {cards[1] && <div className="home-polaroid card-2"><PolaroidCard datum={cards[1]} openPopup={noop} /></div>}
-        {cards[2] && <div className="home-polaroid card-3"><PolaroidCard datum={cards[2]} openPopup={noop} /></div>}
+        <div className={`polaroid-row ${isSwapping ? "swapping" : ""}`}>
+          {visibleCards.map((card) => (
+            <div key={card.id} className="home-polaroid">
+              <PolaroidCard datum={card} openPopup={noop} />
+            </div>
+          ))}
+        </div>
       </section>
     </div>
   );
