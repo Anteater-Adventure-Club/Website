@@ -91,28 +91,63 @@ function sortEvents(events: AACEvent[], status?: "upcoming" | "past"): AACEvent[
   return events;
 }
 
+function parseMonth(month?: string): { year: number; monthIndex: number } | null {
+  if (!month) {
+    return null;
+  }
+
+  const matched = /^(\d{4})-(\d{2})$/.exec(month);
+  if (!matched) {
+    return null;
+  }
+
+  const year = Number(matched[1]);
+  const monthNumber = Number(matched[2]);
+  if (monthNumber < 1 || monthNumber > 12) {
+    return null;
+  }
+
+  return { year, monthIndex: monthNumber - 1 };
+}
+
+function filterEventsByMonth(events: AACEvent[], month?: string): AACEvent[] {
+  const parsedMonth = parseMonth(month);
+  if (!parsedMonth) {
+    return events;
+  }
+
+  return events.filter((event) => {
+    const eventDate = new Date(event.date);
+    return (
+      !Number.isNaN(eventDate.getTime()) &&
+      eventDate.getFullYear() === parsedMonth.year &&
+      eventDate.getMonth() === parsedMonth.monthIndex
+    );
+  });
+}
+
 async function supabaseFetch(path: string, init?: RequestInit): Promise<Response> {
   ensureSupabaseConfig();
   const base = SUPABASE_URL as string;
   return fetch(`${base}/rest/v1/${path}`, init);
 }
 
-function fallbackEvents(status?: string): AACEvent[] {
+function fallbackEvents(status?: string, month?: string): AACEvent[] {
   const normalizedStatus =
     status === "upcoming" || status === "past" ? status : undefined;
   const fallback = normalizedStatus
     ? SEEDED_EVENTS.filter((event) => event.status === normalizedStatus)
     : SEEDED_EVENTS;
 
-  return sortEvents(fallback, normalizedStatus);
+  return sortEvents(filterEventsByMonth(fallback, month), normalizedStatus);
 }
 
-export async function listEvents(status?: string): Promise<AACEvent[]> {
+export async function listEvents(status?: string, month?: string): Promise<AACEvent[]> {
   const normalizedStatus =
     status === "upcoming" || status === "past" ? status : undefined;
 
   if (!hasSupabaseConfig()) {
-    return fallbackEvents(normalizedStatus);
+    return fallbackEvents(normalizedStatus, month);
   }
 
   const filters: string[] = [
@@ -126,13 +161,22 @@ export async function listEvents(status?: string): Promise<AACEvent[]> {
     filters.push("order=date.desc");
   }
 
+  const parsedMonth = parseMonth(month);
+  if (parsedMonth) {
+    const monthStart = `${parsedMonth.year}-${String(parsedMonth.monthIndex + 1).padStart(2, "0")}-01`;
+    const nextMonthDate = new Date(parsedMonth.year, parsedMonth.monthIndex + 1, 1);
+    const nextMonth = `${nextMonthDate.getFullYear()}-${String(nextMonthDate.getMonth() + 1).padStart(2, "0")}-01`;
+    filters.push(`date=gte.${monthStart}`);
+    filters.push(`date=lt.${nextMonth}`);
+  }
+
   const response = await supabaseFetch(`${EVENTS_TABLE}?${filters.join("&")}`, {
     headers: supabaseHeaders(),
     cache: "no-store",
   });
 
   if (!response.ok) {
-    return fallbackEvents(normalizedStatus);
+    return fallbackEvents(normalizedStatus, month);
   }
 
   const rows = (await response.json()) as SupabaseEventRow[];

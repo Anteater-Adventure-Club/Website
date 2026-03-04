@@ -3,10 +3,34 @@
 }
 
 .calendar-header {
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
   font-size: 1.5rem;
   font-weight: 600;
   margin-bottom: 1rem;
+}
+
+.month-nav-button {
+  border: 1px solid #333333;
+  background: #ffffff;
+  color: #333333;
+  border-radius: 0.4rem;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.month-nav-button:hover {
+  background: #f3f4f6;
+}
+
+.calendar-status {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #4b5563;
+  margin: 0.5rem 0 0.85rem;
 }
 
 .calendar-legend {

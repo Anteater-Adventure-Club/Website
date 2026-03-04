@@ -5,7 +5,7 @@ import { PolaroidGallery } from "@/components/PolaroidGallery/PolaroidGallery";
 import UpcomingCalendar from "@/components/UpcomingCalendar/UpcomingCalendar";
 import "./Events.css";
 
-async function fetchEvents(status: "upcoming" | "past"): Promise<AACEvent[]> {
+async function fetchEvents(status: "past"): Promise<AACEvent[]> {
   const response = await fetch(`/api/events?status=${status}`);
 
   if (!response.ok) {
@@ -17,7 +17,6 @@ async function fetchEvents(status: "upcoming" | "past"): Promise<AACEvent[]> {
 }
 
 export default function Events() {
-  const [upcomingEvents, setUpcomingEvents] = useState<AACEvent[]>([]);
   const [pastEvents, setPastEvents] = useState<AACEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,16 +26,12 @@ export default function Events() {
 
     async function load() {
       try {
-        const [upcoming, past] = await Promise.all([
-          fetchEvents("upcoming"),
-          fetchEvents("past"),
-        ]);
+        const past = await fetchEvents("past");
 
         if (!mounted) {
           return;
         }
 
-        setUpcomingEvents(upcoming);
         setPastEvents(past);
       } catch {
         if (!mounted) {
@@ -73,7 +68,7 @@ export default function Events() {
           <h2 className="section-title">Upcoming Events</h2>
 
           <div className="calendar-wrapper">
-            <UpcomingCalendar events={upcomingEvents} />
+            <UpcomingCalendar />
           </div>
 
           <h2 className="section-title">Past Events</h2>

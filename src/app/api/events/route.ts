@@ -33,8 +33,9 @@ export async function GET(request: Request) {
     searchParams.get("status") ??
     searchParams.get("category") ??
     undefined;
+  const month = searchParams.get("month") ?? undefined;
 
-  const events = await listEvents(status);
+  const events = await listEvents(status, month);
   return NextResponse.json({ data: events });
 }
 

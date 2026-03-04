@@ -1,21 +1,74 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./UpcomingCalendar.css";
 
-type UpcomingCalendarProps = {
-  events: AACEvent[];
-};
+function monthParamFromDate(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
 
-export default function UpcomingCalendar({ events }: UpcomingCalendarProps) {
+export default function UpcomingCalendar() {
+  const [displayDate, setDisplayDate] = useState(() => new Date());
+  const [events, setEvents] = useState<AACEvent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<AACEvent | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const today = new Date();
-  const currentYear = today.getFullYear();
-  const currentMonth = today.getMonth();
-  const monthName = today.toLocaleString("default", { month: "long" });
+  const currentYear = displayDate.getFullYear();
+  const currentMonth = displayDate.getMonth();
+  const monthName = displayDate.toLocaleString("default", { month: "long" });
 
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadMonthEvents() {
+      setIsLoading(true);
+      setError(null);
+      setSelectedEvent(null);
+
+      try {
+        const month = monthParamFromDate(displayDate);
+        const response = await fetch(`/api/events?month=${month}`);
+        if (!response.ok) {
+          throw new Error("Failed request");
+        }
+
+        const payload = (await response.json()) as { data: AACEvent[] };
+        if (!mounted) {
+          return;
+        }
+
+        setEvents(payload.data);
+      } catch {
+        if (!mounted) {
+          return;
+        }
+        setEvents([]);
+        setError("Could not load this month's events.");
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadMonthEvents();
+
+    return () => {
+      mounted = false;
+    };
+  }, [displayDate]);
+
+  const previousMonth = () => {
+    setDisplayDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  };
+
+  const nextMonth = () => {
+    setDisplayDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  };
 
   const handleClick = (day: number) => {
     const event = events.find((e) => {
@@ -33,7 +86,15 @@ export default function UpcomingCalendar({ events }: UpcomingCalendarProps) {
   return (
     <div className="calendar-container">
       <div className="calendar-header">
-        {monthName} {currentYear}
+        <button type="button" className="month-nav-button" onClick={previousMonth}>
+          Prev
+        </button>
+        <span>
+          {monthName} {currentYear}
+        </span>
+        <button type="button" className="month-nav-button" onClick={nextMonth}>
+          Next
+        </button>
       </div>
 
       <div className="calendar-legend" aria-label="Event type legend">
@@ -50,6 +111,9 @@ export default function UpcomingCalendar({ events }: UpcomingCalendarProps) {
           <span>Potluck Picnic</span>
         </div>
       </div>
+
+      {isLoading && <p className="calendar-status">Loading month...</p>}
+      {error && <p className="calendar-status">{error}</p>}
 
       {/* Days of Week */}
       <div className="calendar-weekdays">
