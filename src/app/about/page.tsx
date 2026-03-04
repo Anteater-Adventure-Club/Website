@@ -10,33 +10,33 @@ import { PolaroidCard } from "@/components/PolaroidCard/PolaroidCard";
 // Image data for polaroid cards
 const hikeImages: AACEvent[] = [
   {
-    id: "unknown-hike",
-    name: "Unknown Hike",
-    date: "X/X/XX",
+    id: "salt-creek-hike",
+    name: "Salt Creek Trail Hike @ Dana Point",
+    date: "Winter 2024",
     description: "",
     imagePath: "/images/events/24-25/unknown_hike.jpg",
   },
   {
-    id: "laguna-hike",
-    name: "Laguna Hike",
-    date: "June 12, 2024",
+    id: "tide-pools",
+    name: "Laguna Tide Pools Hike",
+    date: "Winter 2026",
     description: "",
-    imagePath: "/images/events/24-25/laguna_hike.jpg",
+    imagePath: "/images/events/24-25/tide_pools.jpg",
   },
 ];
 
 const cityImages: AACEvent[] = [
   {
     id: "la-city",
-    name: "LA Exploration",
-    date: "X/X/XX",
+    name: "LA Grand Central Market",
+    date: "Winter 2025",
     description: "",
     imagePath: "/images/events/24-25/la_city.jpg",
   },
   {
     id: "san-diego",
     name: "San Diego Exploration",
-    date: "X/X/XX",
+    date: "Spring 2025",
     description: "",
     imagePath: "/images/events/24-25/san_diego.JPG",
   },
@@ -62,14 +62,14 @@ const picnicImages: AACEvent[] = [
 const retreatImages: AACEvent[] = [
   {
     id: "death-valley",
-    name: "Death Valley",
+    name: "Death Valley National Park",
     date: "Winter 2025 Retreat",
     description: "",
     imagePath: "/images/events/24-25/death_valley.jpg",
   },
   {
     id: "sequoia",
-    name: "Sequoia",
+    name: "Sequoia & Kings Canyon National Parks",
     date: "Fall 2024 Retreat",
     description: "",
     imagePath: "/images/events/24-25/sequoia.jpg",
@@ -141,7 +141,7 @@ export default function About() {
 
       {/* Join CTA */}
       <div className="socials">
-        <h2>Connect with us!</h2>
+        <h2>Join the Adventure!</h2>
         <h4>
           Our primary form of communication is our club Discord server, but we
           also promote all of our events on our club Instagram.
