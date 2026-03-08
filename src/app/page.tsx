@@ -63,7 +63,7 @@ export default function Home() {
           <span className="word-adventure">Adventure</span>{" "}
           <span className="word-club">Club</span>
         </h1>
-        <Link href="/about" className="button cta-button">Join the Adventure!</Link>
+        <Link href="/events" className="button cta-button">Join the Adventure!</Link>
       </section>
 
       <section className="home-right">
