@@ -9,6 +9,14 @@ This project redesigns AAC's digital presence by:
 - **Introducing** the board members
 - **Providing** clear membership details and registration
 
+## Tech Stack
+
+- **Frontend:** Next.js (App Router), React, TypeScript, CSS
+- **Backend:** Next.js API Routes (REST)
+- **Database:** Supabase (PostgreSQL)
+- **Deployment:** Vercel
+- **Tooling:** ESLint, npm
+
 ## Page Previews
 
 ### 🏠 Home Page
@@ -63,15 +71,32 @@ The Membership Page explains how students can officially join the AAC community:
 
 ## File Layout
 
-- `public/` = non-text data
-  - `fonts/`
+- `public/` = static assets served by Next.js
+  - `fonts/` = custom fonts
   - `images/`
-    - `events` = images for all events, groped by year
-    - `officers` = images for current officers
-  - `logos/`
-- `src/` = code/text data
-  - `app/` = individual pages, i.e. `www.website.com/[page]` (e.g. about, board, events, membeship)
-  - `components/` = individual UI components
-  - `data/` = text data for events, current officers, and previous officers 
-  - `types.d.ts` = custom types/interfaces, used throughout the codebase
-- ... = config files
+    - `events/` = event photos grouped by academic year
+    - `officers/` = board member photos
+  - `logos/` = social/brand icons
+
+- `src/` = application source code
+  - `app/` = Next.js App Router pages and route handlers
+    - `about/`, `board/`, `events/`, `membership/` = page routes
+    - `api/events/` = REST API endpoints for event CRUD + seeding
+    - `link/[slug]/` = short-link redirect route
+    - `layout.tsx`, `page.tsx`, `globals.css` = app shell + home page
+  - `components/` = reusable UI components
+    - `Header/`, `Footer/`, `PolaroidCard/`, `PolaroidGallery/`, `Popup/`, `UpcomingCalendar/`
+  - `data/` = seed/static content used by the app
+    - `upcomingEvents.ts`, `pastEvents.ts`, `officers.ts`, `previousOfficers.ts`
+  - `lib/` = backend/data access logic
+    - `eventsDb.ts` = database adapter used by API routes
+  - `types.d.ts` = shared TypeScript types/interfaces
+
+- `supabase/` = database setup scripts
+  - `events_schema.sql` = SQL schema for the `events` table and related setup
+
+- root config files
+  - `package.json`, `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `.env.example`
+
+- `data/` (project root) = local runtime DB artifacts for development (if generated)
+
