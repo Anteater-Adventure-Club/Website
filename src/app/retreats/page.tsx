@@ -168,19 +168,70 @@ function RetreatImageGrid({
   );
 }
 
+function RetreatRow({ retreat, index }: { retreat: Retreat; index: number }) {
+  const firstImageSet = retreat.images.slice(0, 3);
+  const secondImageSet = retreat.images.slice(3);
+  const isReverse = index % 2 !== 0;
+
+  return (
+    <section
+      className={`retreat-section ${isReverse ? "retreat-section-reverse" : ""}`}
+    >
+      <div className="retreat-header">
+        <p className="retreat-season">{retreat.season}</p>
+        <h2>{retreat.name}</h2>
+        <p>{retreat.location}</p>
+      </div>
+
+      <div className="retreat-content-grid">
+        <article className="retreat-text-block retreat-block">
+          <h3>Trip Snapshot</h3>
+          <p>{retreat.summary}</p>
+          <p>{retreat.story}</p>
+        </article>
+        <RetreatImageGrid
+          images={firstImageSet}
+          retreatName={retreat.name}
+          className="retreat-block"
+        />
+
+        <article className="retreat-text-block retreat-block">
+          <h3>Highlights</h3>
+          <ul>
+            {retreat.highlights.map((highlight) => (
+              <li key={highlight}>{highlight}</li>
+            ))}
+          </ul>
+        </article>
+        <RetreatImageGrid
+          images={secondImageSet}
+          retreatName={retreat.name}
+          className="retreat-block"
+        />
+      </div>
+    </section>
+  );
+}
+
 export default function Retreats() {
   const totalMiles = retreats.reduce(
     (sum, retreat) => sum + retreat.estMilesFromIrvine,
     0,
   );
   const averageNights =
-    retreats.reduce((sum, retreat) => sum + retreat.nights, 0) / retreats.length;
+    retreats.reduce((sum, retreat) => sum + retreat.nights, 0) /
+    retreats.length;
+
+  const numberOfPhotos = retreats.reduce(
+    (sum, retreat) => sum + retreat.images.length,
+    0,
+  );
 
   return (
     <div className="retreats-page">
       <section className="retreats-hero">
-        <p className="retreats-kicker">Quarterly Overnight Retreats</p>
-        <h1>Where Our Biggest Memories Are Made</h1>
+        <p className="retreats-kicker">Where Our Biggest Memories Are Made</p>
+        <h1>Quarterly Retreat</h1>
         <p className="retreats-subtitle">
           Every quarter, we head out for a 2-3 night camping retreat with hikes,
           local exploration, and a full weekend of community in the outdoors.
@@ -192,7 +243,7 @@ export default function Retreats() {
             <p>Retreat Locations</p>
           </article>
           <article>
-            <h3>{retreats.reduce((sum, retreat) => sum + retreat.images.length, 0)}+</h3>
+            <h3>{numberOfPhotos.toLocaleString()}+</h3>
             <p>Dummy Photos on Display</p>
           </article>
           <article>
@@ -207,82 +258,9 @@ export default function Retreats() {
       </section>
 
       <div className="retreats-timeline">
-        {retreats.map((retreat, index) => {
-          const firstImageSet = retreat.images.slice(0, 3);
-          const secondImageSet = retreat.images.slice(3);
-          const isReverse = index % 2 !== 0;
-
-          return (
-            <section
-              className={`retreat-section ${isReverse ? "retreat-section-reverse" : ""}`}
-              key={retreat.id}
-            >
-              <div className="retreat-header">
-                <p className="retreat-season">{retreat.season}</p>
-                <h2>{retreat.name}</h2>
-                <p>{retreat.location}</p>
-              </div>
-
-              <div className="retreat-content-grid">
-                {isReverse ? (
-                  <>
-                    <RetreatImageGrid
-                      images={firstImageSet}
-                      retreatName={retreat.name}
-                      className="retreat-block"
-                    />
-                    <article className="retreat-text-block retreat-block">
-                      <h3>Trip Snapshot</h3>
-                      <p>{retreat.summary}</p>
-                      <p>{retreat.story}</p>
-                    </article>
-
-                    <RetreatImageGrid
-                      images={secondImageSet}
-                      retreatName={retreat.name}
-                      className="retreat-block"
-                    />
-                    <article className="retreat-text-block retreat-block">
-                      <h3>Highlights</h3>
-                      <ul>
-                        {retreat.highlights.map((highlight) => (
-                          <li key={highlight}>{highlight}</li>
-                        ))}
-                      </ul>
-                    </article>
-                  </>
-                ) : (
-                  <>
-                    <article className="retreat-text-block retreat-block">
-                      <h3>Trip Snapshot</h3>
-                      <p>{retreat.summary}</p>
-                      <p>{retreat.story}</p>
-                    </article>
-                    <RetreatImageGrid
-                      images={firstImageSet}
-                      retreatName={retreat.name}
-                      className="retreat-block"
-                    />
-
-                    <article className="retreat-text-block retreat-block">
-                      <h3>Highlights</h3>
-                      <ul>
-                        {retreat.highlights.map((highlight) => (
-                          <li key={highlight}>{highlight}</li>
-                        ))}
-                      </ul>
-                    </article>
-                    <RetreatImageGrid
-                      images={secondImageSet}
-                      retreatName={retreat.name}
-                      className="retreat-block"
-                    />
-                  </>
-                )}
-              </div>
-            </section>
-          );
-        })}
+        {retreats.map((retreat, index) => (
+          <RetreatRow key={retreat.id} retreat={retreat} index={index} />
+        ))}
       </div>
 
       <section className="retreats-cta">

@@ -65,7 +65,11 @@
   border: 1px solid var(--border);
   border-radius: 28px;
   padding: 1.5rem;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.55));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.75),
+    rgba(255, 255, 255, 0.55)
+  );
   box-shadow: 0 14px 36px rgba(31, 77, 59, 0.08);
 }
 
@@ -95,6 +99,14 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
+}
+
+.retreat-section-reverse .retreat-content-grid {
+  direction: rtl;
+}
+
+.retreat-section-reverse .retreat-content-grid > * {
+  direction: ltr;
 }
 
 .retreat-block {
@@ -138,7 +150,9 @@
   overflow: hidden;
   background: #fff;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .retreat-image-card:hover {
@@ -156,7 +170,11 @@
 .retreats-cta {
   border-radius: 24px;
   border: 1px solid var(--border);
-  background: linear-gradient(130deg, rgba(31, 77, 59, 0.94), rgba(47, 107, 83, 0.92));
+  background: linear-gradient(
+    130deg,
+    rgba(31, 77, 59, 0.94),
+    rgba(47, 107, 83, 0.92)
+  );
   color: var(--white);
   text-align: center;
   padding: 2.5rem 1.5rem;
