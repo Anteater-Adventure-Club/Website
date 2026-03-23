@@ -1,0 +1,237 @@
+.retreats-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3.5rem;
+}
+
+.retreats-hero {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.retreats-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.8rem;
+  color: var(--forest-light);
+  font-weight: 700;
+}
+
+.retreats-subtitle {
+  max-width: 760px;
+  margin: 0;
+}
+
+.retreats-stats {
+  width: 100%;
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.retreats-stats article {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 24px rgba(31, 77, 59, 0.08);
+  padding: 1rem;
+}
+
+.retreats-stats h3 {
+  margin: 0;
+  color: var(--forest);
+  font-size: 2rem;
+}
+
+.retreats-stats p {
+  margin: 0.4rem 0 0;
+  font-size: 0.9rem;
+}
+
+.retreats-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.retreat-section {
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 1.5rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.55));
+  box-shadow: 0 14px 36px rgba(31, 77, 59, 0.08);
+}
+
+.retreat-header {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.retreat-season {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.78rem;
+  color: var(--forest-light);
+  margin: 0;
+}
+
+.retreat-header h2 {
+  margin: 0.2rem 0;
+}
+
+.retreat-header p {
+  margin: 0;
+  color: rgba(42, 42, 42, 0.75);
+}
+
+.retreat-content-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.retreat-block {
+  min-height: 100%;
+}
+
+.retreat-text-block {
+  border-radius: 20px;
+  background: rgba(248, 245, 240, 0.85);
+  border: 1px solid rgba(31, 77, 59, 0.12);
+  padding: 1.1rem;
+}
+
+.retreat-text-block h3 {
+  margin: 0 0 0.5rem;
+  color: var(--forest);
+}
+
+.retreat-text-block p {
+  margin: 0.5rem 0;
+}
+
+.retreat-text-block ul {
+  margin: 0.25rem 0 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.retreat-image-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.retreat-image-card {
+  margin: 0;
+  border-radius: 14px;
+  border: 1px solid rgba(31, 77, 59, 0.12);
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.retreat-image-card:hover {
+  transform: translateY(-3px) rotate(-0.5deg);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.16);
+}
+
+.retreat-image-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+}
+
+.retreats-cta {
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  background: linear-gradient(130deg, rgba(31, 77, 59, 0.94), rgba(47, 107, 83, 0.92));
+  color: var(--white);
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.retreats-cta h2,
+.retreats-cta p {
+  margin: 0;
+}
+
+.retreats-cta p {
+  max-width: 680px;
+}
+
+.retreats-cta-buttons {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.retreats-secondary-button {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--white);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.retreats-secondary-button:hover {
+  background: rgba(255, 255, 255, 0.24);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 1024px) {
+  .retreats-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .retreat-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .retreat-image-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .retreats-page {
+    gap: 2.4rem;
+  }
+
+  .retreats-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .retreat-image-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .retreat-image-card img {
+    height: 220px;
+  }
+
+  .retreats-cta-buttons {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .retreats-cta-buttons a {
+    text-align: center;
+  }
+}
