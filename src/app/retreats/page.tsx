@@ -14,6 +14,7 @@ type Retreat = {
   images: string[];
 };
 
+// TODO: update placeholder info with actual retreat details/photos.
 const retreats: Retreat[] = [
   {
     id: "sequoia",
@@ -22,7 +23,7 @@ const retreats: Retreat[] = [
     location: "Sequoia & Kings Canyon National Parks",
     estMilesFromIrvine: 250,
     summary:
-      "A classic first-quarter reset in giant forest country, with alpine mornings and sunset cookouts.\nWe based camp near the foothills and spent our days exploring giant groves, scenic overlooks, and riverside trails. Nights were full of campfire stories, card games, and stargazing after long hikes.",
+      "A classic first-quarter reset in giant forest country, with alpine mornings and sunset cookouts. We based camp near the foothills and spent our days exploring giant groves, scenic overlooks, and riverside trails. Nights were full of campfire stories, card games, and stargazing after long hikes.",
     highlights: [
       "Sunrise grove walk through giant sequoias",
       "Group cooking night with shared camp meals",
@@ -143,8 +144,9 @@ function RetreatImageGrid({
           <Image
             src={src}
             alt={`${retreatName} retreat photo ${index + 1}`}
-            width={640}
-            height={480}
+            fill
+            className="retreat-image"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         </figure>
       ))}

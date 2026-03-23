@@ -28,6 +28,11 @@
   width: 40%;
 }
 
+.section-link {
+  display: inline-block;
+  margin-top: 1rem;
+}
+
 .section-images {
   display: flex;
   align-items: center;
