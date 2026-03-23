@@ -3,6 +3,7 @@
   align-items: center;
   justify-content: center;
   position: relative;
+  width: 100%;
 }
 
 .desktop-nav {
@@ -40,7 +41,7 @@
 
 .hamburger-button {
   position: absolute;
-  left: 0;
+  left: max(0.5rem, env(safe-area-inset-left));
   padding: 1rem;
   cursor: pointer;
   z-index: 10;
@@ -48,16 +49,23 @@
   border: none;
 }
 
+.hamburger-button[aria-expanded="true"] {
+  color: var(--tan);
+}
+
 .mobile-menu-overlay {
   position: fixed;
-  top: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  min-height: 100vh;
   background-color: rgba(0, 0, 0, 0.5);
 
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s ease;
 }
 
 .mobile-menu-overlay.open {
@@ -66,11 +74,17 @@
 }
 
 .mobile-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
   width: 70%;
   max-width: 300px;
-  height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
   background-color: var(--forest);
   padding: 5rem 2rem 2rem;
+  overflow-y: auto;
 
   transform: translateX(-100%);
   transition: transform 0.3s ease;
@@ -82,6 +96,16 @@
 
 .mobile-menu-overlay.open .mobile-nav {
   transform: translateX(0);
+}
+
+html:has(.hamburger-button[aria-expanded="true"]),
+body:has(.hamburger-button[aria-expanded="true"]) {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body:has(.hamburger-button[aria-expanded="true"]) {
+  touch-action: none;
 }
 
 .mobile-nav a {

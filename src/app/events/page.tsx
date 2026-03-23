@@ -57,7 +57,7 @@ export default function Events() {
     <div className="events-page">
       <div className="events-header">
         <h1>Stay up to date!</h1>
-        <h4>Click on any date or past event to learn more</h4>
+        <h4>Click on any date or past event to learn more!</h4>
       </div>
 
       {isLoading && <p>Loading events...</p>}

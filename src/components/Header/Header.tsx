@@ -46,7 +46,10 @@ export default function Header() {
           <Link href="/board" className={isActive("/board") ? "active" : ""}>
             Board
           </Link>
-          <Link href="/membership" className={isActive("/membership") ? "active" : ""}>
+          <Link
+            href="/membership"
+            className={isActive("/membership") ? "active" : ""}
+          >
             Membership
           </Link>
         </nav>
