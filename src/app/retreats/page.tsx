@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { MapPin, Route, TentTree } from "lucide-react";
 import "./page.css";
 
 type Retreat = {
@@ -7,10 +8,8 @@ type Retreat = {
   name: string;
   season: string;
   location: string;
-  nights: number;
   estMilesFromIrvine: number;
   summary: string;
-  story: string;
   highlights: string[];
   images: string[];
 };
@@ -21,12 +20,9 @@ const retreats: Retreat[] = [
     name: "Sequoia",
     season: "Fall 2024",
     location: "Sequoia & Kings Canyon National Parks",
-    nights: 3,
     estMilesFromIrvine: 250,
     summary:
-      "A classic first-quarter reset in giant forest country, with alpine mornings and sunset cookouts.",
-    story:
-      "We based camp near the foothills and spent our days exploring giant groves, scenic overlooks, and riverside trails. Nights were full of campfire stories, card games, and stargazing after long hikes.",
+      "A classic first-quarter reset in giant forest country, with alpine mornings and sunset cookouts.\nWe based camp near the foothills and spent our days exploring giant groves, scenic overlooks, and riverside trails. Nights were full of campfire stories, card games, and stargazing after long hikes.",
     highlights: [
       "Sunrise grove walk through giant sequoias",
       "Group cooking night with shared camp meals",
@@ -46,12 +42,9 @@ const retreats: Retreat[] = [
     name: "Death Valley",
     season: "Winter 2025",
     location: "Death Valley National Park",
-    nights: 2,
     estMilesFromIrvine: 280,
     summary:
-      "Wide desert basins, dramatic badlands, and clear skies made this one of our most cinematic retreats.",
-    story:
-      "This trip balanced long scenic drives with short, high-impact hikes through canyons and salt flats. We explored geological landmarks by day and spent the evenings watching the stars over open desert.",
+      "Wide desert basins, dramatic badlands, and clear skies made this one of our most cinematic retreats. This trip balanced long scenic drives with short, high-impact hikes through canyons and salt flats. We explored geological landmarks by day and spent the evenings watching the stars over open desert.",
     highlights: [
       "Golden hour stop at iconic viewpoints",
       "Night sky session far from city lights",
@@ -71,12 +64,9 @@ const retreats: Retreat[] = [
     name: "Zion",
     season: "Spring 2025",
     location: "Zion National Park",
-    nights: 3,
     estMilesFromIrvine: 430,
     summary:
-      "A high-energy quarter-end trip with canyon walls, river trails, and nonstop exploration.",
-    story:
-      "Zion was our biggest road trip yet. We split into hike crews during the day and regrouped each night for a shared recap dinner at camp, trading route tips and favorite moments.",
+      "A high-energy quarter-end trip with canyon walls, river trails, and nonstop exploration. Zion was our biggest road trip yet. We split into hike crews during the day and regrouped each night for a shared recap dinner at camp, trading route tips and favorite moments.",
     highlights: [
       "Canyon trail loops with multiple route options",
       "Creek-side lunch breaks between hikes",
@@ -96,12 +86,9 @@ const retreats: Retreat[] = [
     name: "Central Coast",
     season: "Fall 2025",
     location: "California Central Coast",
-    nights: 2,
     estMilesFromIrvine: 220,
     summary:
-      "Ocean bluffs, coastal trails, and laid-back camp energy made this retreat a club favorite.",
-    story:
-      "We explored beachside paths, bluff overlooks, and small-town food spots between hikes. The pace was relaxed, with lots of time for group photos, shoreline walks, and board games back at camp.",
+      "Ocean bluffs, coastal trails, and laid-back camp energy made this retreat a club favorite. We explored beachside paths, bluff overlooks, and small-town food spots between hikes. The pace was relaxed, with lots of time for group photos, shoreline walks, and board games back at camp.",
     highlights: [
       "Sunset bluff walk and group panorama shots",
       "Coastal loop hike with ocean viewpoints",
@@ -121,12 +108,9 @@ const retreats: Retreat[] = [
     name: "Joshua Tree",
     season: "Winter 2026",
     location: "Joshua Tree National Park",
-    nights: 3,
     estMilesFromIrvine: 150,
     summary:
-      "Boulders, desert trails, and huge skies gave us a perfect mix of challenge and calm.",
-    story:
-      "Joshua Tree brought a lot of firsts for newer members: first overnight trip, first camp-cooked meals, and first full weekend away with the club. It was equal parts adventure, learning, and community.",
+      "Boulders, desert trails, and huge skies gave us a perfect mix of challenge and calm. Joshua Tree brought a lot of firsts for newer members: first overnight trip, first camp-cooked meals, and first full weekend away with the club. It was equal parts adventure, learning, and community.",
     highlights: [
       "Short scramble routes and rock garden exploration",
       "Desert trail loops for all skill levels",
@@ -171,31 +155,30 @@ function RetreatImageGrid({
 function RetreatRow({ retreat, index }: { retreat: Retreat; index: number }) {
   const firstImageSet = retreat.images.slice(0, 3);
   const secondImageSet = retreat.images.slice(3);
-  const isReverse = index % 2 !== 0;
+  const layoutVariant = ["trail", "dune", "coast"][index % 3];
 
   return (
-    <section
-      className={`retreat-section ${isReverse ? "retreat-section-reverse" : ""}`}
-    >
+    <section className={`retreat-section retreat-section-${layoutVariant}`}>
       <div className="retreat-header">
-        <p className="retreat-season">{retreat.season}</p>
-        <h2>{retreat.name}</h2>
-        <p>{retreat.location}</p>
+        <div>
+          <p className="retreat-season">{retreat.season}</p>
+          <h2>{retreat.name}</h2>
+          <p>{retreat.location}</p>
+        </div>
       </div>
 
       <div className="retreat-content-grid">
-        <article className="retreat-text-block retreat-block">
-          <h3>Trip Snapshot</h3>
+        <article className="retreat-text-block retreat-text-story retreat-block">
+          <h3>Overview</h3>
           <p>{retreat.summary}</p>
-          <p>{retreat.story}</p>
         </article>
         <RetreatImageGrid
           images={firstImageSet}
           retreatName={retreat.name}
-          className="retreat-block"
+          className="retreat-image-grid-a retreat-block"
         />
 
-        <article className="retreat-text-block retreat-block">
+        <article className="retreat-text-block retreat-text-highlights retreat-block">
           <h3>Highlights</h3>
           <ul>
             {retreat.highlights.map((highlight) => (
@@ -206,7 +189,7 @@ function RetreatRow({ retreat, index }: { retreat: Retreat; index: number }) {
         <RetreatImageGrid
           images={secondImageSet}
           retreatName={retreat.name}
-          className="retreat-block"
+          className="retreat-image-grid-b retreat-block"
         />
       </div>
     </section>
@@ -214,23 +197,9 @@ function RetreatRow({ retreat, index }: { retreat: Retreat; index: number }) {
 }
 
 export default function Retreats() {
-  const totalMiles = retreats.reduce(
-    (sum, retreat) => sum + retreat.estMilesFromIrvine,
-    0,
-  );
-  const averageNights =
-    retreats.reduce((sum, retreat) => sum + retreat.nights, 0) /
-    retreats.length;
-
-  const numberOfPhotos = retreats.reduce(
-    (sum, retreat) => sum + retreat.images.length,
-    0,
-  );
-
   return (
     <div className="retreats-page">
       <section className="retreats-hero">
-        <p className="retreats-kicker">Where Our Biggest Memories Are Made</p>
         <h1>Quarterly Retreat</h1>
         <p className="retreats-subtitle">
           Every quarter, we head out for a 2-3 night camping retreat with hikes,
@@ -240,19 +209,24 @@ export default function Retreats() {
         <div className="retreats-stats">
           <article>
             <h3>{retreats.length}</h3>
-            <p>Retreat Locations</p>
+            <p>
+              Locations
+              <MapPin className="retreat-stat-icon" aria-hidden="true" />
+            </p>
           </article>
           <article>
-            <h3>{numberOfPhotos.toLocaleString()}+</h3>
-            <p>Dummy Photos on Display</p>
+            <h3>110</h3>
+            <p>
+              Total Campers
+              <TentTree className="retreat-stat-icon" aria-hidden="true" />
+            </p>
           </article>
           <article>
-            <h3>{averageNights.toFixed(1)}</h3>
-            <p>Average Nights per Retreat</p>
-          </article>
-          <article>
-            <h3>{totalMiles.toLocaleString()}+</h3>
-            <p>Estimated Miles Traveled</p>
+            <h3>25</h3>
+            <p>
+              Miles Hiked
+              <Route className="retreat-stat-icon" aria-hidden="true" />
+            </p>
           </article>
         </div>
       </section>

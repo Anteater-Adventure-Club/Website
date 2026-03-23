@@ -1,9 +1,9 @@
 .retreats-page {
-  max-width: 1100px;
+  max-width: 1180px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 3.5rem;
+  gap: 4rem;
 }
 
 .retreats-hero {
@@ -12,14 +12,6 @@
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-}
-
-.retreats-kicker {
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 0.8rem;
-  color: var(--forest-light);
-  font-weight: 700;
 }
 
 .retreats-subtitle {
@@ -31,17 +23,24 @@
   width: 100%;
   margin-top: 1rem;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 180px));
+  justify-content: center;
+  gap: 0.25rem 0.5rem;
 }
 
 .retreats-stats article {
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 8px 24px rgba(31, 77, 59, 0.08);
-  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.retreat-stat-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  line-height: 1;
+  stroke-width: 2;
 }
 
 .retreats-stats h3 {
@@ -51,31 +50,47 @@
 }
 
 .retreats-stats p {
-  margin: 0.4rem 0 0;
+  margin: 0.35rem 0 0;
   font-size: 0.9rem;
+  color: rgba(42, 42, 42, 0.72);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 .retreats-timeline {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: 4rem;
 }
 
 .retreat-section {
-  border: 1px solid var(--border);
-  border-radius: 28px;
-  padding: 1.5rem;
+  position: relative;
+  padding: 1.5rem 0 0;
+  border-top: 1px dashed rgba(31, 77, 59, 0.24);
+}
+
+.retreat-section::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: 0;
+  width: 46px;
+  height: 9px;
+  border-radius: 999px;
   background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.75),
-    rgba(255, 255, 255, 0.55)
+    90deg,
+    rgba(31, 77, 59, 0.85),
+    rgba(31, 77, 59, 0.18)
   );
-  box-shadow: 0 14px 36px rgba(31, 77, 59, 0.08);
 }
 
 .retreat-header {
-  text-align: center;
-  margin-bottom: 1rem;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
 }
 
 .retreat-season {
@@ -87,7 +102,7 @@
 }
 
 .retreat-header h2 {
-  margin: 0.2rem 0;
+  margin: 0.15rem 0;
 }
 
 .retreat-header p {
@@ -95,29 +110,70 @@
   color: rgba(42, 42, 42, 0.75);
 }
 
+.retreat-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  font-size: 0.86rem;
+  color: rgba(42, 42, 42, 0.72);
+  white-space: nowrap;
+}
+
+.retreat-meta span {
+  border-bottom: 1px dotted rgba(31, 77, 59, 0.28);
+}
+
 .retreat-content-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 1.25rem 1.5rem;
+  grid-template-areas:
+    "story gallery-a"
+    "highlights gallery-b";
 }
 
-.retreat-section-reverse .retreat-content-grid {
-  direction: rtl;
+.retreat-section-trail .retreat-content-grid {
+  grid-template-areas:
+    "story gallery-a"
+    "highlights gallery-b";
 }
 
-.retreat-section-reverse .retreat-content-grid > * {
-  direction: ltr;
+.retreat-section-dune .retreat-content-grid {
+  grid-template-areas:
+    "gallery-a story"
+    "highlights gallery-b";
+}
+
+.retreat-section-coast .retreat-content-grid {
+  grid-template-areas:
+    "story gallery-a"
+    "gallery-b highlights";
 }
 
 .retreat-block {
   min-height: 100%;
 }
 
+.retreat-text-story {
+  grid-area: story;
+}
+
+.retreat-text-highlights {
+  grid-area: highlights;
+}
+
+.retreat-image-grid-a {
+  grid-area: gallery-a;
+}
+
+.retreat-image-grid-b {
+  grid-area: gallery-b;
+}
+
 .retreat-text-block {
-  border-radius: 20px;
-  background: rgba(248, 245, 240, 0.85);
-  border: 1px solid rgba(31, 77, 59, 0.12);
-  padding: 1.1rem;
+  padding: 0.3rem 0 0.3rem 1rem;
+  border-left: 2px solid rgba(31, 77, 59, 0.26);
 }
 
 .retreat-text-block h3 {
@@ -127,6 +183,7 @@
 
 .retreat-text-block p {
   margin: 0.5rem 0;
+  color: rgba(42, 42, 42, 0.86);
 }
 
 .retreat-text-block ul {
@@ -135,29 +192,46 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  list-style: "⤷  ";
 }
 
 .retreat-image-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.7rem;
+  gap: 0.75rem;
 }
 
 .retreat-image-card {
+  --tilt: 0deg;
+  --offset-y: 0px;
   margin: 0;
-  border-radius: 14px;
-  border: 1px solid rgba(31, 77, 59, 0.12);
+  border-radius: 8px;
+  border: 1px solid rgba(31, 77, 59, 0.05);
   overflow: hidden;
-  background: #fff;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+  background: transparent;
+  transform: translateY(var(--offset-y)) rotate(var(--tilt));
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
 }
 
+.retreat-image-card:nth-child(3n + 1) {
+  --tilt: -0.6deg;
+}
+
+.retreat-image-card:nth-child(3n + 2) {
+  --tilt: 0.7deg;
+  --offset-y: 8px;
+}
+
+.retreat-image-card:nth-child(3n + 3) {
+  --tilt: -0.25deg;
+  --offset-y: 4px;
+}
+
 .retreat-image-card:hover {
-  transform: translateY(-3px) rotate(-0.5deg);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.16);
+  transform: translateY(calc(var(--offset-y) - 3px)) rotate(var(--tilt));
+  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.1);
 }
 
 .retreat-image-card img {
@@ -168,8 +242,8 @@
 }
 
 .retreats-cta {
-  border-radius: 24px;
-  border: 1px solid var(--border);
+  border-radius: 14px;
+  border: 1px solid rgba(31, 77, 59, 0.2);
   background: linear-gradient(
     130deg,
     rgba(31, 77, 59, 0.94),
@@ -214,29 +288,57 @@
 
 @media (max-width: 1024px) {
   .retreats-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 160px));
+    gap: 0.25rem 0.45rem;
   }
 
   .retreat-content-grid {
     grid-template-columns: 1fr;
+    gap: 0.95rem;
+    grid-template-areas:
+      "story"
+      "gallery-a"
+      "highlights"
+      "gallery-b";
   }
 
   .retreat-image-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .retreat-meta {
+    align-items: flex-start;
   }
 }
 
 @media (max-width: 640px) {
   .retreats-page {
-    gap: 2.4rem;
+    gap: 3rem;
   }
 
   .retreats-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.25rem;
+  }
+
+  .retreat-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+
+  .retreat-meta {
+    align-items: flex-start;
+    white-space: normal;
   }
 
   .retreat-image-grid {
     grid-template-columns: 1fr;
+  }
+
+  .retreat-image-card {
+    --tilt: 0deg !important;
+    --offset-y: 0px !important;
   }
 
   .retreat-image-card img {
