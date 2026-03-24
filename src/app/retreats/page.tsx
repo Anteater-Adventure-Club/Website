@@ -157,7 +157,7 @@ function RetreatImageGrid({
 function RetreatRow({ retreat, index }: { retreat: Retreat; index: number }) {
   const firstImageSet = retreat.images.slice(0, 3);
   const secondImageSet = retreat.images.slice(3);
-  const layoutVariant = ["trail", "dune", "coast"][index % 3];
+  const layoutVariant = ["rightright", "leftright", "rightleft"][index % 3];
 
   return (
     <section className={`retreat-section retreat-section-${layoutVariant}`}>

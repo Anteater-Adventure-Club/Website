@@ -110,20 +110,6 @@
   color: rgba(42, 42, 42, 0.75);
 }
 
-.retreat-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.15rem;
-  font-size: 0.86rem;
-  color: rgba(42, 42, 42, 0.72);
-  white-space: nowrap;
-}
-
-.retreat-meta span {
-  border-bottom: 1px dotted rgba(31, 77, 59, 0.28);
-}
-
 .retreat-content-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -133,19 +119,19 @@
     "highlights gallery-b";
 }
 
-.retreat-section-trail .retreat-content-grid {
+.retreat-section-rightright .retreat-content-grid {
   grid-template-areas:
     "story gallery-a"
     "highlights gallery-b";
 }
 
-.retreat-section-dune .retreat-content-grid {
+.retreat-section-leftright .retreat-content-grid {
   grid-template-areas:
     "gallery-a story"
     "highlights gallery-b";
 }
 
-.retreat-section-coast .retreat-content-grid {
+.retreat-section-rightleft .retreat-content-grid {
   grid-template-areas:
     "story gallery-a"
     "gallery-b highlights";
@@ -307,10 +293,6 @@
   .retreat-image-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .retreat-meta {
-    align-items: flex-start;
-  }
 }
 
 @media (max-width: 640px) {
@@ -327,11 +309,6 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0.4rem;
-  }
-
-  .retreat-meta {
-    align-items: flex-start;
-    white-space: normal;
   }
 
   .retreat-image-grid {
