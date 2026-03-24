@@ -3,7 +3,7 @@ import "./page.css";
 export default function Sponsors() {
   return (
     <div className="sponsors-page">
-      <section className="sponsors-hero text-center">
+      <section className="text-center">
         <h1>Partner With AAC</h1>
         <p className="hero-subtitle">
           Anteater Adventure Club brings students together through hikes, city
@@ -29,28 +29,32 @@ export default function Sponsors() {
       </section>
 
       <section className="sponsor-reasons">
-        <h2>Why Organizations Sponsor Us</h2>
+        <div className="text-center">
+          <h2>Why Sponsor Us</h2>
+        </div>
         <ul>
           <li>
-            <strong>Reach an active student community:</strong> Connect with
-            highly engaged UCI students who value adventure, wellness, and local
+            <strong>Active student community:</strong> Connect with highly
+            engaged UCI students who value adventure, wellness, and local
             exploration.
           </li>
           <li>
-            <strong>Authentic brand visibility:</strong> Sponsors can be
-            highlighted through event shoutouts, social media, and club
-            materials throughout the quarter.
+            <strong>Brand visibility:</strong> Sponsors can be highlighted
+            through event shoutouts, social media, and club materials throughout
+            the quarter.
           </li>
           <li>
-            <strong>Meaningful community impact:</strong> Your support helps
-            reduce participation barriers and makes outdoor activities more
-            accessible for students.
+            <strong>Community impact:</strong> Your support helps reduce
+            participation barriers and makes outdoor activities more accessible
+            for students.
           </li>
         </ul>
       </section>
 
-      <section className="sponsor-options">
-        <h2>Ways to Partner</h2>
+      <section>
+        <div className="text-center">
+          <h2>Ways to Partner</h2>
+        </div>
         <div className="options-grid">
           <article className="option-card">
             <h3>Event Sponsorship</h3>
@@ -83,36 +87,30 @@ export default function Sponsors() {
         </div>
       </section>
 
-      <section className="sponsor-contact">
-        <h2>How to Contact Us</h2>
-        <p>We&apos;d love to learn about your organization and goals.</p>
-        <div className="contact-list">
-          <p>
-            <strong>Email:</strong>{" "}
-            <a href="mailto:anteateradventureclub@gmail.com">
-              anteateradventureclub@gmail.com
-            </a>
-          </p>
-          <p>
-            <strong>Instagram:</strong>{" "}
-            <a
-              href="https://www.instagram.com/anteateradventureclub/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              @anteateradventureclub
-            </a>
-          </p>
-          <p>
-            <strong>Response time:</strong> We typically respond within 3-5
-            business days.
-          </p>
-        </div>
-        <p>
-          If useful, include your preferred partnership type, timeline, and any
-          ideas for collaboration.
-        </p>
-      </section>
+      <div className="sponsor-contact-container">
+        <section className="sponsor-contact">
+          <h2>How to Contact Us</h2>
+          <p>We&apos;d love to learn about your organization and goals.</p>
+          <div className="contact-list">
+            <p>
+              <strong>Email:</strong>{" "}
+              <a href="mailto:anteateradventureclub@gmail.com">
+                anteateradventureclub@gmail.com
+              </a>
+            </p>
+            <p>
+              <strong>Instagram:</strong>{" "}
+              <a
+                href="https://www.instagram.com/anteateradventureclub/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                @anteateradventureclub
+              </a>
+            </p>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
