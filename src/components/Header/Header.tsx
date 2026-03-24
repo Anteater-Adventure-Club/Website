@@ -9,6 +9,7 @@ import { Menu, X } from "lucide-react";
 const NAV_ITEMS = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
+  { href: "/retreats", label: "Retreats" },
   { href: "/events", label: "Events" },
   { href: "/board", label: "Board" },
   { href: "/membership", label: "Membership" },

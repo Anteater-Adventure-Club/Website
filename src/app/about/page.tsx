@@ -80,23 +80,30 @@ function Section({
   title,
   description,
   images,
+  linkHref,
+  linkLabel,
 }: {
   title: string;
   description: string;
   images: AACEvent[];
+  linkHref?: string;
+  linkLabel?: string;
 }) {
-  const openPopup = () => {}; // Placeholder; TODO: replace this
-
   return (
     <div className="section">
       <div className="section-text">
         <h2>{title}</h2>
         <h4>{description}</h4>
+        {linkHref && linkLabel && (
+          <Link href={linkHref} className="button cta-button section-link">
+            {linkLabel}
+          </Link>
+        )}
       </div>
       <div className="section-images">
         {images.map((image, index) => (
           <div key={index} className={`section-image-${index}`}>
-            <PolaroidCard datum={image} openPopup={openPopup} />
+            <PolaroidCard datum={image} openPopup={() => {}} />
           </div>
         ))}
       </div>
@@ -116,26 +123,29 @@ export default function About() {
         </h4>
       </div>
 
+      {/* // TODO: update these descriptions with actual content specific to AAC. */}
       <div className="sections">
         <Section
           title="Hikes"
-          description="Explore weekly hikes across Orange County and Southern California — scenic trails, great company, and adventure starting right here at UCI"
+          description="From coastal strolls to mountain summits, our hikes are designed for all skill levels. Join us as we explore the breathtaking trails around us and connect with nature and each other."
           images={hikeImages}
         />
         <Section
           title="City Exploration"
-          description="Adventure isn't just limited to nature — join us on a city exploration, where we try new food, explore museums, and feel the rush of a new city"
+          description="We also love exploring the outdoor gems within our city! From hidden parks to vibrant markets, our city events are perfect for those who want to enjoy the outdoors without leaving the urban landscape. Join us for a day of discovery and fun in the city!"
           images={cityImages}
         />
         <Section
           title="Potluck Picnics"
-          description="Enjoy a nice day outside at our potluck picnics, featuring games, food, and sports, every week in Aldrich Park!"
+          description="Enjoy a nice day outside at our potluck picnics! Every week, we host a picnic in Aldrich Park, featuring snacks, games, and sports. They're a great way to meet new people and enjoy the outdoors without leaving campus!"
           images={picnicImages}
         />
         <Section
           title="Quarterly Retreats"
-          description="Every quarter, the club goes on a weekend retreat, often the highlight of the quarter for many of our members. Past retreat locations include national parks like Sequoia and Death Valley, lakes like Lake Arrowhead, and more!"
+          description="Every quarter, the club goes on a weekend retreat, often the highlight of the quarter for many of our members. These trips include 2-3 nights of camping, hiking, and local exploration at some of the best outdoor spots in the United States!"
           images={retreatImages}
+          linkHref="/retreats"
+          linkLabel="Explore Past Retreats"
         />
       </div>
 
