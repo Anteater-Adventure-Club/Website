@@ -6,6 +6,15 @@ import { usePathname } from "next/navigation";
 import "./Header.css";
 import { Menu, X } from "lucide-react";
 
+const NAV_ITEMS = [
+  { href: "/", label: "Home" },
+  { href: "/about", label: "About" },
+  { href: "/events", label: "Events" },
+  { href: "/board", label: "Board" },
+  { href: "/membership", label: "Membership" },
+  { href: "/sponsors", label: "Sponsors" },
+];
+
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -34,24 +43,15 @@ export default function Header() {
 
         {/* Desktop Navigation */}
         <nav className="desktop-nav">
-          <Link href="/" className={isActive("/") ? "active" : ""}>
-            Home
-          </Link>
-          <Link href="/about" className={isActive("/about") ? "active" : ""}>
-            About
-          </Link>
-          <Link href="/events" className={isActive("/events") ? "active" : ""}>
-            Events
-          </Link>
-          <Link href="/board" className={isActive("/board") ? "active" : ""}>
-            Board
-          </Link>
-          <Link
-            href="/membership"
-            className={isActive("/membership") ? "active" : ""}
-          >
-            Membership
-          </Link>
+          {NAV_ITEMS.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={isActive(item.href) ? "active" : ""}
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
       </div>
 
@@ -61,41 +61,16 @@ export default function Header() {
         onClick={closeMenu}
       >
         <nav className="mobile-nav" onClick={(e) => e.stopPropagation()}>
-          <Link
-            href="/"
-            onClick={closeMenu}
-            className={isActive("/") ? "active" : ""}
-          >
-            Home
-          </Link>
-          <Link
-            href="/about"
-            onClick={closeMenu}
-            className={isActive("/about") ? "active" : ""}
-          >
-            About
-          </Link>
-          <Link
-            href="/events"
-            onClick={closeMenu}
-            className={isActive("/events") ? "active" : ""}
-          >
-            Events
-          </Link>
-          <Link
-            href="/board"
-            onClick={closeMenu}
-            className={isActive("/board") ? "active" : ""}
-          >
-            Board
-          </Link>
-          <Link
-            href="/membership"
-            onClick={closeMenu}
-            className={isActive("/membership") ? "active" : ""}
-          >
-            Membership
-          </Link>
+          {NAV_ITEMS.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={closeMenu}
+              className={isActive(item.href) ? "active" : ""}
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
       </div>
     </header>

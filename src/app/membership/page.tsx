@@ -67,9 +67,10 @@ export default function Membership() {
             <div className="benefit-content">
               <h3>Voting Access on Club Decisions</h3>
               <p>
-                Any membership in the 25-26 academic year grants access to board
-                elections, as well as potential voting rights for event and
-                retreat details.
+                Any membership in the current academic year grants access to
+                board elections for the following year, as well as voting rights
+                for event and retreat details, such as our quarterly retreat
+                location!
               </p>
             </div>
           </div>

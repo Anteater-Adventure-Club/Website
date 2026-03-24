@@ -127,7 +127,7 @@ body:has(.hamburger-button[aria-expanded="true"]) {
   font-weight: 700;
 }
 
-@media (max-width: 511px) {
+@media (max-width: 639px) {
   .hamburger-button {
     display: flex;
   }
@@ -137,7 +137,7 @@ body:has(.hamburger-button[aria-expanded="true"]) {
   }
 }
 
-@media (min-width: 512px) {
+@media (min-width: 640px) {
   .hamburger-button {
     display: none;
   }
