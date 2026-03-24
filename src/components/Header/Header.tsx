@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: "/events", label: "Events" },
   { href: "/board", label: "Board" },
   { href: "/membership", label: "Membership" },
+  { href: "/sponsors", label: "Sponsors" },
 ];
 
 export default function Header() {
