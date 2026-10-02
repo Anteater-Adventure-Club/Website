@@ -64,9 +64,6 @@ const cases: Case[] = [
       await expect(quarterly.locator("strong")).toHaveText(
         String(stats.quarter_members),
       );
-      await expect(quarterly).toContainText(
-        "Signed up for at least one event this quarter, including cancellations and no-shows.",
-      );
       await expect(p.locator(".page-heading")).toContainText(
         `Lifetime members: ${stats.members}`,
       );

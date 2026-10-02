@@ -81,12 +81,6 @@ export function AdminOverview() {
               <Panel key={label}>
                 <small>{label}</small>
                 <strong>{value}</strong>
-                {label === "Quarterly members" && (
-                  <p className="stat-hint">
-                    Signed up for at least one event this quarter, including
-                    cancellations and no-shows.
-                  </p>
-                )}
               </Panel>
             ))}
           </div>
