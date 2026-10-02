@@ -187,7 +187,8 @@ export interface paths {
     /** Edit Event */
     put: operations["edit_event_api_admin_events__eid__put"];
     post?: never;
-    delete?: never;
+    /** Delete Draft */
+    delete: operations["delete_draft_api_admin_events__eid__delete"];
     options?: never;
     head?: never;
     patch?: never;
@@ -278,6 +279,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/admin/events/{eid}/series": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Event To Series */
+    post: operations["event_to_series_api_admin_events__eid__series_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/admin/series/{sid}": {
     parameters: {
       query?: never;
@@ -290,6 +308,24 @@ export interface paths {
     /** Edit Series */
     put: operations["edit_series_api_admin_series__sid__put"];
     post?: never;
+    /** Delete Draft Series */
+    delete: operations["delete_draft_series_api_admin_series__sid__delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/series/{sid}/single": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Series To Event */
+    post: operations["series_to_event_api_admin_series__sid__single_post"];
     delete?: never;
     options?: never;
     head?: never;
@@ -2921,6 +2957,12 @@ export interface components {
       /** Participated */
       participated: boolean;
     };
+    /** SeriesSingleWrite */
+    SeriesSingleWrite: {
+      /** Expected Revision */
+      expected_revision?: number | null;
+      event: components["schemas"]["EventWrite-Input"];
+    };
     /** SeriesView */
     SeriesView: {
       /** Id */
@@ -3736,6 +3778,41 @@ export interface operations {
       };
     };
   };
+  delete_draft_api_admin_events__eid__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        eid: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["Revision"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   event_state_api_admin_events__eid__state_post: {
     parameters: {
       query?: never;
@@ -3907,6 +3984,41 @@ export interface operations {
       };
     };
   };
+  event_to_series_api_admin_events__eid__series_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        eid: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SeriesWrite-Input"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SeriesView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   series_detail_api_admin_series__sid__get: {
     parameters: {
       query?: never;
@@ -3960,6 +4072,76 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["SeriesView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_draft_series_api_admin_series__sid__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        sid: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["Revision"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  series_to_event_api_admin_series__sid__single_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        sid: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SeriesSingleWrite"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EventPrivate"];
         };
       };
       /** @description Validation Error */

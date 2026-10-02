@@ -344,6 +344,10 @@ class SeriesWrite(Revision):
     request_id: str = Field(min_length=1, max_length=80)
 
 
+class SeriesSingleWrite(Revision):
+    event: EventWrite
+
+
 class RecapWrite(Revision):
     image_id: str | None = None
     title: str = Field(default="", max_length=150)

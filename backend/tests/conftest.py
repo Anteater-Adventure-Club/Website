@@ -71,6 +71,7 @@ def quarter(api, **kwargs):
 
 
 def event(api, q, **kwargs):
+    publish = kwargs.pop("publish", True)
     start = utcnow() + timedelta(days=2)
     data = {
         "quarter_id": q["id"],
@@ -85,7 +86,7 @@ def event(api, q, **kwargs):
     response = api.post("/api/admin/events", json=data)
     assert response.status_code == 201, response.text
     e = response.json()
-    if kwargs.get("publish", True):
+    if publish:
         response = api.post(f"/api/admin/events/{e['id']}/state", json={"state": "published"})
         assert response.status_code == 200, response.text
         e = response.json()

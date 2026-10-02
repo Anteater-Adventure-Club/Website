@@ -515,7 +515,148 @@ test("J09 new board profile, reorder, next term and explicit access revocation",
   expect(officers.items).toHaveLength(1);
 });
 
-test("J10 reuse a past profile preserves history, photo and sole officer access", async ({
+test("J10 draft recurrence edits preserve identity, group alerts and allow deletion", async ({
+  page,
+  context,
+}) => {
+  await identity(context, "officer");
+  const original = fixture.events.Draft;
+  const listURL = `/api/admin/events?quarter_id=${fixture.quarter.id}&limit=200`;
+  const before = (await api(page, listURL)).total;
+  await page.goto(eventURL("Draft", true) + "/edit");
+  await page
+    .getByLabel("Event name", { exact: true })
+    .fill("Browser Draft Schedule");
+  await page
+    .getByRole("combobox", { name: "Schedule", exact: true })
+    .selectOption("weekly");
+  const end = new Date(original.starts_at);
+  end.setDate(end.getDate() + 21);
+  await page
+    .getByLabel("Repeat through · inclusive")
+    .fill(end.toISOString().slice(0, 10));
+  await page.getByRole("button", { name: "Save Changes", exact: true }).click();
+  await expect(page).toHaveURL(/\/admin\/series\/\d+$/);
+  const sid = Number(new URL(page.url()).pathname.split("/").at(-1));
+  const series = await api(page, `/api/admin/series/${sid}`);
+  expect(series.occurrences.length).toBeGreaterThan(1);
+  expect(series.occurrences[0].id).toBe(original.id);
+  expect((await api(page, listURL)).total).toBe(
+    before + series.occurrences.length - 1,
+  );
+  await page.goto(`/admin/overview?quarter=${fixture.quarter.id}`);
+  const attention = page
+    .locator(".attention-link")
+    .filter({ hasText: "Browser Draft Schedule" });
+  await expect(attention).toHaveCount(1);
+  await expect(attention.locator(".pill")).toHaveText(
+    String(series.occurrences.length),
+  );
+  await attention.click();
+  await page.getByRole("link", { name: "Edit This & Future Dates" }).click();
+  await page
+    .getByRole("combobox", { name: "Schedule", exact: true })
+    .selectOption("none");
+  await page.getByRole("button", { name: "Save Changes", exact: true }).click();
+  await expect(dialog(page)).toContainText(
+    "permanently delete the other draft dates",
+  );
+  await dialog(page)
+    .getByRole("button", { name: "Make Single Event", exact: true })
+    .click();
+  await expect(page).toHaveURL(
+    new RegExp(`/admin/events/[^/]+/${original.id}$`),
+  );
+  const single = await api(page, `/api/admin/events/${original.id}`);
+  expect(single.series_id).toBeNull();
+  expect((await api(page, listURL)).total).toBe(before);
+  expect((await page.request.get(`/api/admin/series/${sid}`)).status()).toBe(
+    404,
+  );
+  await page.getByRole("button", { name: "Delete Draft", exact: true }).click();
+  await dialog(page)
+    .getByRole("button", { name: "Keep Draft", exact: true })
+    .click();
+  expect((await api(page, listURL)).total).toBe(before);
+  await page.getByRole("button", { name: "Delete Draft", exact: true }).click();
+  await dialog(page)
+    .getByRole("button", { name: "Delete Draft", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/admin\/events\?quarter=/);
+  expect((await api(page, listURL)).total).toBe(before - 1);
+  expect(
+    (await page.request.get(`/api/admin/events/${original.id}`)).status(),
+  ).toBe(404);
+});
+
+test("J11 delete standalone and recurring drafts while retaining published dates", async ({
+  page,
+  context,
+}) => {
+  await identity(context, "officer");
+  await page.goto(eventURL("Draft", true) + "/edit");
+  await page.getByRole("button", { name: "Delete Draft", exact: true }).click();
+  await dialog(page)
+    .getByRole("button", { name: "Delete Draft", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/admin\/events\?quarter=/);
+  expect(
+    (
+      await page.request.get(`/api/admin/events/${fixture.events.Draft.id}`)
+    ).status(),
+  ).toBe(404);
+  const series = await api(page, "/api/admin/series", "POST", {
+    ...fixture.series.definition,
+    event: {
+      ...fixture.series.definition.event,
+      name: "Browser General Meeting",
+    },
+    request_id: crypto.randomUUID(),
+  });
+  await page.goto(`/admin/overview?quarter=${fixture.quarter.id}`);
+  await expect(
+    page
+      .locator(".attention-link")
+      .filter({ hasText: "Browser General Meeting" }),
+  ).toHaveCount(1);
+  await page.goto(`/admin/series/${series.id}`);
+  await page
+    .getByRole("button", { name: "Delete Draft Series", exact: true })
+    .click();
+  await expect(dialog(page)).toContainText(
+    `all ${series.occurrences.length} draft dates`,
+  );
+  await dialog(page)
+    .getByRole("button", { name: "Delete Draft Series", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/admin\/events\?quarter=/);
+  expect(
+    (await page.request.get(`/api/admin/series/${series.id}`)).status(),
+  ).toBe(404);
+  for (const e of series.occurrences) {
+    expect((await page.request.get(`/api/admin/events/${e.id}`)).status()).toBe(
+      404,
+    );
+  }
+  await page.goto(`/admin/overview?quarter=${fixture.quarter.id}`);
+  await expect(
+    page
+      .locator(".attention-link")
+      .filter({ hasText: "Browser General Meeting" }),
+  ).toHaveCount(0);
+  await page.goto(`/admin/series/${fixture.series.id}`);
+  await expect(
+    page.getByRole("button", { name: "Delete Draft Series", exact: true }),
+  ).toHaveCount(0);
+  await page.getByRole("link", { name: "Edit This & Future Dates" }).click();
+  await expect(
+    page
+      .getByRole("combobox", { name: "Schedule", exact: true })
+      .locator('option[value="none"]'),
+  ).toHaveJSProperty("disabled", true);
+});
+
+test("J12 reuse a past profile preserves history, photo and sole officer access", async ({
   page,
   context,
 }) => {
@@ -685,7 +826,7 @@ test("J10 reuse a past profile preserves history, photo and sole officer access"
   ).toEqual([source]);
 });
 
-test("J11 existing-profile picker handles empty years, retry and unlinked profiles", async ({
+test("J13 existing-profile picker handles empty years, retry and unlinked profiles", async ({
   page,
   context,
 }) => {
