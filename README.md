@@ -22,6 +22,12 @@ From `backend/`: `../.venv/bin/pytest -q` and `../.venv/bin/ruff check .`. Tests
 
 Browser checks use a separate `aac_browser` database on local port 55432. Run `.venv/bin/python scripts/seed-browser-fixtures.py`, start the API with its documented synthetic session configuration, then run `npm run test:e2e` from `frontend/`. The guarded seeder refuses non-local database URLs, records fixture cookies only in ignored `artifacts/`, and provides no authentication bypass in the deployed application.
 
+`npm run test:e2e:journeys` exercises nine member/officer workflows in Chromium, Firefox, and WebKit at phone, tablet, and desktop sizes. Each test resets the isolated fixture database. On hosts without supported browser dependencies, build `deploy/browser-tests.Dockerfile` and run it with the checkout mounted at `/work` and access to the local test API. Set `E2E_PYTHON` when the fixture interpreter is elsewhere. CI installs supported browser dependencies and runs both suites.
+
+Run `npm run test:e2e:boundaries` after refreshing browser fixtures to check 320-pixel phones, navigation/layout breakpoints, 200% reflow, orientation changes, and keyboard focus. The zoom case emulates a 1440-pixel desktop's layout at 200%; it is not a physical-device or browser-toolbar zoom test. `scripts/seed-load-fixtures.py` and `scripts/load-acceptance.py` are guarded synthetic performance-test tools for disposable databases, not deployment commands.
+
+Coolify owns builds, deployment on branch pushes, container health, and scheduled database/media backups. `deploy/start-api.py` runs inside the API container to initialize the schema once under a lock, grant the runtime role permissions, and start Uvicorn. It does not invoke Coolify or deploy resources.
+
 ## Design and operations
 
 - [Implementation plan](docs/implementation-plan.md): features, stack, milestones, and acceptance requirements.

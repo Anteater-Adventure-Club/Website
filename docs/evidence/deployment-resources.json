@@ -10,8 +10,13 @@
   "repository": "Anteater-Adventure-Club/Website",
   "branch": "aac-rebuild",
   "branch_base_sha": "8fd1fd7ed937ddc02c6cfc26b49a57754ac90b20",
-  "superseded_applications": [
+  "removed_superseded_applications": [
     "a4aga8mw31b5d3ducpybldcq",
     "kq40ebuextoesfcfe6jontug"
-  ]
+  ],
+  "backups": {
+    "database_schedule": "y6msa5shxfwgltaujiknfcwo",
+    "media_schedule": "w6seuyddfy4x35iiiwmwev01",
+    "media_storage": "rrqxvw6wy6hjtykjvrh9mca9"
+  }
 }

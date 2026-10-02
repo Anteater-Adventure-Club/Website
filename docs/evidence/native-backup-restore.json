@@ -1,0 +1,31 @@
+{
+  "database_backup": {
+    "uuid": "kl4qwfyvci4dwbuw27zvbved",
+    "status": "success",
+    "size": 73852,
+    "created_at": "2026-10-02T17:59:21+00:00",
+    "filename": "/data/coolify/backups/databases/root-team-0/aac-postgres-r5iqf5ngzoj4bynmxbioztcp/pg-dump-aac_website-1790963961.dmp"
+  },
+  "media_archive": "/data/coolify/backups/volumes/root-team-0/rrqxvw6wy6hjtykjvrh9mca9/directory-dataaac-websitemedia-1790963965.tar.gz",
+  "restore_location": "disposable database on existing AAC database server; removed after verification",
+  "restored_state": {
+    "schema_revision": "922533d3d862",
+    "members": 1,
+    "officers": 1,
+    "quarters": 0,
+    "media": 0,
+    "bootstrap_marker": 1
+  },
+  "matches_working_database": true,
+  "media_probe_restored": true,
+  "checksums": {
+    "/data/coolify/backups/databases/root-team-0/aac-postgres-r5iqf5ngzoj4bynmxbioztcp/pg-dump-aac_website-1790963961.dmp": "43f99ad567207a004b1ae524c77befcd95530505a6d45b084ceec9c34a6dd110",
+    "/data/coolify/backups/volumes/root-team-0/rrqxvw6wy6hjtykjvrh9mca9/directory-dataaac-websitemedia-1790963965.tar.gz": "a5c6be3ffb53320d2552d2298fea661090c25ffa387969f9407652362e4213d5"
+  },
+  "local_restore": {
+    "database": "isolated local aac_working_restore",
+    "checksums_match": true,
+    "state_matches": true,
+    "media_probe_restored": true
+  }
+}

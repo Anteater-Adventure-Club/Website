@@ -1,0 +1,62 @@
+{
+  "recorded_at": "2026-10-02T18:22:17.720781+00:00",
+  "backend": {
+    "integration_tests_passed": 44,
+    "ruff": "passed"
+  },
+  "frontend": {
+    "production_build": "passed",
+    "vitest_tests_passed": 6
+  },
+  "browser_reports": {
+    "journey": {
+      "startTime": "2026-10-02T17:42:07.318Z",
+      "duration": 291457.433,
+      "expected": 81,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "boundary": {
+      "startTime": "2026-10-02T18:09:45.523Z",
+      "duration": 70157.87400000001,
+      "expected": 114,
+      "skipped": 40,
+      "unexpected": 0,
+      "flaky": 0
+    }
+  },
+  "primary_screen_coverage": {
+    "cases": 360,
+    "widths": [
+      360,
+      390,
+      768,
+      1024,
+      1280,
+      1440
+    ],
+    "source": "Completed initial local matrix and successful branch CI run 37042378482"
+  },
+  "corrected_fixture_checks": {
+    "cases": 18,
+    "states": [
+      "registered driver estimate",
+      "registered cancelled event",
+      "account menu"
+    ],
+    "widths": [
+      360,
+      390,
+      768,
+      1024,
+      1280,
+      1440
+    ]
+  },
+  "limits": [
+    "Physical phone unavailable",
+    "200% layout reflow is emulated, not browser toolbar zoom",
+    "Cross-engine workflows use synthetic sessions; live Google sign-in confirmed separately by owner"
+  ]
+}

@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router";
+import {
+  Link,
+  Navigate,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router";
 import { useForm } from "react-hook-form";
 import {
   ArrowLeft,
@@ -49,7 +55,7 @@ import {
 } from "../components/operations";
 
 export function EventManagement() {
-  const { id } = useParams();
+  const { id, slug } = useParams();
   const [params, setParams] = useSearchParams();
   const query = useAPI("EventPrivate", `/api/admin/events/${id}`);
   const quarters = useAPI("Page_QuarterPrivate_", "/api/admin/quarters");
@@ -61,6 +67,10 @@ export function EventManagement() {
   if (query.error) return <Failure error={query.error} retry={query.refetch} />;
   const event = query.data;
   const base = eventURL(event, true);
+  if (slug !== event.slug)
+    return (
+      <Navigate replace to={`${base}${params.size ? `?${params}` : ""}`} />
+    );
   const q = quarters.data?.items.find((q) => q.id === event.quarter_id);
   const operational = event.state === "published" && q?.state === "open";
   const editable =

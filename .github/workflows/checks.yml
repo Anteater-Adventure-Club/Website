@@ -83,6 +83,7 @@ jobs:
       MEDIA_ROOT: /tmp/aac-browser-media
       DUES_VENMO_HANDLE: "@fixture-club"
       DUES_ZELLE_CONTACT: fixture@uci.edu
+      E2E_PYTHON: python
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -97,7 +98,7 @@ jobs:
       - run: alembic upgrade head
         working-directory: backend
       - run: python scripts/seed-browser-fixtures.py
-      - run: npm ci && npx playwright install --with-deps chromium
+      - run: npm ci && npx playwright install --with-deps chromium firefox webkit
         working-directory: frontend
       - name: Start isolated application
         run: |
@@ -118,6 +119,12 @@ jobs:
           PY
       - run: npm run test:e2e
         working-directory: frontend
+      - name: Member and officer journeys across browser engines
+        run: npm run test:e2e:journeys
+        working-directory: frontend
+      - name: Layout boundaries, orientation and keyboard focus
+        run: npm run test:e2e:boundaries
+        working-directory: frontend
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -125,6 +132,10 @@ jobs:
           path: |
             artifacts/test-results
             artifacts/playwright-results.json
+            artifacts/journey-results.json
+            artifacts/journey-traces
+            artifacts/boundary-results.json
+            artifacts/boundary-traces
             artifacts/api.log
             artifacts/web.log
           retention-days: 7

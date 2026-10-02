@@ -9,6 +9,7 @@ const sizes = [
 ];
 export default defineConfig({
   testDir: "./tests/e2e",
+  testMatch: "views.spec.ts",
   timeout: 45000,
   expect: { timeout: 8000 },
   fullyParallel: false,

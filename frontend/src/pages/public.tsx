@@ -20,17 +20,16 @@ export function Home() {
   const settings = useAPI("SiteSettings", "/api/site-settings");
   const polaroids = home.data?.polaroids || [];
   const [rotation, setRotation] = useState(0);
+  const [photosPaused, setPhotosPaused] = useState(
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
   useEffect(() => {
-    if (
-      polaroids.length < 3 ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    )
-      return;
+    if (polaroids.length < 3 || photosPaused) return;
     const timer = window.setInterval(() => {
       if (!document.hidden) setRotation((i) => (i + 1) % polaroids.length);
     }, 6000);
     return () => window.clearInterval(timer);
-  }, [polaroids.length]);
+  }, [polaroids.length, photosPaused]);
   const activities = [
     {
       title: "Beaches",
@@ -77,19 +76,34 @@ export function Home() {
           <Link className="button primary heading-button" to="/events">
             Join the adventure! <ArrowRight size={18} />
           </Link>
+          {polaroids.length > 2 && (
+            <div className="actions">
+              <Button
+                variant="quiet"
+                aria-pressed={photosPaused}
+                onClick={() => setPhotosPaused((paused) => !paused)}
+              >
+                {photosPaused ? "Resume photos" : "Pause photos"}
+              </Button>
+            </div>
+          )}
         </div>
         <div className="hero-polaroids">
           {polaroids.length ? (
-            ([polaroids[rotation % polaroids.length], ...(polaroids.length > 1 ? [polaroids[(rotation + 1) % polaroids.length]] : [])])
-              .map((p, i) => (
-                <Polaroid
-                  key={p.event_id}
-                  image={photoURL(p.image_id)}
-                  title={p.title || p.event_name}
-                  caption={dateLabel(p.starts_at)}
-                  rotation={i ? 5 : -5}
-                />
-              ))
+            [
+              polaroids[rotation % polaroids.length],
+              ...(polaroids.length > 1
+                ? [polaroids[(rotation + 1) % polaroids.length]]
+                : []),
+            ].map((p, i) => (
+              <Polaroid
+                key={p.event_id}
+                image={photoURL(p.image_id)}
+                title={p.title || p.event_name}
+                caption={dateLabel(p.starts_at)}
+                rotation={i ? 5 : -5}
+              />
+            ))
           ) : (
             <>
               <Polaroid

@@ -1919,6 +1919,7 @@ dialog::backdrop {
   }
   .activity-polaroids {
     gap: 0.8rem;
+    padding-inline: 0.3rem;
   }
   .card-grid {
     grid-template-columns: 1fr;

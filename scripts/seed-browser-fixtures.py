@@ -200,7 +200,19 @@ with TestClient(
     )
     events["Draft"] = event("Private Draft", now + timedelta(days=5), state="draft")
     events["Cancelled"] = event(
-        "Cancelled Beach Day", now + timedelta(days=3), state="cancelled"
+        "Cancelled Beach Day", now + timedelta(days=3)
+    )
+    call(
+        f"/api/admin/events/{events['Cancelled']['id']}/signups",
+        {"member_id": people["Member"]["id"], "role": "ride"},
+    )
+    events["Cancelled"] = call(
+        f"/api/admin/events/{events['Cancelled']['id']}/state",
+        {"state": "cancelled", "reason": "Fixture weather cancellation"},
+    )
+    call(
+        f"/api/admin/events/{events['Multi-day']['id']}/signups",
+        {"member_id": people["Driver"]["id"], "role": "driver", "vehicle_id": car["id"], "seats": 4},
     )
     events["Completed"] = event(
         "Past Adventure", now - timedelta(days=3), state="completed"

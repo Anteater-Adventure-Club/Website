@@ -43,7 +43,7 @@ Old-site Sponsors and short-link routes are not new-design requirements. Old arc
 - Two-second visible-view polling for field operations, transactional mutations and stale-revision conflicts; no offline writes or extra realtime service.
 - Same-origin frontend/API, local persistent media volume and derived images; no new object-storage service required for the internal working deployment.
 - Separate Coolify frontend/API/PostgreSQL resources; initial conservative limits and workload targets are specified in deployment/verification docs.
-- Local daily backups and restore testing for the internal deployment. Before public launch, configure an owner-controlled off-host copy and confirm its retention/recovery requirements.
+- Native Coolify daily database and media backups, plus restore testing, for the internal deployment; no custom backup runner. Before public launch, configure an owner-controlled off-host copy and confirm its retention/recovery requirements.
 - Initial officer allowlist defaults to gdodge@uci.edu as found in the supplied club artifacts; bootstrap only once. The implementation reads this through runtime configuration.
 
 These defaults fill implementation detail rather than change the owner's scope decisions. No product question remains unanswered. OAuth credentials, payment destinations, DNS/TLS validation, backup configuration and first-push evidence are deployment inputs/checks, not claimed completed work.

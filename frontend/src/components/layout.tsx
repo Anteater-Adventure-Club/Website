@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Link,
   NavLink,
@@ -41,6 +41,27 @@ export function Layout() {
   const { quarter } = useQuarter();
   const [menu, setMenu] = useState(false);
   const [account, setAccount] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
+  const accountToggle = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!account) return;
+    function outside(event: PointerEvent) {
+      if (!accountRef.current?.contains(event.target as Node))
+        setAccount(false);
+    }
+    function escape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setAccount(false);
+        accountToggle.current?.focus();
+      }
+    }
+    document.addEventListener("pointerdown", outside);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("pointerdown", outside);
+      document.removeEventListener("keydown", escape);
+    };
+  }, [account]);
   const cache = useQueryClient();
   const navigate = useNavigate();
   const location = useLocation();
@@ -140,8 +161,16 @@ export function Layout() {
           ))}
         </nav>
         {session?.member ? (
-          <div className="account">
+          <div
+            className="account"
+            ref={accountRef}
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget))
+                setAccount(false);
+            }}
+          >
             <button
+              ref={accountToggle}
               className="avatar"
               aria-label="Open account menu"
               aria-expanded={account}

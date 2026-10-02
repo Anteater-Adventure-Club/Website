@@ -9,6 +9,8 @@
     "test": "vitest run",
     "typecheck": "tsc -b",
     "test:e2e": "playwright test",
+    "test:e2e:journeys": "playwright test --config playwright.journeys.config.ts",
+    "test:e2e:boundaries": "playwright test --config playwright.boundaries.config.ts",
     "api:types": "openapi-typescript ../backend/openapi.json -o src/lib/api-schema.d.ts && prettier --write src/lib/api-schema.d.ts"
   },
   "dependencies": {

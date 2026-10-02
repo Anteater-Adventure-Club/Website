@@ -29,7 +29,7 @@ const cases: Case[] = [
   { id: "1f-closed", route: event("Closed"), role: "Member" },
   { id: "8c-cancelled", route: event("Cancelled"), role: "Member" },
   { id: "1f-completed", route: event("Completed"), role: "Member" },
-  { id: "1f-driver", route: event("Field"), role: "Driver" },
+  { id: "1f-driver", route: event("Multi-day"), role: "Driver" },
   { id: "1h-checkedin", route: event("Field"), role: "Paid Rider" },
   {
     id: "1g-driver-signup",

@@ -169,6 +169,31 @@ export function Dialog({
       className={wide ? "wide" : ""}
       aria-labelledby={id}
       onCancel={onClose}
+      onKeyDown={(event) => {
+        if (
+          event.key !== "Tab" ||
+          (event.target as Element).closest("dialog") !== event.currentTarget
+        )
+          return;
+        const controls = Array.from(
+          event.currentTarget.querySelectorAll<HTMLElement>(
+            'button:enabled, a[href], input:enabled, select:enabled, textarea:enabled, [tabindex]:not([tabindex="-1"])',
+          ),
+        ).filter(
+          (control) =>
+            control.offsetParent !== null &&
+            control.closest("dialog") === event.currentTarget,
+        );
+        const first = controls[0],
+          last = controls[controls.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }}
       onClick={(event) => {
         if (event.target === ref.current) {
           const box = ref.current.getBoundingClientRect();

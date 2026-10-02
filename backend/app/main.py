@@ -1,5 +1,8 @@
 import logging
+import json
+import sys
 import time
+from uuid import uuid4
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -13,6 +16,10 @@ from .schemas import SiteSettings
 from .routers import editorial, events, finance, imports, members, overview, participation
 
 logger = logging.getLogger("aac.http")
+if not logger.handlers:
+    logger.addHandler(logging.StreamHandler(sys.stdout))
+logger.setLevel(logging.INFO)
+logger.propagate = False
 
 
 def create_app(settings=None, engine=None):
@@ -47,24 +54,27 @@ def create_app(settings=None, engine=None):
     @app.middleware("http")
     async def boundaries(request: Request, call_next):
         start = time.monotonic()
+        request_id = uuid4().hex
+        response = None
         if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
             origin = request.headers.get("origin")
             if (origin and origin != settings.app_url) or (request.cookies.get("aac_session") and not origin):
-                return JSONResponse(
+                response = JSONResponse(
                     {"detail": {"code": "origin_rejected", "message": "Reload this page before submitting."}},
                     status_code=403,
                 )
-        response = await call_next(request)
+        if response is None:
+            response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         if request.url.path.startswith("/api/") and not request.url.path.startswith("/api/health/"):
             response.headers["Cache-Control"] = "no-store"
         logger.info(
-            "%s %s %s %.1fms",
-            request.method,
-            request.url.path,
-            response.status_code,
-            (time.monotonic() - start) * 1000,
+            json.dumps({"request_id": request_id, "method": request.method,
+                        "route": getattr(request.scope.get("route"), "path", request.url.path),
+                        "status": response.status_code, "duration_ms": round((time.monotonic() - start) * 1000, 1),
+                        "release_sha": settings.release_sha}),
         )
         return response
 
