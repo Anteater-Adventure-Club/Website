@@ -21,6 +21,15 @@ The owner authorized combining the management MVP, the old static website, and t
 
 Final destination totals: **582 members, seven quarters, 402 memberships, 203 dues receipts, 39 events, 1,121 signups, 37 quarter driver registrations, 45 trips, 21 payouts, 22 vehicles, two board terms, 26 board entries, 24 media records and ten recaps**. Of the 582 members, 580 are new and two reuse existing accounts.
 
+The MVP's event/signup/trip counts specifically break down as follows. Its Winter reimbursement records did not populate its separate club-signup tables; the Winter participation history comes from BI.
+
+| MVP quarter | Events | Club signups | Driver reimbursement trips |
+|---|---:|---:|---:|
+| Winter 2026 | 6 | 0 | 32 |
+| Spring 2026 | 0 | 0 | 0 |
+| Fall 2026 | 2 | 181 | 13 |
+| Total | 8 | 181 | 45 |
+
 | Quarter | Events | Signups | Memberships |
 |---|---:|---:|---:|
 | Fall 2024 | 7 | 130 | 38 |
@@ -50,3 +59,5 @@ Retreat dates are ordinary event dates: Sequoia & Kings Canyon November 8–10, 
 Before deployment/apply, save a coordinated local PostgreSQL dump and media archive. Deploy code only by pushing `Website/aac-rebuild`; the existing Coolify GitHub source redeploys the separate web and API services. After schema readiness succeeds, feed the private bundle to the API container's CLI over SSH stdin, first without `--apply`, then with it. Capture the full reports in the private local directory, never in Git. Data transfer for this one-time import is separate from native code deployment.
 
 The rehearsal uses a disposable PostgreSQL database seeded with the target's actual account bindings and grants. Checks cover exact combined counts, both account reuses, preserved identity/grants, quarter-level eligibility, frozen payouts, missing financial data, nullable historical participation, rollback/media cleanup, competing imports, second-apply refusal, and rejected unknown live signup roles. Populated views are checked at 360/390px phone, 768px tablet and 1440px desktop widths, plus iPhone WebKit. Phone keyboard regression tests use synthetic isolated fixtures and never mutate imported or live records. Private datasets, reports, cookies and roster screenshots are excluded from Git.
+
+The live import completed on October 2, 2026. Both native deployments, the live rollback dry run, the committed import, preserved account bindings/grants, and twenty deployed public view checks passed. All five retreat date ranges and the $500 active-quarter budget were verified through production API responses. The homepage now rotates the imported recaps with real titles/dates. Sanitized counts, source checksums and verification results are in [historical-import.json](evidence/historical-import.json).
