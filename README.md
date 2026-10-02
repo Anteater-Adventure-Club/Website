@@ -2,7 +2,7 @@
 
 AAC's public website, member portal, and officer workspace, built with React, FastAPI, and PostgreSQL. The implementation lives on `aac-rebuild` in [Anteater-Adventure-Club/Website](https://github.com/Anteater-Adventure-Club/Website/tree/aac-rebuild). This branch replaces the site's architecture while retaining its Git history.
 
-The internal deployment is **https://aac.internal.gdodge.dev**. Coolify builds two independent applications from repository Dockerfiles on branch pushes; PostgreSQL is a separate private resource. Deployment status and remaining acceptance work are recorded in [docs/execution-status.md](docs/execution-status.md).
+The internal deployment is **https://aac.internal.gdodge.dev**. Coolify builds two independent applications from repository Dockerfiles on branch pushes; PostgreSQL is a separate private resource. Deployment status and verification evidence are recorded in [docs/execution-status.md](docs/execution-status.md).
 
 ## Local development
 

@@ -1,5 +1,5 @@
 {
-  "recorded_at": "2026-10-02T18:22:17.720781+00:00",
+  "recorded_at": "2026-10-02T20:14:35.661500+00:00",
   "backend": {
     "integration_tests_passed": 45,
     "ruff": "passed"
@@ -66,12 +66,13 @@
     "source": "Final local targeted checks across six primary viewports"
   },
   "node_lts": "24.21.0",
-  "github_actions_runtime": "All four GitHub-maintained workflow actions updated to verified current v7 Node 24 releases; no Node 20 annotations in run 37050393976.",
+  "github_actions_runtime": "All four GitHub-maintained workflow actions use verified v7 Node 24 releases; no Node 20 annotations in final successful run 37056874536.",
   "homepage_corrections": {
     "six_primary_views": 6,
     "layout_boundary_and_rotation_checks": 12,
     "long_captions_and_dates": "Supplied 5a/5b About content restored",
-    "adventure_links": "Unfiltered calendar"
+    "adventure_links": "Unfiltered calendar",
+    "two_photo_phone_rotation": "Passed B05 desktop Pause/Resume and two-photo phone Pause/Resume"
   },
   "board_journey_ci_correction": {
     "cause": "The test polled database state before the browser closed its revoke dialog and refreshed the list, causing an ambiguous button lookup.",
@@ -99,6 +100,33 @@
   "public_delivery": {
     "before_main_js_gzip_bytes": 150510,
     "after_main_js_gzip_bytes": 107600,
-    "change": "Member forms and event signup code load when their routes open; Membership content remains eager to avoid layout shift."
+    "change": "Member forms and event signup code load when their routes open; Membership content remains eager to avoid layout shift.",
+    "current_main_js_gzip_bytes": 108100
+  },
+  "font_delivery": "Six primary homepage sizes pass with common subsets; all supported characters remain available and glyph advances/bearings match originals.",
+  "phone_keyboard": {
+    "cases": 24,
+    "engines": [
+      "mobile Chromium",
+      "mobile WebKit"
+    ],
+    "viewport_behaviors": [
+      "visual-only resize",
+      "content resize"
+    ],
+    "physical_phone": false
+  },
+  "final_ci": {
+    "id": 37056874536,
+    "sha": "1687ceb5c89ce6f09ab7b14fcb7e011c6c8556bf",
+    "url": "https://github.com/Anteater-Adventure-Club/Website/actions/runs/37056874536",
+    "all_jobs": "passed",
+    "required_browser_cases": {
+      "primary_views": 360,
+      "cross_engine_journeys": 81,
+      "layout_boundaries": 114,
+      "phone_keyboard": 24
+    },
+    "node20_annotations": 0
   }
 }

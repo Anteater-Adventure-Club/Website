@@ -42,6 +42,12 @@ Each row of the view matrix becomes one or more named Playwright cases using IDs
 
 Use deterministic synthetic fixtures with fixed clock/quarter/date and known identities; test photo assets with controlled dimensions. Capture viewport and full-page screenshots, relevant open dialogs, route/role/viewport metadata, failed requests, console/page errors, test results and accessibility findings. Compare layout intent against the designs, not literal device-frame pixels or made-up sample text. Human-review contact sheets and inspect failures at full resolution. Keep records of deliberate deviations D02/D03/D05/D06/D07 and accessibility changes.
 
+## Phone keyboard verification
+
+Run `npm run test:e2e:keyboard` against the guarded local fixtures. The 24 cases cover profile/preferences, car sheets, event descriptions, field search/walk-ins, dues references, and reimbursement contacts in mobile Chromium and WebKit. Each runs with a visual-only viewport reduction and a layout viewport reduction, checking readable focused fields, sheet bounds, scrolling to submit controls, multiline Enter, saved values, and dismissal. The visual-only model matters because an on-screen keyboard can shrink the visible viewport while the page keeps its layout size. [VisualViewport](https://developer.mozilla.org/en-US/docs/Web/API/VisualViewport), [Chrome viewport behavior](https://developer.chrome.com/blog/viewport-resize-behavior).
+
+No phone is attached. These checks do not verify native OS keyboard UI, suggestions, IME/autofill, or hardware safe areas. Record that limit explicitly; do not describe simulated keyboard coverage as a physical-device pass.
+
 ## Required end-to-end journeys
 
 1. **Visitor:** Home -> calendar month/day with multiple events -> event detail -> sign-in return path; board/past boards/dialog; membership information; gallery popup; real 404 and draft privacy.
