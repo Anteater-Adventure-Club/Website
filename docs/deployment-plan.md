@@ -1,6 +1,6 @@
 # Coolify deployment and recovery
 
-This is the execution specification for milestone M7. Discovery was read-only: no project, resource, environment variable, GitHub push, deployment, or server application file was created or changed by the planning task. The owner configured the GitHub integration during the session.
+This is the execution specification for milestone M7. Initial planning discovery was read-only. Implementation has now created the separate resources, configured runtime settings, and pushed the rebuild branch. Resource handles are recorded in `docs/evidence/deployment-resources.json`; the owner’s existing site remains separate.
 
 ## Verified environment
 
@@ -14,7 +14,7 @@ This is the execution specification for milestone M7. Discovery was read-only: n
 | Repository | `git@github.com:Anteater-Adventure-Club/Website.git`; implementation branch `aac-rebuild`, based on existing `main` at `8fd1fd7ed937ddc02c6cfc26b49a57754ac90b20`. Existing history remains the parent of the rebuild; deployment follows only this branch. |
 | Organization GitHub source | Owner calls it `aac`; current API name `aac-deployment-hook`, source ID **2**, UUID **ovykddu0mo65gmnsujvzd64g**, installation **167115636**. Installation repository lookup verified access to `Anteater-Adventure-Club/Website` during the branch switch. Resolve by UUID/repository access, not a transient display name. |
 | Working hostname | `https://aac.internal.gdodge.dev`; existing wildcard DNS routes to `192.168.4.78`; owner confirms working routing and automatic TLS. |
-| Push delivery | Owner confirms existing routing and the new deployment hook work. DNS answers alone do not reveal the complete ingress path. Actual new-application push evidence is required at M7. |
+| Push delivery | The working existing GitHub App uses `https://captain-hook.gdodge.dev/webhooks/source/github/events`. Delivery diagnostics found the new AAC App still pointed to an unreachable IP/port; its URL was corrected to that existing working endpoint without changing DNS or the other App. Actual branch pushes/redelivery now queue both services with `is_webhook=true`. |
 
 The existing `AAC Driver Reimbursements` project and database are separate applications, regardless of old README history. Leave them untouched. Create a new `AAC Website` project and `production` environment for the requested working site. “Production” here names the durable Coolify environment; the hostname is initially internal.
 

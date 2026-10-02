@@ -212,6 +212,8 @@ def gallery_items(db, homepage=False):
         .where(Recap.published.is_not(None), Event.skipped.is_(False), Event.state == "completed")
         .order_by(Event.starts_at.desc())
     ):
+        if not r.published:
+            continue
         if not homepage or r.published.get("homepage"):
             result.append({"event_id": e.id, "event_name": e.name, "starts_at": e.starts_at, **r.published})
     return result

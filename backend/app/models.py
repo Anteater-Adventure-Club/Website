@@ -279,7 +279,7 @@ class Recap(Base):
     __tablename__ = "recaps"
     event_id: Mapped[int] = mapped_column(ForeignKey("events.id"), primary_key=True)
     draft: Mapped[dict] = mapped_column(JSON, default=dict)
-    published: Mapped[dict | None] = mapped_column(JSON)
+    published: Mapped[dict | None] = mapped_column(JSON(none_as_null=True))
     revision: Mapped[int] = mapped_column(default=1)
 
 

@@ -296,6 +296,12 @@ def test_media_and_recap_publication_separate_from_draft(api):
     api.post(f"/api/admin/quarters/{q['id']}/finalize")
     assert api.post(url + "/publication", json={}).status_code == 200
     assert api.delete(f"/api/admin/media/{mid}").status_code == 409
+    assert api.delete(url + "/publication").status_code == 200
+    assert api.get("/api/gallery").json() == {"items": [], "total": 0}
+    assert api.get("/api/home").json()["polaroids"] == []
+    assert api.get(f"/api/gallery/{e['id']}").status_code == 404
+    assert api.get(f"/media/{mid}/medium").status_code == 404
+    assert api.get(url).json()["draft"]["title"] == "Edited draft"
 
 
 def test_board_public_privacy_terms_and_independent_access(api):
