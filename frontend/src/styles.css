@@ -56,6 +56,10 @@
 }
 body {
   margin: 0;
+  padding-bottom: var(--keyboard-bottom, 0px);
+}
+html {
+  scroll-padding-bottom: var(--keyboard-bottom, 0px);
 }
 button,
 input,
@@ -1031,12 +1035,19 @@ dialog {
   color: inherit;
   background: #fff;
   box-shadow: 0 20px 65px #0003;
-  max-height: 88dvh;
+  max-height: calc(var(--visible-height, 100dvh) * 0.88);
   overflow: auto;
   overscroll-behavior: contain;
 }
 dialog.wide {
   width: min(940px, calc(100vw - 40px));
+}
+:root.keyboard-open dialog {
+  position: fixed;
+  top: calc(var(--visible-top, 0px) + var(--visible-height, 100dvh) / 2);
+  bottom: auto;
+  margin: 0 auto;
+  transform: translateY(-50%);
 }
 dialog::backdrop {
   background: #0006;
@@ -1675,6 +1686,11 @@ dialog::backdrop {
   }
 }
 @media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
   .page {
     padding: 1.8rem 1.3rem;
   }
@@ -2068,18 +2084,23 @@ dialog::backdrop {
   dialog,
   dialog.wide {
     position: fixed;
-    bottom: 0;
+    bottom: var(--keyboard-bottom, 0px);
     top: auto;
     margin: 0;
     width: 100%;
     max-width: none;
-    max-height: 90dvh;
+    max-height: calc(var(--visible-height, 100dvh) * 0.9);
     border-radius: 1.25rem 1.25rem 0 0;
     padding: 1.5rem 1.25rem max(1.5rem, env(safe-area-inset-bottom));
     animation: sheet-in 0.15s ease;
   }
   .dialog-heading h2 {
     font-size: 1.6rem;
+  }
+  :root.keyboard-open dialog {
+    top: auto;
+    bottom: var(--keyboard-bottom, 0px);
+    transform: none;
   }
   .dialog-heading {
     gap: 0.5rem;
@@ -2458,7 +2479,7 @@ dialog::backdrop {
   color: #526849;
 }
 .field-desk {
-  height: 100dvh;
+  height: var(--visible-height, 100dvh);
   display: flex;
   flex-direction: column;
   background: var(--tan);

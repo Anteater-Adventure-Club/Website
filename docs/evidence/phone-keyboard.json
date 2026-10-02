@@ -1,0 +1,50 @@
+{
+  "recorded_at": "2026-10-02T19:51:41.466705+00:00",
+  "result": {
+    "startTime": "2026-10-02T19:49:20.375Z",
+    "duration": 72290.928,
+    "expected": 24,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "profiles": [
+    "Playwright Pixel 5 in Chromium",
+    "Playwright iPhone 13 in WebKit"
+  ],
+  "keyboard_models": [
+    "Visual viewport shrinks while layout viewport stays full size",
+    "Layout and visual viewports shrink together"
+  ],
+  "covered_forms": [
+    "Profile and multiline preferences",
+    "Car sheet and numeric seats",
+    "Event description and draft save",
+    "Field roster search and walk-in sheet",
+    "Dues confirmation reference",
+    "Reimbursement payment contact"
+  ],
+  "checks": [
+    "Focused controls above keyboard",
+    "Mobile input font size at least 16px",
+    "Sheets fit visible area",
+    "Scrolling to submit control with keyboard open",
+    "Multiline Enter preserves a newline without submitting",
+    "Saved values and repeated keyboard dismissal"
+  ],
+  "fixes": [
+    "Use VisualViewport height and offset for sheet placement and field tool height",
+    "Keep focused controls visible on keyboard resize and input while allowing intentional scrolling",
+    "Reserve scroll space above the keyboard",
+    "Prevent small input text from provoking mobile zoom"
+  ],
+  "limits": [
+    "No physical phone was connected; USB inventory showed hubs, webcam and Bluetooth only.",
+    "Native OS keyboard UI, suggestions, IME/autofill and hardware safe-area behavior were not tested.",
+    "Viewport and keyboard obstruction are modeled in headless browsers; this is not a native-device pass."
+  ],
+  "sources": [
+    "https://developer.mozilla.org/en-US/docs/Web/API/VisualViewport",
+    "https://developer.chrome.com/blog/viewport-resize-behavior"
+  ]
+}

@@ -126,6 +126,9 @@ jobs:
       - name: Layout boundaries, orientation and keyboard focus
         run: npm run test:e2e:boundaries
         working-directory: frontend
+      - name: Phone forms with simulated visual and layout viewport keyboards
+        run: npm run test:e2e:keyboard
+        working-directory: frontend
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
@@ -137,6 +140,8 @@ jobs:
             artifacts/journey-traces
             artifacts/boundary-results.json
             artifacts/boundary-traces
+            artifacts/keyboard-results.json
+            artifacts/keyboard-traces
             artifacts/api.log
             artifacts/web.log
           retention-days: 7

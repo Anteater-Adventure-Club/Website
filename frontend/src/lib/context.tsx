@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { useLocation, useSearchParams } from "react-router";
 import { pacificDate, useAPI } from "./api";
 import type { Quarter, Schema } from "./api";
+import { useKeyboardViewport } from "./viewport";
 
 const Identity = createContext<{
   session?: Schema<"SessionView">;
@@ -19,6 +20,7 @@ const Quarters = createContext<{
 }>({ quarters: [], loading: true, invalid: false, eventContext: false, select: () => {} });
 
 export function Providers({ children }: { children: ReactNode }) {
+  useKeyboardViewport();
   const identity = useAPI("SessionView", "/api/session");
   const quarters = useAPI("Page_QuarterPublic_", "/api/quarters?limit=200");
   const [params, setParams] = useSearchParams();
