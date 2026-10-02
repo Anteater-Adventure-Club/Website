@@ -57,14 +57,18 @@ export function AdminOverview() {
             ? `${quarter.name} · Good adventures start with a little coordination.`
             : "Welcome to AAC Officer Tools."
         }
-      />
+      >
+        {quarter && (
+          <Pill tone="gray">Lifetime members: {stats.members ?? 0}</Pill>
+        )}
+      </PageHeading>
       {!quarter ? (
         <SetupQuarter />
       ) : (
         <>
           <div className="stat-grid">
             {[
-              ["Members", stats.members || 0],
+              ["Quarterly members", stats.quarter_members ?? 0],
               ["Paid members", stats.paid || 0],
               ["Dues collected", money(stats.dues_collected as string)],
               [
@@ -77,6 +81,12 @@ export function AdminOverview() {
               <Panel key={label}>
                 <small>{label}</small>
                 <strong>{value}</strong>
+                {label === "Quarterly members" && (
+                  <p className="stat-hint">
+                    Signed up for at least one event this quarter, including
+                    cancellations and no-shows.
+                  </p>
+                )}
               </Panel>
             ))}
           </div>

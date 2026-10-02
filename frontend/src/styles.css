@@ -1238,6 +1238,11 @@ dialog::backdrop {
   color: var(--forest);
   display: block;
 }
+.stat-grid .stat-hint {
+  margin: 0.6rem 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
 .event-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(290px, 1fr);

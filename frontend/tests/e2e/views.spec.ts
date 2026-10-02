@@ -48,7 +48,47 @@ const cases: Case[] = [
     role: "Driver",
   },
   { id: "8g-denied", route: "/admin/overview", role: "Member" },
-  { id: "3g-7a-dashboard", route: "/admin/overview", role: "officer" },
+  {
+    id: "3g-7a-dashboard",
+    route: "/admin/overview",
+    role: "officer",
+    open: async (p) => {
+      const response = await p.request.get(
+        `/api/admin/overview?quarter_id=${fixtures.quarter.id}`,
+      );
+      expect(response.ok()).toBeTruthy();
+      const stats = (await response.json()).statistics;
+      const quarterly = p.locator(".stat-grid .panel").filter({
+        has: p.getByText("Quarterly members", { exact: true }),
+      });
+      await expect(quarterly.locator("strong")).toHaveText(
+        String(stats.quarter_members),
+      );
+      await expect(quarterly).toContainText(
+        "Signed up for at least one event this quarter, including cancellations and no-shows.",
+      );
+      await expect(p.locator(".page-heading")).toContainText(
+        `Lifetime members: ${stats.members}`,
+      );
+      await expect(p.locator(".stat-grid .panel")).toHaveCount(4);
+      await p
+        .getByRole("combobox", { name: "Selected quarter" })
+        .selectOption(String(fixtures.past.id));
+      await expect(p.locator(".page-heading")).toContainText(
+        fixtures.past.name,
+      );
+      await expect(quarterly.locator("strong")).toHaveText("0");
+      await expect(p.locator(".page-heading")).toContainText(
+        `Lifetime members: ${stats.members}`,
+      );
+      await p
+        .getByRole("combobox", { name: "Selected quarter" })
+        .selectOption(String(fixtures.quarter.id));
+      await expect(quarterly.locator("strong")).toHaveText(
+        String(stats.quarter_members),
+      );
+    },
+  },
   { id: "3h-7b-events", route: "/admin/events", role: "officer" },
   { id: "3i-signups", route: event("Field", true), role: "officer" },
   {

@@ -4,7 +4,7 @@ from sqlalchemy import func, select
 from ..auth import officer
 from ..db import get_db
 from ..domain import default_quarter, utcnow
-from ..models import Event, Member, Membership, Receipt, Recap
+from ..models import Event, Member, Membership, Receipt, Recap, Signup
 from ..projections import events_projection
 from ..services.finance import report
 from ..schemas import AdminOverview
@@ -77,6 +77,12 @@ def overview(quarter_id: int | None = None, user=Depends(officer), db=Depends(ge
         "reimbursement_data_available": q.reimbursement_data_available,
         "statistics": {
             "members": db.scalar(select(func.count()).select_from(Member)),
+            # Any signup counts, including cancellations and unknown historical attendance.
+            "quarter_members": db.scalar(
+                select(func.count(func.distinct(Signup.member_id)))
+                .join(Event, Event.id == Signup.event_id)
+                .where(Event.quarter_id == q.id)
+            ),
             "paid": sum(m.status == "approved" and m.source != "exception" for m in memberships),
             "exceptions": sum(m.status == "approved" and m.source == "exception" for m in memberships),
             "pending": pending,

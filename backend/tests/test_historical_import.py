@@ -183,6 +183,9 @@ def test_import_preserves_accounts_dates_and_quarter_eligibility(api, engine, tm
             == 1
         )
     qid = result["mappings"]["W25"]["id"]
+    overview = api.get(f"/api/admin/overview?quarter_id={qid}").json()
+    assert overview["statistics"]["quarter_members"] == 2
+    assert overview["statistics"]["members"] == 3
     data = api.get(f"/api/admin/quarters/{qid}/reimbursements").json()
     driver = data["drivers"][0]
     assert driver["nominal"] == "15.00"
