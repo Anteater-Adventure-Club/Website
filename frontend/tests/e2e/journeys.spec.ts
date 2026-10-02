@@ -951,3 +951,106 @@ test("J13 existing-profile picker handles empty years, retry and unlinked profil
     (await api(page, `/api/admin/board/terms/${past.id}`)).entries,
   ).toEqual([source]);
 });
+
+test("J14 delete cancelled events and recurring dates while preserving participation", async ({
+  page,
+  context,
+}) => {
+  await identity(context, "officer");
+  const event = await api(page, "/api/admin/events", "POST", {
+    ...fixture.series.definition.event,
+    name: "Browser Cancelled Meeting",
+    signups_enabled: false,
+  });
+  await page.goto(`/admin/events/${event.slug}/${event.id}`);
+  await page.getByRole("button", { name: "Cancel Event", exact: true }).click();
+  await dialog(page)
+    .getByLabel("Cancellation reason")
+    .fill("Duplicate meeting");
+  await dialog(page)
+    .getByRole("button", { name: "Cancel Event", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByRole("button", { name: "Delete Event", exact: true }).click();
+  await expect(dialog(page)).toContainText(
+    "Permanently delete Browser Cancelled Meeting",
+  );
+  await dialog(page).getByRole("button", { name: "Keep Event" }).click();
+  expect((await api(page, `/api/admin/events/${event.id}`)).state).toBe(
+    "cancelled",
+  );
+  await page.goto(`/admin/events?quarter=${fixture.quarter.id}`);
+  await page.getByRole("button", { name: "Past", exact: true }).click();
+  const card = page.locator(".record-card").filter({ hasText: event.name });
+  await card.getByRole("button", { name: "Delete Event", exact: true }).click();
+  await dialog(page)
+    .getByRole("button", { name: "Delete Event", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(card).toHaveCount(0);
+  expect(
+    (await page.request.get(`/api/admin/events/${event.id}`)).status(),
+  ).toBe(404);
+  expect((await page.request.get(`/api/events/${event.id}`)).status()).toBe(
+    404,
+  );
+
+  const series = await api(page, "/api/admin/series", "POST", {
+    ...fixture.series.definition,
+    event: {
+      ...fixture.series.definition.event,
+      name: "Browser Recurring Meeting",
+      signups_enabled: false,
+    },
+    request_id: crypto.randomUUID(),
+  });
+  const first = series.occurrences[0];
+  const cancelled = await api(
+    page,
+    `/api/admin/events/${first.id}/state`,
+    "POST",
+    {
+      state: "cancelled",
+      reason: "Duplicate date",
+      expected_revision: first.revision,
+    },
+  );
+  await page.goto(`/admin/events/${cancelled.slug}/${cancelled.id}`);
+  await page.getByRole("button", { name: "Delete Event", exact: true }).click();
+  await dialog(page)
+    .getByRole("button", { name: "Delete Event", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/admin\/events\?quarter=/);
+  const current = await api(page, `/api/admin/series/${series.id}`);
+  expect(current.definition.excluded).toContain(series.definition.starts_on);
+  const edited = await api(page, `/api/admin/series/${series.id}`, "PUT", {
+    ...current.definition,
+    expected_revision: current.revision,
+    event: { ...current.definition.event, name: "Remaining meetings" },
+  });
+  expect(edited.occurrences).toHaveLength(series.occurrences.length - 1);
+  expect(
+    (await page.request.get(`/api/admin/events/${first.id}`)).status(),
+  ).toBe(404);
+
+  await page.goto(eventURL("Cancelled", true));
+  await page.getByRole("button", { name: "Delete Event", exact: true }).click();
+  await dialog(page)
+    .getByRole("button", { name: "Delete Event", exact: true })
+    .click();
+  await expect(dialog(page)).toContainText(
+    "Events with participation or published recaps must be kept for history.",
+  );
+  expect(
+    (await api(page, `/api/admin/events/${fixture.events.Cancelled.id}`)).state,
+  ).toBe("cancelled");
+  expect(
+    (
+      await api(
+        page,
+        `/api/admin/events/${fixture.events.Cancelled.id}/signups`,
+      )
+    ).items,
+  ).toHaveLength(1);
+  await dialog(page).getByRole("button", { name: "Keep Event" }).click();
+});

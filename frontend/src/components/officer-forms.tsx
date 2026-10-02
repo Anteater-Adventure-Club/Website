@@ -6,23 +6,30 @@ import type { Person, Schema } from "../lib/api";
 import { Button, Dialog, Field, Message, Pill } from "./ui";
 import { quarterURL } from "../lib/context";
 
-export function DeleteDraftButton({
+export function DeleteEventButton({
   url,
   revision,
   name,
   quarterId,
   count,
+  state = "draft",
 }: {
   url: string;
   revision: number;
   name: string;
   quarterId: number;
   count?: number;
+  state?: "draft" | "cancelled";
 }) {
   const [confirm, setConfirm] = useState(false);
   const action = useAction();
   const navigate = useNavigate();
-  const label = count === undefined ? "Delete Draft" : "Delete Draft Series";
+  const label =
+    state === "cancelled"
+      ? "Delete Event"
+      : count === undefined
+        ? "Delete Draft"
+        : "Delete Draft Series";
   return (
     <>
       <Button
@@ -38,9 +45,11 @@ export function DeleteDraftButton({
       {confirm && (
         <Dialog
           title={
-            count === undefined
-              ? "Delete this draft?"
-              : "Delete this draft series?"
+            state === "cancelled"
+              ? "Delete this cancelled event?"
+              : count === undefined
+                ? "Delete this draft?"
+                : "Delete this draft series?"
           }
           onClose={() => setConfirm(false)}
         >
@@ -48,6 +57,12 @@ export function DeleteDraftButton({
             Permanently delete {name}
             {count === undefined ? "?" : ` and all ${count} draft dates?`}
           </p>
+          {state === "cancelled" && (
+            <p>
+              This removes the event from the calendar and events list. Events
+              with participation or published recaps must be kept for history.
+            </p>
+          )}
           <Message error={action.error} />
           <div className="form-actions">
             <Button
@@ -55,7 +70,7 @@ export function DeleteDraftButton({
               variant="quiet"
               onClick={() => setConfirm(false)}
             >
-              Keep Draft
+              {state === "cancelled" ? "Keep Event" : "Keep Draft"}
             </Button>
             <Button
               type="button"

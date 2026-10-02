@@ -172,15 +172,19 @@ def edit_event(eid: int, value: EventWrite, user=Depends(officer), db=Depends(ge
 def require_unused_drafts(db, events):
     if any(e.state != "draft" for e in events):
         fail(409, "not_draft", "Only unpublished drafts can be deleted or converted.")
+    require_unused_events(db, events)
+
+
+def require_unused_events(db, events):
     ids = [e.id for e in events]
     if any(
         db.scalar(select(model.event_id).where(model.event_id.in_(ids)).limit(1))
         for model in (Signup, Trip, Card, AttendanceAction)
     ) or db.scalar(select(Recap.event_id).where(Recap.event_id.in_(ids), Recap.published.is_not(None)).limit(1)):
-        fail(409, "participation_exists", "Keep events with participation or published recaps; cancel them instead.")
+        fail(409, "participation_exists", "Events with participation or published recaps must be kept for history.")
 
 
-def remove_drafts(db, events):
+def remove_events(db, events):
     db.execute(delete(Recap).where(Recap.event_id.in_([e.id for e in events])))
     for e in events:
         db.delete(e)
@@ -188,21 +192,23 @@ def remove_drafts(db, events):
 
 
 @router.delete("/admin/events/{eid}")
-def delete_draft(eid: int, value: Revision, user=Depends(officer), db=Depends(get_db, scope="function")):
+def delete_event(eid: int, value: Revision, user=Depends(officer), db=Depends(get_db, scope="function")):
     initial = require(db, Event, eid)
     open_quarter(db, initial.quarter_id)
     series = require(db, Series, initial.series_id, True) if initial.series_id else None
     e = require(db, Event, eid, True)
     revision(e, value.expected_revision)
-    require_unused_drafts(db, [e])
+    if e.state not in {"draft", "cancelled"}:
+        fail(409, "cannot_delete", "Only unused drafts or cancelled events can be deleted.")
+    require_unused_events(db, [e])
     if series:
         # A later series edit must not recreate a deleted date from its stored schedule.
         definition = dict(series.definition)
         definition["excluded"] = sorted(set(definition.get("excluded", [])) | {e.original_date.isoformat()})
         series.definition = definition
         series.revision += 1
-    audit(db, user, "event.delete", eid, {"name": e.name, "series_id": e.series_id})
-    remove_drafts(db, [e])
+    audit(db, user, "event.delete", eid, {"name": e.name, "series_id": e.series_id, "state": e.state})
+    remove_events(db, [e])
     return {"ok": True}
 
 
@@ -372,7 +378,7 @@ def delete_draft_series(sid: int, value: Revision, user=Depends(officer), db=Dep
     revision(series, value.expected_revision)
     require_unused_drafts(db, events)
     audit(db, user, "series.delete", sid, {"event_ids": [e.id for e in events]})
-    remove_drafts(db, events)
+    remove_events(db, events)
     db.delete(series)
     return {"ok": True}
 
@@ -393,7 +399,7 @@ def series_to_event(sid: int, value: SeriesSingleWrite, user=Depends(officer), d
     keep.revision += 1
     removed = [e for e in events if e.id != keep.id]
     audit(db, user, "series.to_event", sid, {"event_id": keep.id, "deleted_event_ids": [e.id for e in removed]})
-    remove_drafts(db, removed)
+    remove_events(db, removed)
     db.delete(series)
     db.flush()
     return event_projection(db, keep, True)

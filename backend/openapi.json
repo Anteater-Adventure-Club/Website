@@ -465,8 +465,8 @@
         }
       },
       "delete": {
-        "summary": "Delete Draft",
-        "operationId": "delete_draft_api_admin_events__eid__delete",
+        "summary": "Delete Event",
+        "operationId": "delete_event_api_admin_events__eid__delete",
         "parameters": [
           {
             "name": "eid",
