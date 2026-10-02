@@ -15,14 +15,14 @@ DATABASE = os.environ.get(
 if "127.0.0.1:55432/aac_browser" not in DATABASE:
     raise SystemExit("Fixtures require the isolated local aac_browser database")
 os.environ["DATABASE_URL"] = DATABASE
-from app.config import Settings
-from app.db import make_engine
-from app.domain import PACIFIC, today, utcnow
-from app.main import create_app
-from app.models import Base
-from fastapi.testclient import TestClient
-from itsdangerous import TimestampSigner
-from sqlalchemy import text
+from app.config import Settings  # noqa: E402
+from app.db import make_engine  # noqa: E402
+from app.domain import PACIFIC, today, utcnow  # noqa: E402
+from app.main import create_app  # noqa: E402
+from app.models import Base  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+from itsdangerous import TimestampSigner  # noqa: E402
+from sqlalchemy import text  # noqa: E402
 
 SECRET = "aac-isolated-browser-only-session-secret-123456789"
 engine = make_engine(DATABASE)

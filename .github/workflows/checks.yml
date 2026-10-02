@@ -34,7 +34,7 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements-dev.txt
       - run: pip install -r backend/requirements-dev.txt
-      - run: ruff check backend deploy scripts
+      - run: ruff check --config backend/pyproject.toml backend deploy scripts
       - run: alembic upgrade head && alembic check && pytest -q
         working-directory: backend
       - name: Check generated OpenAPI
