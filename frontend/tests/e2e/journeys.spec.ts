@@ -4,8 +4,9 @@ import fs from "node:fs";
 import path from "node:path";
 
 let fixture: any;
+const testURL = process.env.E2E_BASE_URL || "http://localhost:5173";
 test.beforeEach(async ({ baseURL }) => {
-  if (baseURL !== "http://localhost:5173")
+  if (baseURL !== testURL || new URL(testURL).hostname !== "localhost")
     throw new Error("Mutating journeys require the isolated local application");
   execFileSync(process.env.E2E_PYTHON || "../.venv/bin/python", [
     "../scripts/seed-browser-fixtures.py",
@@ -40,7 +41,7 @@ async function api(page: Page, url: string, method = "GET", body?: unknown) {
   const result = await page.request.fetch(url, {
     method,
     data: body,
-    headers: { Origin: "http://localhost:5173" },
+    headers: { Origin: testURL },
   });
   expect(result.ok(), `${url}: ${await result.text()}`).toBeTruthy();
   return result.json();
@@ -512,4 +513,300 @@ test("J09 new board profile, reorder, next term and explicit access revocation",
   ).toBeVisible();
   officers = await api(page, "/api/admin/officers");
   expect(officers.items).toHaveLength(1);
+});
+
+test("J10 reuse a past profile preserves history, photo and sole officer access", async ({
+  page,
+  context,
+}) => {
+  await identity(context, "officer");
+  await page.goto("/admin/officers");
+  const terms = (await api(page, "/api/admin/board/terms")).items;
+  const current = terms.find((t: any) => t.current);
+  const past = terms.find((t: any) => !t.current);
+  const previous = await api(page, `/api/admin/board/terms/${past.id}`);
+  const before = await api(page, `/api/admin/board/terms/${current.id}`);
+  const officers = (await api(page, "/api/admin/officers")).items;
+  const owner = officers.find((o: any) => o.member_id === 1);
+  const other = officers.find((o: any) => o.member_id !== 1);
+  await api(page, `/api/admin/officers/${other.member_id}`, "DELETE");
+  const imageResponse = await page.request.post("/api/admin/media", {
+    headers: { Origin: testURL },
+    multipart: {
+      purpose: "board",
+      file: {
+        name: "board.webp",
+        mimeType: "image/webp",
+        buffer: fs.readFileSync(
+          path.resolve("public/images/about_tide_pools.webp"),
+        ),
+      },
+    },
+  });
+  expect(imageResponse.ok()).toBeTruthy();
+  const photo = await imageResponse.json();
+  const source = await api(
+    page,
+    `/api/admin/board/entries/${previous.entries[0].id}`,
+    "PUT",
+    {
+      name: owner.name,
+      role: "Treasurer",
+      major: "Computer science · third year",
+      bio: "Last year’s adventures.",
+      memory: "Our coastal picnic.",
+      instagram: "https://www.instagram.com/fixture/",
+      photo_id: photo.id,
+      palette: "lavender",
+      visible: false,
+      member_id: owner.member_id,
+      site_access: true,
+      position: 99,
+      expected_revision: previous.entries[0].revision,
+    },
+  );
+  await page.reload();
+  async function prefill() {
+    await page
+      .getByRole("button", { name: "Add Board Profile", exact: true })
+      .first()
+      .click();
+    await dialog(page)
+      .getByRole("button", { name: "Use Existing Profile" })
+      .click();
+    await expect(dialog(page).getByLabel("Previous board year")).toHaveValue(
+      String(past.id),
+    );
+    await dialog(page)
+      .getByLabel("Existing board profile")
+      .selectOption(String(source.id));
+    await dialog(page)
+      .getByRole("button", { name: "Use Profile", exact: true })
+      .click();
+  }
+  await prefill();
+  await expect(dialog(page).getByLabel("Name", { exact: true })).toHaveValue(
+    source.name,
+  );
+  await expect(
+    dialog(page).getByLabel("Officer role", { exact: true }),
+  ).toHaveValue(source.role);
+  await expect(dialog(page).getByLabel("Major / year")).toHaveValue(
+    source.major,
+  );
+  await expect(dialog(page).getByLabel("About them")).toHaveValue(source.bio);
+  await expect(dialog(page).getByLabel("Favorite AAC memory")).toHaveValue(
+    source.memory,
+  );
+  await expect(dialog(page).getByLabel("Instagram profile URL")).toHaveValue(
+    source.instagram,
+  );
+  await expect(
+    dialog(page).getByRole("button", { name: "lavender palette" }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    dialog(page).getByLabel("Show on the public board"),
+  ).not.toBeChecked();
+  await expect(
+    dialog(page).getByLabel("Grant officer site access"),
+  ).toBeChecked();
+  const preview = dialog(page).getByRole("img", {
+    name: "Current cropped image",
+  });
+  await expect(preview).toHaveAttribute(
+    "src",
+    `/api/admin/media/${photo.id}?variant=medium`,
+  );
+  await expect
+    .poll(() => preview.evaluate((img: HTMLImageElement) => img.naturalWidth))
+    .toBeGreaterThan(0);
+  await expect(
+    dialog(page).getByText("An existing member is linked."),
+  ).toBeVisible();
+  await dialog(page).getByLabel("Grant officer site access").click();
+  await expect(
+    dialog(page).getByRole("heading", {
+      name: "Remove site access when saving?",
+    }),
+  ).toBeVisible();
+  await dialog(page).getByRole("button", { name: "Keep Access" }).click();
+  await expect(
+    dialog(page).getByLabel("Grant officer site access"),
+  ).toBeChecked();
+  await dialog(page)
+    .getByRole("button", { name: "Cancel", exact: true })
+    .click();
+  expect(await api(page, `/api/admin/board/terms/${current.id}`)).toEqual(
+    before,
+  );
+  expect(
+    (await api(page, `/api/admin/board/terms/${past.id}`)).entries,
+  ).toEqual([source]);
+
+  await prefill();
+  await dialog(page)
+    .getByLabel("Officer role", { exact: true })
+    .fill("President");
+  await dialog(page).getByLabel("About them").fill("This year’s adventures.");
+  await dialog(page).getByRole("button", { name: "Save Profile" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const after = await api(page, `/api/admin/board/terms/${current.id}`);
+  expect(after.entries).toHaveLength(before.entries.length + 1);
+  const copied = after.entries.at(-1);
+  expect(copied.id).not.toBe(source.id);
+  expect(copied).toMatchObject({
+    ...source,
+    id: copied.id,
+    term_id: current.id,
+    role: "President",
+    bio: "This year’s adventures.",
+    position: Math.max(...before.entries.map((e: any) => e.position)) + 1,
+    revision: 1,
+  });
+  expect(
+    (await api(page, `/api/admin/board/terms/${past.id}`)).entries,
+  ).toEqual([source]);
+  expect((await api(page, "/api/admin/officers")).items).toEqual([owner]);
+  const row = page.locator(".board-edit-row").filter({
+    has: page.getByRole("heading", { name: source.name, exact: true }),
+  });
+  await row.getByRole("button", { name: "Edit Profile", exact: true }).click();
+  await dialog(page)
+    .getByLabel("Major / year")
+    .fill("Computer science · fourth year");
+  await dialog(page).getByRole("button", { name: "Save Profile" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  expect(
+    (await api(page, `/api/admin/board/terms/${current.id}`)).entries.at(-1)
+      .major,
+  ).toBe("Computer science · fourth year");
+  expect(
+    (await api(page, `/api/admin/board/terms/${past.id}`)).entries,
+  ).toEqual([source]);
+});
+
+test("J11 existing-profile picker handles empty years, retry and unlinked profiles", async ({
+  page,
+  context,
+}) => {
+  await identity(context, "officer");
+  await page.goto("/admin/officers");
+  const terms = (await api(page, "/api/admin/board/terms")).items;
+  const past = terms.find((t: any) => !t.current);
+  const current = terms.find((t: any) => t.current);
+  const previous = await api(page, `/api/admin/board/terms/${past.id}`);
+  const source = previous.entries[0];
+  await page.getByLabel(/^Board year/).selectOption(String(past.id));
+  await page
+    .getByRole("button", { name: "Add Board Profile", exact: true })
+    .first()
+    .click();
+  await dialog(page)
+    .getByRole("button", { name: "Use Existing Profile" })
+    .click();
+  await expect(
+    dialog(page).getByRole("heading", { name: "No previous board years" }),
+  ).toBeVisible();
+  await expect(
+    dialog(page).getByRole("button", { name: "Use Profile", exact: true }),
+  ).toBeDisabled();
+  await dialog(page)
+    .getByRole("button", { name: "Cancel", exact: true })
+    .click();
+  await dialog(page)
+    .getByRole("button", { name: "Cancel", exact: true })
+    .click();
+
+  const empty = await api(page, "/api/admin/board/terms", "POST", {
+    label: "Empty Board",
+    start_year: current.start_year + 1,
+  });
+  const destination = await api(page, "/api/admin/board/terms", "POST", {
+    label: "Destination Board",
+    start_year: current.start_year + 2,
+  });
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Add Board Profile", exact: true })
+    .first()
+    .click();
+  await dialog(page).getByLabel("Name", { exact: true }).fill("Keep my draft");
+  await dialog(page)
+    .getByRole("button", { name: "Use Existing Profile" })
+    .click();
+  await expect(dialog(page).getByLabel("Previous board year")).toHaveValue(
+    String(empty.id),
+  );
+  await expect(
+    dialog(page).getByRole("heading", { name: "No profiles in this year" }),
+  ).toBeVisible();
+  await dialog(page)
+    .getByRole("button", { name: "Cancel", exact: true })
+    .click();
+  await expect(dialog(page).getByLabel("Name", { exact: true })).toHaveValue(
+    "Keep my draft",
+  );
+  await dialog(page)
+    .getByRole("button", { name: "Use Existing Profile" })
+    .click();
+  const route = `**/api/admin/board/terms/${past.id}`;
+  await page.route(route, (request) =>
+    request.fulfill({
+      status: 503,
+      json: { detail: "Board temporarily unavailable" },
+    }),
+  );
+  await dialog(page)
+    .getByLabel("Previous board year")
+    .selectOption(String(past.id));
+  await expect(
+    dialog(page).getByRole("button", { name: "Try again" }),
+  ).toBeVisible();
+  await expect(
+    dialog(page).getByRole("button", { name: "Use Profile", exact: true }),
+  ).toBeDisabled();
+  await page.unroute(route);
+  await dialog(page).getByRole("button", { name: "Try again" }).click();
+  await dialog(page)
+    .getByLabel("Existing board profile")
+    .selectOption(String(source.id));
+  await dialog(page)
+    .getByLabel("Previous board year")
+    .selectOption(String(empty.id));
+  await expect(
+    dialog(page).getByRole("button", { name: "Use Profile", exact: true }),
+  ).toBeDisabled();
+  await dialog(page)
+    .getByLabel("Previous board year")
+    .selectOption(String(past.id));
+  await dialog(page)
+    .getByLabel("Existing board profile")
+    .selectOption(String(source.id));
+  await dialog(page)
+    .getByRole("button", { name: "Use Profile", exact: true })
+    .click();
+  await expect(dialog(page).getByLabel("Name", { exact: true })).toHaveValue(
+    source.name,
+  );
+  await expect(dialog(page).getByText("No member linked.")).toBeVisible();
+  await expect(
+    dialog(page).getByLabel("Grant officer site access"),
+  ).toBeDisabled();
+  await expect(
+    dialog(page).getByRole("img", { name: "Current cropped image" }),
+  ).toHaveCount(0);
+  await dialog(page).getByRole("button", { name: "Save Profile" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const copied = (await api(page, `/api/admin/board/terms/${destination.id}`))
+    .entries[0];
+  expect(copied).toMatchObject({
+    name: source.name,
+    member_id: null,
+    photo_id: null,
+    site_access: false,
+    position: 0,
+  });
+  expect(
+    (await api(page, `/api/admin/board/terms/${past.id}`)).entries,
+  ).toEqual([source]);
 });

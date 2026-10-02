@@ -25,6 +25,8 @@ import {
 import { ImageUpload, PersonDialog } from "../components/officer-forms";
 
 type Entry = Schema<"BoardEntryPrivate">;
+type Term = Schema<"BoardTermView">;
+type Editor = { entry?: Entry; term: Term; position: number };
 export function Officers() {
   const terms = useAPI("Items_BoardTermView_", "/api/admin/board/terms");
   const access = useAPI("Items_OfficerView_", "/api/admin/officers");
@@ -39,12 +41,20 @@ export function Officers() {
     `/api/admin/board/terms/${selected?.id}`,
     { enabled: !!selected },
   );
-  const [edit, setEdit] = useState<Entry | "new" | null>(null);
+  const [edit, setEdit] = useState<Editor | null>(null);
   const [next, setNext] = useState(false);
   const [grant, setGrant] = useState(false);
   const [revoke, setRevoke] = useState<Schema<"OfficerView"> | null>(null);
   const action = useAction();
   const { session } = useIdentity();
+  function openProfile(entry?: Entry) {
+    if (!selected || !board.data) return;
+    setEdit({
+      entry,
+      term: selected,
+      position: Math.max(-1, ...board.data.entries.map((e) => e.position)) + 1,
+    });
+  }
   async function reorder(ids: number[]) {
     await action
       .mutateAsync({
@@ -68,7 +78,10 @@ export function Officers() {
         <Button variant="secondary" onClick={() => setNext(true)}>
           Start Next Board
         </Button>
-        <Button disabled={!selected} onClick={() => setEdit("new")}>
+        <Button
+          disabled={!board.data || board.isPending || !!board.error}
+          onClick={() => openProfile()}
+        >
           <Plus size={16} />
           Add Board Profile
         </Button>
@@ -180,7 +193,10 @@ export function Officers() {
                     >
                       <ArrowDown size={18} />
                     </Button>
-                    <Button variant="secondary" onClick={() => setEdit(entry)}>
+                    <Button
+                      variant="secondary"
+                      onClick={() => openProfile(entry)}
+                    >
                       Edit Profile
                     </Button>
                   </div>
@@ -190,7 +206,7 @@ export function Officers() {
                 <Empty
                   title="No profiles in this board yet"
                   action={
-                    <Button onClick={() => setEdit("new")}>
+                    <Button onClick={() => openProfile()}>
                       Add Board Profile
                     </Button>
                   }
@@ -247,11 +263,12 @@ export function Officers() {
           </div>
         )}
       </section>
-      {edit && selected && (
+      {edit && (
         <EntryDialog
-          entry={edit === "new" ? undefined : edit}
-          termId={selected.id}
-          position={board.data?.entries.length || 0}
+          entry={edit.entry}
+          term={edit.term}
+          position={edit.position}
+          terms={terms.data?.items || []}
           onClose={() => setEdit(null)}
         />
       )}
@@ -376,13 +393,15 @@ function TermDialog({
 }
 function EntryDialog({
   entry,
-  termId,
+  term,
   position,
+  terms,
   onClose,
 }: {
   entry?: Entry;
-  termId: number;
+  term: Term;
   position: number;
+  terms: Term[];
   onClose: () => void;
 }) {
   const form = useForm<Schema<"BoardEntryWrite">>({
@@ -404,6 +423,8 @@ function EntryDialog({
     },
   });
   const [link, setLink] = useState(false);
+  const [chooseExisting, setChooseExisting] = useState(false);
+  const [source, setSource] = useState<Entry | null>(null);
   const [linked, setLinked] = useState<Person | null>(null);
   const [confirmRevoke, setConfirmRevoke] = useState(false);
   const [remove, setRemove] = useState(false);
@@ -414,13 +435,31 @@ function EntryDialog({
       onClose={onClose}
       wide
     >
+      {!entry && (
+        <div className="stack">
+          <p>Adding to {term.label}</p>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setChooseExisting(true)}
+          >
+            Use Existing Profile
+          </Button>
+          {source && (
+            <p className="muted">
+              Prefilled from {source.name}’s existing profile. Edit the details
+              below.
+            </p>
+          )}
+        </div>
+      )}
       <form
         onSubmit={form.handleSubmit(async (body) => {
           await action
             .mutateAsync({
               url: entry
                 ? `/api/admin/board/entries/${entry.id}`
-                : `/api/admin/board/terms/${termId}/entries`,
+                : `/api/admin/board/terms/${term.id}/entries`,
               method: entry ? "PUT" : "POST",
               body,
             })
@@ -494,7 +533,7 @@ function EntryDialog({
           <h3>Linked member & access</h3>
           <p>
             {linked?.name ||
-              (entry?.member_id
+              (form.watch("member_id")
                 ? "An existing member is linked."
                 : "No member linked.")}
           </p>
@@ -511,7 +550,11 @@ function EntryDialog({
               checked={form.watch("site_access") || false}
               disabled={!form.watch("member_id")}
               onChange={(e) => {
-                if (!e.target.checked && entry?.site_access)
+                if (
+                  !e.target.checked &&
+                  (entry || source)?.site_access &&
+                  form.getValues("member_id") === (entry || source)?.member_id
+                )
                   setConfirmRevoke(true);
                 else form.setValue("site_access", e.target.checked);
               }}
@@ -540,6 +583,29 @@ function EntryDialog({
           </Button>
         )}
       </form>
+      {chooseExisting && (
+        <ExistingProfileDialog
+          terms={terms.filter((t) => t.start_year < term.start_year)}
+          onClose={() => setChooseExisting(false)}
+          onSelect={(profile) => {
+            const {
+              id: _id,
+              term_id: _termId,
+              revision: _revision,
+              ...fields
+            } = profile;
+            form.reset({
+              ...fields,
+              palette: profile.palette as Schema<"BoardEntryWrite">["palette"],
+              position,
+            });
+            setSource(profile);
+            setLinked(null);
+            action.reset();
+            setChooseExisting(false);
+          }}
+        />
+      )}
       {link && (
         <PersonDialog
           title="Link a member"
@@ -609,6 +675,93 @@ function EntryDialog({
           </div>
         </Dialog>
       )}
+    </Dialog>
+  );
+}
+
+function ExistingProfileDialog({
+  terms,
+  onClose,
+  onSelect,
+}: {
+  terms: Term[];
+  onClose: () => void;
+  onSelect: (entry: Entry) => void;
+}) {
+  const [termId, setTermId] = useState<number | undefined>(
+    [...terms].sort((a, b) => b.start_year - a.start_year)[0]?.id,
+  );
+  const [entryId, setEntryId] = useState<number | null>(null);
+  const board = useAPI("BoardPrivateView", `/api/admin/board/terms/${termId}`, {
+    enabled: !!termId,
+  });
+  const profile = board.data?.entries.find((e) => e.id === entryId);
+  return (
+    <Dialog title="Use an existing board profile" onClose={onClose}>
+      {!terms.length ? (
+        <Empty title="No previous board years">
+          Start with a blank profile for this board.
+        </Empty>
+      ) : (
+        <div className="stack">
+          <label className="field">
+            Previous board year
+            <select
+              value={termId}
+              onChange={(e) => {
+                setTermId(Number(e.target.value));
+                setEntryId(null);
+              }}
+            >
+              {terms.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          {board.isPending ? (
+            <Loading />
+          ) : board.error ? (
+            <Failure error={board.error} retry={board.refetch} />
+          ) : !board.data.entries.length ? (
+            <Empty title="No profiles in this year">
+              Choose another board year or start with a blank profile.
+            </Empty>
+          ) : (
+            <label className="field">
+              Existing board profile
+              <select
+                value={entryId || ""}
+                onChange={(e) => setEntryId(Number(e.target.value) || null)}
+              >
+                <option value="">Choose a profile</option>
+                {board.data.entries.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.name} · {e.role}
+                    {e.visible ? "" : " · Hidden"}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <p className="muted">
+            Prefill the new profile, then edit and save it. The previous year’s
+            profile stays unchanged.
+          </p>
+        </div>
+      )}
+      <div className="form-actions">
+        <Button variant="quiet" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button
+          disabled={!profile || !!board.error || board.isFetching}
+          onClick={() => profile && onSelect(profile)}
+        >
+          Use Profile
+        </Button>
+      </div>
     </Dialog>
   );
 }

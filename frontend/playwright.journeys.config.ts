@@ -18,7 +18,7 @@ export default defineConfig({
   ],
   outputDir: "../artifacts/journey-traces",
   use: {
-    baseURL: "http://localhost:5173",
+    baseURL: process.env.E2E_BASE_URL || "http://localhost:5173",
     trace: "retain-on-failure",
     actionTimeout: 15000,
     screenshot: "only-on-failure",
