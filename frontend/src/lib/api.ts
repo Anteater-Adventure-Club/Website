@@ -9,6 +9,44 @@ export type Signup = Schema<"SignupOwn">;
 export type Person = Schema<"MemberPrivate">;
 export type Quarter = Schema<"QuarterPublic">;
 
+export function attendanceLabel(signup: Pick<Signup, "attendance_status">) {
+  return {
+    registered: "Signed Up",
+    checked_in: "Checked In",
+    attended: "Attended",
+    missed: "Missed",
+    cancelled: "Cancelled",
+    unknown: "Attendance not recorded",
+  }[signup.attendance_status];
+}
+
+export function transportLabel(
+  signup: Pick<Signup, "role" | "seats" | "vehicle">,
+) {
+  if (signup.role === "ride") return "Needs a ride";
+  if (signup.role === "own") return "Has own ride";
+  if (signup.role === "unknown") return "Transportation not recorded";
+  const seats =
+    signup.seats === null
+      ? "Passenger seats not recorded"
+      : `${signup.seats} passenger seats`;
+  const car = signup.vehicle
+    ? `${signup.vehicle.make} ${signup.vehicle.model}`
+    : "Car details not recorded";
+  return `Driving · ${seats} · ${car}`;
+}
+
+export function dateRange(
+  start: string,
+  end: string,
+  options?: Intl.DateTimeFormatOptions,
+) {
+  const first = dateLabel(start, options);
+  return pacificDate(new Date(start)) === pacificDate(new Date(end))
+    ? first
+    : `${first} – ${dateLabel(end, options)}`;
+}
+
 export class ApiError extends Error {
   constructor(
     public status: number,

@@ -1,6 +1,6 @@
 # AAC website implementation plan
 
-Status: implementation specification for a fresh website; the website and deployment have not been implemented by this planning task. Prepared from the supplied artifacts and direct environment inspection on 2026-10-01–02 Pacific.
+Status: implemented on the internal working domain. This specification was prepared from the supplied artifacts and direct environment inspection on 2026-10-01–02 Pacific; [execution-status.md](execution-status.md) records completed verification. The subsequently authorized data import is documented in [historical-import.md](historical-import.md).
 
 Build a branded public website, member portal, and officer workspace in this directory, versioned on branch `aac-rebuild` in `git@github.com:Anteater-Adventure-Club/Website.git`. Implement every applicable state in the 60-panel design inventory. Deploy initially at **https://aac.internal.gdodge.dev** on **192.168.4.77**, using separate Coolify resources and GitHub push deployments.
 
@@ -16,9 +16,9 @@ Supporting specifications:
 
 User decisions take precedence over mockups; current rendered panels and their notes take precedence over the design export's older `github.md` index. The MVP supplies reusable business logic and test cases, not a schema or routing compatibility obligation. Its Vue frontend must be replaced. The old Next.js/Supabase/Vercel architecture is not reused.
 
-No member, financial, event, or historical records will be transferred. Do not copy the MVP's startup-created Winter 2026 quarter, workbook imports, migration chains, legacy identity bindings, old URL aliases, deployment scripts, or credentials. The separate existing reimbursement application observed on the server is outside this deployment: do not repurpose its resources or database.
+The initial fresh-data requirement was superseded by the owner's authorization to import historical and current data. The one-time import is specified in [historical-import.md](historical-import.md). Keep the clean website schema and existing target account bindings. Do not copy MVP migration chains, authentication, legacy URL aliases, deployment scripts or credentials. The separate existing reimbursement application remains outside this deployment; its records are read as an import source.
 
-Use supplied fonts, icons, and marketing photographs. Treat mockup people, amounts, dates, and trip histories as demonstration data, except for editorial content explicitly reviewed for launch. Synthetic fixtures belong to tests and previews, not production initialization. Start production with a configured initial officer, empty operational tables, and an officer-created quarter. Home's static mission/activity sections can use the supplied photographs even before events are published; hide empty hero rotations instead of fabricating past events.
+Use supplied fonts, icons, and marketing photographs. Treat mockup people, amounts, dates, and trip histories as demonstration data, except for editorial content explicitly reviewed for launch. Synthetic fixtures belong to tests and previews, not production initialization. Production began with a configured initial officer and empty operational tables; the authorized historical import now supplies real source quarters and records. Home's static mission/activity sections retain the reviewed photographs, titles and dates, and hero cards use published real recaps.
 
 Online payment processing, automatic member messaging, elections, equipment inventory, offline check-in, and the old Sponsors page are outside this release. Existing benefit copy does not imply building those systems. Full public launch on a different domain is a later configuration change; this plan targets the internal working domain supplied by the owner.
 
@@ -82,7 +82,7 @@ Use one `members` record for an account, a driver, and an imported/manual partic
 |---|---|
 | Identity | Members, Google identities, vehicles, private payout details, active officer grants, one-time officer bootstrap marker. Soft-remove vehicles; retain signup vehicle snapshots. |
 | Membership | Quarter membership unique by member/quarter; general/pending/approved plus payment/exception/imported approval source. Immutable dues receipts with correction linkage/void flag and reasons. |
-| Quarters | Dates, financial settings and open/finalized/archived state; no imported/no-data history flags. `cap=0` means uncapped. Reject overlapping quarters to keep the default selector deterministic. |
+| Quarters | Dates, financial settings, reimbursement-data availability and open/finalized/archived state. `cap=0` means uncapped. Reject overlapping quarters to keep the default selector deterministic. |
 | Events | One unified occurrence row: quarter, optional series, type, title/location/description, start/end, lifecycle, signup switch, transport/window settings, packing, optional photo, cancellation reason, revision. |
 | Series | Pacific timezone, anchor Monday, weekly or A/B day patterns, start/end local dates/times, default event fields, excluded dates. Materialized occurrences with original recurrence date and explicit exception marker. |
 | Participation | Unique member/event signup, transport and vehicle snapshot, offered seats, answers keyed by stable question ID, notes, source/joined time, cancellation and extension fields. |

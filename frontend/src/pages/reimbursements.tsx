@@ -46,6 +46,16 @@ export function Reimbursements() {
   if (query.isPending) return <Loading />;
   if (query.error) return <Failure error={query.error} retry={query.refetch} />;
   const data = query.data;
+  if (!data.reimbursement_data_available || !data.totals)
+    return (
+      <>
+        <PageHeading title="Reimbursements" subtitle={quarter.name} />
+        <Empty title="Reimbursement data not recorded">
+          No reimbursement history is available for this quarter.
+        </Empty>
+      </>
+    );
+  const totals = data.totals;
   const frozen = data.state !== "open";
   const activeStep = frozen ? 5 : step;
   const drivers = data.drivers.filter(
@@ -102,7 +112,7 @@ export function Reimbursements() {
           ["Coverage", `${(Number(data.coverage) * 100).toFixed(1)}%`],
           [
             frozen ? "Pending payments" : "Estimated total",
-            money(data.totals[frozen ? "pending" : "allocated"]),
+            money(totals[frozen ? "pending" : "allocated"]),
           ],
         ].map(([label, value]) => (
           <Panel key={label}>
@@ -167,10 +177,10 @@ export function Reimbursements() {
             <h2>4. Review & finalize</h2>
             <div className="calculation-list">
               {[
-                ["Nominal trip costs", data.totals.nominal],
-                ["Eligible driver costs", data.totals.eligible_cost],
-                ["After per-driver caps", data.totals.capped],
-                ["Allocated within budget", data.totals.allocated],
+                ["Nominal trip costs", totals.nominal],
+                ["Eligible driver costs", totals.eligible_cost],
+                ["After per-driver caps", totals.capped],
+                ["Allocated within budget", totals.allocated],
               ].map(([label, value]) => (
                 <p key={label}>
                   <span>{label}</span>
@@ -219,7 +229,7 @@ export function Reimbursements() {
                 {data.state === "archived"
                   ? "This quarter is archived and read-only."
                   : frozen
-                    ? `${money(data.totals.paid)} paid · ${pending.length} payments remaining. Zero-dollar allocations need no payment.`
+                    ? `${money(totals.paid)} paid · ${pending.length} payments remaining. Zero-dollar allocations need no payment.`
                     : "Finalize the quarter in Review to record payments."}
               </Message>
             )}
@@ -429,7 +439,7 @@ export function Reimbursements() {
         >
           <p>
             {confirm === "finalize"
-              ? `${data.drivers.length} driver allocations totaling ${money(data.totals.allocated)} will be frozen. Budget, eligibility, dues, and trips will become read-only for this quarter.`
+              ? `${data.drivers.length} driver allocations totaling ${money(totals.allocated)} will be frozen. Budget, eligibility, dues, and trips will become read-only for this quarter.`
               : "All positive payouts have been recorded. Archiving preserves the quarter and payment history as read-only."}
           </p>
           <Message error={action.error} />

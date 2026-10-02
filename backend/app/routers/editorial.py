@@ -215,7 +215,8 @@ def gallery_items(db, homepage=False):
         if not r.published:
             continue
         if not homepage or r.published.get("homepage"):
-            result.append({"event_id": e.id, "event_name": e.name, "starts_at": e.starts_at, **r.published})
+            result.append({"event_id": e.id, "event_name": e.name, "starts_at": e.starts_at,
+                           "ends_at": e.ends_at, **r.published})
     return result
 
 

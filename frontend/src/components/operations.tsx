@@ -37,7 +37,13 @@ export function carName(person: Pick<RosterPerson, "vehicle">) {
     : "Car details unavailable";
 }
 export function roleName(role: string) {
-  return role === "ride" ? "Rider" : role === "driver" ? "Driver" : "Own Ride";
+  return role === "ride"
+    ? "Rider"
+    : role === "driver"
+      ? "Driver"
+      : role === "own"
+        ? "Own Ride"
+        : "Transportation not recorded";
 }
 
 export function CarpoolView({
@@ -50,7 +56,8 @@ export function CarpoolView({
   locked?: boolean;
 }) {
   const drivers = data.signups.filter(
-    (s) => s.role === "driver" && s.checked_in_at,
+    (s): s is RosterPerson & { seats: number } =>
+      s.role === "driver" && !!s.checked_in_at && s.seats !== null,
   );
   const riders = data.signups.filter(
     (s) => s.role === "ride" && s.checked_in_at,

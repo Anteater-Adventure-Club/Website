@@ -17,8 +17,9 @@ import {
   Upload,
 } from "lucide-react";
 import {
+  attendanceLabel,
   clock,
-  dateLabel,
+  dateRange,
   eventURL,
   fromPacific,
   money,
@@ -104,7 +105,7 @@ export function EventManagement() {
       </Link>
       <PageHeading
         title={event.name}
-        subtitle={`${dateLabel(event.starts_at)} · ${clock(event.starts_at)} · ${event.destination}`}
+        subtitle={`${dateRange(event.starts_at, event.ends_at)}${event.state === "completed" ? "" : ` · ${clock(event.starts_at)}`} · ${event.destination}`}
       >
         <Pill
           tone={
@@ -202,7 +203,11 @@ export function EventManagement() {
         ) : tab === "questions" ? (
           <Questions event={event} />
         ) : tab === "trips" ? (
-          <Trips event={event} locked={q?.state !== "open"} mpg={q?.mpg} />
+          <Trips
+            event={event}
+            locked={q?.state !== "open"}
+            mpg={q?.mpg ?? undefined}
+          />
         ) : (
           <Recap event={event} />
         )}
@@ -466,18 +471,15 @@ function SignupRoster({
                       {s.paid && <Pill>Paid</Pill>}
                     </td>
                     <td data-label="Status">
-                      {s.cancelled
-                        ? "Cancelled"
-                        : s.checked_in_at
-                          ? `Arrived ${clock(s.checked_in_at)}`
-                          : s.released
-                            ? "Seat released"
-                            : "Registered"}
+                      {s.released ? "Seat released" : attendanceLabel(s)}
                     </td>
                     <td data-label="Car / notes">
                       {s.role === "driver" && (
                         <small>
-                          {carName(s)} · {s.seats} seats offered
+                          {carName(s)} ·{" "}
+                          {s.seats === null
+                            ? "Passenger seats not recorded"
+                            : `${s.seats} seats offered`}
                         </small>
                       )}
                       {s.notes}
@@ -1151,7 +1153,9 @@ function RecapForm({
               </div>
             ) : (
               <p className="muted">
-                The completed attendance snapshot will appear here.
+                {event.state === "completed"
+                  ? "Attendance not recorded"
+                  : "The completed attendance snapshot will appear here."}
               </p>
             )}
           </Panel>

@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router";
 import { ArrowRight, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
-import { dateLabel, pacificDate, photoURL, useAPI } from "../lib/api";
+import {
+  dateLabel,
+  dateRange,
+  pacificDate,
+  photoURL,
+  useAPI,
+} from "../lib/api";
 import type { Schema } from "../lib/api";
 import { useIdentity } from "../lib/context";
 import {
@@ -106,7 +112,7 @@ export function Home() {
                 key={p.event_id}
                 image={photoURL(p.image_id)}
                 title={p.title || p.event_name}
-                caption={dateLabel(p.starts_at, {
+                caption={dateRange(p.starts_at, p.ends_at, {
                   month: "long",
                   day: "numeric",
                   year: "numeric",
@@ -262,7 +268,7 @@ function GalleryDialog({
         alt={row.caption || row.event_name}
       />
       <p className="muted">
-        {dateLabel(row.starts_at, {
+        {dateRange(row.starts_at, row.ends_at, {
           month: "long",
           day: "numeric",
           year: "numeric",
@@ -463,7 +469,7 @@ export function Events() {
                 key={p.event_id}
                 image={photoURL(p.image_id)}
                 title={p.title || p.event_name}
-                caption={dateLabel(p.starts_at)}
+                caption={dateRange(p.starts_at, p.ends_at)}
                 rotation={i % 2 ? 2 : -2}
                 onClick={() => setGalleryRow(p)}
               />

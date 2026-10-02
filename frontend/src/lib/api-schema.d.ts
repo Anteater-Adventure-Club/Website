@@ -1379,9 +1379,14 @@ export interface components {
     AdminOverview: {
       /** Quarter Id */
       quarter_id: number | null;
+      /**
+       * Reimbursement Data Available
+       * @default false
+       */
+      reimbursement_data_available: boolean;
       /** Statistics */
       statistics: {
-        [key: string]: string | number;
+        [key: string]: string | number | null;
       };
       /** Events */
       events: components["schemas"]["EventPrivate"][];
@@ -1408,7 +1413,7 @@ export interface components {
       /** Registered */
       registered: number;
       /** Arrived */
-      arrived: number;
+      arrived: number | null;
     };
     /** AttendanceLogRow */
     AttendanceLogRow: {
@@ -2075,6 +2080,11 @@ export interface components {
        * Format: date-time
        */
       starts_at: string;
+      /**
+       * Ends At
+       * Format: date-time
+       */
+      ends_at: string;
     };
     /** HTTPValidationError */
     HTTPValidationError: {
@@ -2283,10 +2293,12 @@ export interface components {
     /** MembershipBenefitView */
     MembershipBenefitView: {
       quarter: components["schemas"]["QuarterPublic"] | null;
+      /** Reimbursement Data Available */
+      reimbursement_data_available: boolean;
       /** Budget */
-      budget: string;
+      budget: string | null;
       /** Coverage */
-      coverage: string;
+      coverage: string | null;
     };
     /** MembershipDecision */
     MembershipDecision: {
@@ -2386,20 +2398,16 @@ export interface components {
       quarter: components["schemas"]["QuarterPublic"] | null;
       driver: components["schemas"]["DriverRow"] | null;
       /**
-       * Budget
-       * @default 0.00
+       * Reimbursement Data Available
+       * @default false
        */
-      budget: string;
-      /**
-       * Driver Cap
-       * @default 0.00
-       */
-      driver_cap: string;
-      /**
-       * Coverage
-       * @default 1.0000
-       */
-      coverage: string;
+      reimbursement_data_available: boolean;
+      /** Budget */
+      budget?: string | null;
+      /** Driver Cap */
+      driver_cap?: string | null;
+      /** Coverage */
+      coverage?: string | null;
     };
     /** OfficerGrant */
     OfficerGrant: {
@@ -2598,12 +2606,14 @@ export interface components {
       ends_on: string;
       /** State */
       state: string;
+      /** Reimbursement Data Available */
+      reimbursement_data_available: boolean;
       /** Budget */
-      budget: string;
+      budget: string | null;
       /** Driver Cap */
-      driver_cap: string;
+      driver_cap: string | null;
       /** Mpg */
-      mpg: string;
+      mpg: string | null;
       /** Revision */
       revision: number;
     };
@@ -2632,16 +2642,18 @@ export interface components {
       quarter_id: number;
       /** State */
       state: string;
+      /** Reimbursement Data Available */
+      reimbursement_data_available: boolean;
       /** Budget */
-      budget: string;
+      budget: string | null;
       /** Driver Cap */
-      driver_cap: string;
+      driver_cap: string | null;
       /** Coverage */
-      coverage: string;
+      coverage: string | null;
       /** Totals */
       totals: {
         [key: string]: string;
-      };
+      } | null;
       /** Drivers */
       drivers: components["schemas"]["DriverRow"][];
       /** Events */
@@ -3035,13 +3047,16 @@ export interface components {
       event_id: number;
       /** Name */
       name: string;
-      /** Role */
-      role: string;
+      /**
+       * Role
+       * @enum {string}
+       */
+      role: "ride" | "driver" | "own" | "unknown";
       /** Vehicle Id */
       vehicle_id: number | null;
       vehicle: components["schemas"]["VehicleSnapshot"] | null;
       /** Seats */
-      seats: number;
+      seats: number | null;
       /** Answers */
       answers: {
         [key: string]: string;
@@ -3052,11 +3067,19 @@ export interface components {
       cancelled: boolean;
       /** Checked In At */
       checked_in_at: string | null;
+      /** Joined At */
+      joined_at: string | null;
       /**
-       * Joined At
-       * Format: date-time
+       * Attendance Status
+       * @enum {string}
        */
-      joined_at: string;
+      attendance_status:
+        | "registered"
+        | "checked_in"
+        | "attended"
+        | "missed"
+        | "cancelled"
+        | "unknown";
       /** Extended Until */
       extended_until: string | null;
       /** Released */
@@ -3085,13 +3108,16 @@ export interface components {
       event_id: number;
       /** Name */
       name: string;
-      /** Role */
-      role: string;
+      /**
+       * Role
+       * @enum {string}
+       */
+      role: "ride" | "driver" | "own" | "unknown";
       /** Vehicle Id */
       vehicle_id: number | null;
       vehicle: components["schemas"]["VehicleSnapshot"] | null;
       /** Seats */
-      seats: number;
+      seats: number | null;
       /** Answers */
       answers: {
         [key: string]: string;
@@ -3102,11 +3128,19 @@ export interface components {
       cancelled: boolean;
       /** Checked In At */
       checked_in_at: string | null;
+      /** Joined At */
+      joined_at: string | null;
       /**
-       * Joined At
-       * Format: date-time
+       * Attendance Status
+       * @enum {string}
        */
-      joined_at: string;
+      attendance_status:
+        | "registered"
+        | "checked_in"
+        | "attended"
+        | "missed"
+        | "cancelled"
+        | "unknown";
       /** Extended Until */
       extended_until: string | null;
       /** Released */

@@ -97,9 +97,10 @@ def edit_quarter(qid: int, value: QuarterWrite, user=Depends(officer), db=Depend
 def benefits(quarter_id: int | None = None, db=Depends(get_db, scope="function")):
     q = default_quarter(db, quarter_id)
     if not q:
-        return {"quarter": None, "budget": "0.00", "coverage": "1.0000"}
+        return {"quarter": None, "reimbursement_data_available": False, "budget": None, "coverage": None}
     data = report(db, q)
-    return {"quarter": QuarterPublic.model_validate(q), "budget": str(q.budget), "coverage": data["coverage"]}
+    return {"quarter": QuarterPublic.model_validate(q), "budget": data["budget"],
+            "coverage": data["coverage"], "reimbursement_data_available": data["reimbursement_data_available"]}
 
 
 @router.get("/admin/quarters/{qid}/reimbursements", response_model=QuarterReport)
@@ -116,6 +117,7 @@ def personal_report(quarter_id: int | None = None, user=Depends(member), db=Depe
     row = next((r for r in data["drivers"] if r["member_id"] == user.id), None)
     return {
         "quarter": QuarterPublic.model_validate(q),
+        "reimbursement_data_available": data["reimbursement_data_available"],
         "budget": data["budget"],
         "driver_cap": data["driver_cap"],
         "coverage": data["coverage"],

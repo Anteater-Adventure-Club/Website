@@ -21,6 +21,14 @@ def trip_cost(trip, event, quarter):
 
 
 def report(db, quarter):
+    if not quarter.reimbursement_data_available:
+        return {
+            "quarter_id": quarter.id,
+            "state": quarter.state,
+            "reimbursement_data_available": False,
+            "budget": None, "driver_cap": None, "coverage": None, "totals": None,
+            "drivers": [], "events": [],
+        }
     events = {e.id: e for e in db.scalars(select(Event).where(Event.quarter_id == quarter.id))}
     registrations = list(
         db.scalars(select(DriverRegistration).where(DriverRegistration.quarter_id == quarter.id))
@@ -111,6 +119,7 @@ def report(db, quarter):
     return {
         "quarter_id": quarter.id,
         "state": quarter.state,
+        "reimbursement_data_available": True,
         "budget": str(quarter.budget),
         "driver_cap": str(quarter.driver_cap),
         "coverage": str(coverage.quantize(Decimal("0.0001"))),

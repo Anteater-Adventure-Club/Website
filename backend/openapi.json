@@ -4193,6 +4193,11 @@
             ],
             "title": "Quarter Id"
           },
+          "reimbursement_data_available": {
+            "type": "boolean",
+            "title": "Reimbursement Data Available",
+            "default": false
+          },
           "statistics": {
             "additionalProperties": {
               "anyOf": [
@@ -4201,6 +4206,9 @@
                 },
                 {
                   "type": "integer"
+                },
+                {
+                  "type": "null"
                 }
               ]
             },
@@ -4301,7 +4309,14 @@
             "title": "Registered"
           },
           "arrived": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Arrived"
           }
         },
@@ -6127,6 +6142,11 @@
             "type": "string",
             "format": "date-time",
             "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
           }
         },
         "additionalProperties": false,
@@ -6134,7 +6154,8 @@
         "required": [
           "event_id",
           "event_name",
-          "starts_at"
+          "starts_at",
+          "ends_at"
         ],
         "title": "GalleryRow"
       },
@@ -6781,12 +6802,30 @@
               }
             ]
           },
+          "reimbursement_data_available": {
+            "type": "boolean",
+            "title": "Reimbursement Data Available"
+          },
           "budget": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Budget"
           },
           "coverage": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Coverage"
           }
         },
@@ -6794,6 +6833,7 @@
         "type": "object",
         "required": [
           "quarter",
+          "reimbursement_data_available",
           "budget",
           "coverage"
         ],
@@ -7108,20 +7148,43 @@
               }
             ]
           },
+          "reimbursement_data_available": {
+            "type": "boolean",
+            "title": "Reimbursement Data Available",
+            "default": false
+          },
           "budget": {
-            "type": "string",
-            "title": "Budget",
-            "default": "0.00"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget"
           },
           "driver_cap": {
-            "type": "string",
-            "title": "Driver Cap",
-            "default": "0.00"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Driver Cap"
           },
           "coverage": {
-            "type": "string",
-            "title": "Coverage",
-            "default": "1.0000"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverage"
           }
         },
         "additionalProperties": false,
@@ -7632,19 +7695,44 @@
             "type": "string",
             "title": "State"
           },
+          "reimbursement_data_available": {
+            "type": "boolean",
+            "title": "Reimbursement Data Available"
+          },
           "budget": {
-            "type": "string",
-            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Budget"
           },
           "driver_cap": {
-            "type": "string",
-            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Driver Cap"
           },
           "mpg": {
-            "type": "string",
-            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Mpg"
           },
           "revision": {
@@ -7660,6 +7748,7 @@
           "starts_on",
           "ends_on",
           "state",
+          "reimbursement_data_available",
           "budget",
           "driver_cap",
           "mpg",
@@ -7713,23 +7802,55 @@
             "type": "string",
             "title": "State"
           },
+          "reimbursement_data_available": {
+            "type": "boolean",
+            "title": "Reimbursement Data Available"
+          },
           "budget": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Budget"
           },
           "driver_cap": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Driver Cap"
           },
           "coverage": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Coverage"
           },
           "totals": {
-            "additionalProperties": {
-              "type": "string"
-            },
-            "type": "object",
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Totals"
           },
           "drivers": {
@@ -7752,6 +7873,7 @@
         "required": [
           "quarter_id",
           "state",
+          "reimbursement_data_available",
           "budget",
           "driver_cap",
           "coverage",
@@ -8764,6 +8886,12 @@
           },
           "role": {
             "type": "string",
+            "enum": [
+              "ride",
+              "driver",
+              "own",
+              "unknown"
+            ],
             "title": "Role"
           },
           "vehicle_id": {
@@ -8788,7 +8916,14 @@
             ]
           },
           "seats": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Seats"
           },
           "answers": {
@@ -8819,9 +8954,28 @@
             "title": "Checked In At"
           },
           "joined_at": {
-            "type": "string",
-            "format": "date-time",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Joined At"
+          },
+          "attendance_status": {
+            "type": "string",
+            "enum": [
+              "registered",
+              "checked_in",
+              "attended",
+              "missed",
+              "cancelled",
+              "unknown"
+            ],
+            "title": "Attendance Status"
           },
           "extended_until": {
             "anyOf": [
@@ -8920,6 +9074,7 @@
           "cancelled",
           "checked_in_at",
           "joined_at",
+          "attendance_status",
           "extended_until",
           "released",
           "paid",
@@ -8953,6 +9108,12 @@
           },
           "role": {
             "type": "string",
+            "enum": [
+              "ride",
+              "driver",
+              "own",
+              "unknown"
+            ],
             "title": "Role"
           },
           "vehicle_id": {
@@ -8977,7 +9138,14 @@
             ]
           },
           "seats": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Seats"
           },
           "answers": {
@@ -9008,9 +9176,28 @@
             "title": "Checked In At"
           },
           "joined_at": {
-            "type": "string",
-            "format": "date-time",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Joined At"
+          },
+          "attendance_status": {
+            "type": "string",
+            "enum": [
+              "registered",
+              "checked_in",
+              "attended",
+              "missed",
+              "cancelled",
+              "unknown"
+            ],
+            "title": "Attendance Status"
           },
           "extended_until": {
             "anyOf": [
@@ -9124,6 +9311,7 @@
           "cancelled",
           "checked_in_at",
           "joined_at",
+          "attendance_status",
           "extended_until",
           "released",
           "paid",

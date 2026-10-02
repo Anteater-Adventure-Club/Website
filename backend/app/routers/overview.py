@@ -74,14 +74,15 @@ def overview(quarter_id: int | None = None, user=Depends(officer), db=Depends(ge
     upcoming = [e for e in projections if e.state == "published" and e.ends_at >= n][:8]
     return {
         "quarter_id": q.id,
+        "reimbursement_data_available": q.reimbursement_data_available,
         "statistics": {
             "members": db.scalar(select(func.count()).select_from(Member)),
             "paid": sum(m.status == "approved" and m.source != "exception" for m in memberships),
             "exceptions": sum(m.status == "approved" and m.source == "exception" for m in memberships),
             "pending": pending,
             "dues_collected": str(collected),
-            "budget": str(q.budget),
-            "allocated": money["totals"]["allocated"],
+            "budget": money["budget"],
+            "allocated": money["totals"]["allocated"] if money["totals"] is not None else None,
             "event_count": len(events),
         },
         "events": upcoming,

@@ -4,7 +4,16 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Car, Check, Plus } from "lucide-react";
-import { dateLabel, eventURL, money, useAction, useAPI } from "../lib/api";
+import {
+  attendanceLabel,
+  dateLabel,
+  dateRange,
+  eventURL,
+  money,
+  transportLabel,
+  useAction,
+  useAPI,
+} from "../lib/api";
 import type { Person, Schema } from "../lib/api";
 import { quarterURL, useIdentity, useQuarter } from "../lib/context";
 import {
@@ -549,27 +558,14 @@ export function MySignups() {
                           : "green"
                     }
                   >
-                    {s.cancelled || s.event!.state === "cancelled"
-                      ? "Cancelled"
-                      : s.event!.state === "completed"
-                        ? s.checked_in_at
-                          ? "Attended"
-                          : "Missed"
-                        : s.checked_in_at
-                          ? "Checked In"
-                          : "Signed Up"}
+                    {attendanceLabel(s)}
                   </Pill>
                   <h3>{s.event!.name}</h3>
                   <p>
-                    {dateLabel(s.event!.starts_at)} · {s.event!.destination}
+                    {dateRange(s.event!.starts_at, s.event!.ends_at)} ·{" "}
+                    {s.event!.destination}
                   </p>
-                  <p>
-                    {s.role === "driver"
-                      ? `Driving · ${s.seats} passenger seats · ${s.vehicle?.make} ${s.vehicle?.model}`
-                      : s.role === "ride"
-                        ? "Needs a ride"
-                        : "Has own ride"}
-                  </p>
+                  <p>{transportLabel(s)}</p>
                   {s.card && (
                     <p>
                       {s.card.category === "paid" ? "Paid" : "General"} card #
@@ -643,6 +639,18 @@ export function MyReimbursements() {
   if (query.isPending) return <Loading />;
   if (query.error) return <Failure error={query.error} retry={query.refetch} />;
   const row = query.data.driver;
+  if (query.data.quarter && !query.data.reimbursement_data_available)
+    return (
+      <>
+        <PageHeading
+          title="My reimbursements"
+          subtitle={query.data.quarter.name}
+        />
+        <Empty title="Reimbursement data not recorded">
+          No reimbursement history is available for this quarter.
+        </Empty>
+      </>
+    );
   return (
     <>
       <PageHeading

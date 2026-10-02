@@ -7,6 +7,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Index,
+    Integer,
     JSON,
     Numeric,
     String,
@@ -83,6 +84,7 @@ class Quarter(Base):
     driver_cap: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
     mpg: Mapped[Decimal] = mapped_column(Numeric(8, 2), default=25)
     state: Mapped[str] = mapped_column(String(20), default="open")
+    reimbursement_data_available: Mapped[bool] = mapped_column(default=True, server_default="true")
     revision: Mapped[int] = mapped_column(default=1)
     __table_args__ = (
         CheckConstraint("ends_on >= starts_on"),
@@ -182,11 +184,11 @@ class Signup(Base):
     role: Mapped[str] = mapped_column(String(10))
     vehicle_id: Mapped[int | None] = mapped_column(ForeignKey("vehicles.id"))
     vehicle: Mapped[dict | None] = mapped_column(JSON)
-    seats: Mapped[int] = mapped_column(default=0)
+    seats: Mapped[int | None] = mapped_column(Integer().evaluates_none(), default=0)
     answers: Mapped[dict] = mapped_column(JSON, default=dict)
     notes: Mapped[str] = mapped_column(String(1000), default="")
     source: Mapped[str] = mapped_column(String(20), default="member")
-    joined_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    joined_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True).evaluates_none(), default=now)
     cancelled: Mapped[bool] = mapped_column(default=False)
     checked_in_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     extended_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -194,7 +196,7 @@ class Signup(Base):
     revision: Mapped[int] = mapped_column(default=1)
     __table_args__ = (
         UniqueConstraint("event_id", "member_id"),
-        CheckConstraint("role IN ('ride','driver','own')"),
+        CheckConstraint("role IN ('ride','driver','own','unknown')", name="ck_signups_role"),
         CheckConstraint("seats >= 0"),
     )
 

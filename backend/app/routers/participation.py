@@ -139,9 +139,11 @@ def check_in_state(eid: int, user=Depends(officer), db=Depends(get_db, scope="fu
         "counts": {
             role: {
                 "registered": sum(s.role == role for s in rows),
-                "arrived": sum(s.role == role and bool(s.checked_in_at) for s in rows),
+                "arrived": None if e.state == "completed" and e.completion is None else
+                sum(s.role == role and bool(s.checked_in_at) for s in rows),
             }
-            for role in ("ride", "driver", "own")
+            for role in (("ride", "driver", "own", "unknown") if any(s.role == "unknown" for s in rows)
+                         else ("ride", "driver", "own"))
         },
         "next_cards": {category: next_card(db, e, category) for category in ("paid", "general")},
         "inventory": {"paid": e.paid_cards, "general": e.general_cards},

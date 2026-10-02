@@ -87,12 +87,18 @@ export function Membership() {
           </ol>
           <Panel className="section">
             <h3>Our live reimbursement budget</h3>
-            {benefits.data?.quarter ? (
+            {benefits.data?.quarter &&
+            benefits.data.reimbursement_data_available ? (
               <p>
                 {money(benefits.data.budget)} is available in{" "}
                 {benefits.data.quarter.name}, currently covering{" "}
                 {(Number(benefits.data.coverage) * 100).toFixed(0)}% of eligible
                 capped driving costs.
+              </p>
+            ) : benefits.data?.quarter ? (
+              <p>
+                Reimbursement data was not recorded for{" "}
+                {benefits.data.quarter.name}.
               </p>
             ) : (
               <p>

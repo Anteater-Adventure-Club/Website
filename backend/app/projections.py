@@ -39,12 +39,22 @@ def signup_window(e):
     return "open"
 
 
+def attendance_status(signup, event):
+    if signup.cancelled or event.state == "cancelled":
+        return "cancelled"
+    if signup.checked_in_at:
+        return "attended" if event.state == "completed" else "checked_in"
+    if event.state == "completed":
+        return "missed" if event.completion is not None else "unknown"
+    return "registered"
+
+
 def events_projection(db, events, private=False):
     if not events:
         return []
     ids = [e.id for e in events]
     seats = dict(db.execute(
-        select(Signup.event_id, func.sum(Signup.seats))
+        select(Signup.event_id, func.coalesce(func.sum(Signup.seats), 0))
         .where(Signup.event_id.in_(ids), Signup.role == "driver", Signup.cancelled.is_(False))
         .group_by(Signup.event_id)
     ).all())
@@ -149,7 +159,8 @@ def signups_projection(db, signups, own=False, include_event=True):
                 ],
             }
         released = (
-            s.role == "ride"
+            e.state == "published"
+            and s.role == "ride"
             and not s.checked_in_at
             and e.departure_at
             and n >= (s.extended_until or e.departure_at - timedelta(minutes=10))
@@ -170,6 +181,7 @@ def signups_projection(db, signups, own=False, include_event=True):
                 "cancelled": s.cancelled,
                 "checked_in_at": s.checked_in_at,
                 "joined_at": s.joined_at,
+                "attendance_status": attendance_status(s, e),
                 "extended_until": s.extended_until,
                 "released": bool(released),
                 "paid": (m.id, e.quarter_id) in approved,
@@ -181,7 +193,7 @@ def signups_projection(db, signups, own=False, include_event=True):
                         Decimal("0.01"), rounding=ROUND_HALF_UP
                     )
                 )
-                if s.role == "driver"
+                if s.role == "driver" and quarters[e.quarter_id].reimbursement_data_available
                 else None,
                 "driver_signup_id": assignment.driver_id if assignment else None,
                 "editable": e.state == "published"

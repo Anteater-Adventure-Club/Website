@@ -484,20 +484,25 @@ export function EventDetail() {
               </div>
               <h1>{e.name}</h1>
               <p className="muted">{e.destination}</p>
-              <div className="event-schedule">
-                <div>
-                  <small>Meet</small>
-                  <strong>{clock(e.arrival_at || e.starts_at)}</strong>
+              {(e.state !== "completed" ||
+                e.arrival_at ||
+                e.departure_at ||
+                e.return_at) && (
+                <div className="event-schedule">
+                  <div>
+                    <small>Meet</small>
+                    <strong>{clock(e.arrival_at || e.starts_at)}</strong>
+                  </div>
+                  <div>
+                    <small>Leave / Start</small>
+                    <strong>{clock(e.departure_at || e.starts_at)}</strong>
+                  </div>
+                  <div>
+                    <small>Back / End</small>
+                    <strong>{clock(e.return_at || e.ends_at)}</strong>
+                  </div>
                 </div>
-                <div>
-                  <small>Leave / Start</small>
-                  <strong>{clock(e.departure_at || e.starts_at)}</strong>
-                </div>
-                <div>
-                  <small>Back / End</small>
-                  <strong>{clock(e.return_at || e.ends_at)}</strong>
-                </div>
-              </div>
+              )}
               {dateLabel(e.starts_at) !== dateLabel(e.ends_at) && (
                 <p>
                   {dateLabel(e.starts_at)} – {dateLabel(e.ends_at)}
@@ -522,7 +527,7 @@ export function EventDetail() {
               </ul>
             </section>
           )}
-          {e.signups_enabled && (
+          {e.signups_enabled && e.state === "published" && (
             <Panel>
               <h3>Getting there</h3>
               <p>

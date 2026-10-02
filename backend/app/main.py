@@ -3,8 +3,11 @@ import json
 import sys
 import time
 import asyncio
+from pathlib import Path
 from uuid import uuid4
 from contextlib import asynccontextmanager
+from alembic.config import Config
+from alembic.script import ScriptDirectory
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
@@ -25,6 +28,8 @@ logger.propagate = False
 
 def create_app(settings=None, engine=None):
     settings = (settings or Settings()).validate()
+    migration_config = Config(str(Path(__file__).resolve().parents[1] / "alembic.ini"))
+    schema_head = ScriptDirectory.from_config(migration_config).get_current_head()
     engine = engine or make_engine(settings.database_url)
     sessions = session_factory(engine)
 
@@ -104,7 +109,7 @@ def create_app(settings=None, engine=None):
         try:
             with engine.connect() as connection:
                 actual = connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
-                if actual != "922533d3d862":
+                if actual != schema_head:
                     raise RuntimeError("Unexpected schema revision")
             return {"status": "ok", "release_sha": settings.release_sha}
         except Exception:

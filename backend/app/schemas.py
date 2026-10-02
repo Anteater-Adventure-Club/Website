@@ -117,10 +117,17 @@ class QuarterPublic(DTO):
 
 
 class QuarterPrivate(QuarterPublic):
-    budget: Decimal
-    driver_cap: Decimal
-    mpg: Decimal
+    reimbursement_data_available: bool
+    budget: Decimal | None
+    driver_cap: Decimal | None
+    mpg: Decimal | None
     revision: int
+
+    @model_validator(mode="after")
+    def historical_financials(self):
+        if not self.reimbursement_data_available:
+            self.budget = self.driver_cap = self.mpg = None
+        return self
 
 
 class MembershipSubmit(DTO):
@@ -442,15 +449,16 @@ class SignupOwn(DTO):
     member_id: int
     event_id: int
     name: str
-    role: str
+    role: Literal["ride", "driver", "own", "unknown"]
     vehicle_id: int | None
     vehicle: VehicleSnapshot | None
-    seats: int
+    seats: int | None
     answers: dict[str, str]
     notes: str
     cancelled: bool
     checked_in_at: datetime | None
-    joined_at: datetime
+    joined_at: datetime | None
+    attendance_status: Literal["registered", "checked_in", "attended", "missed", "cancelled", "unknown"]
     extended_until: datetime | None
     released: bool
     paid: bool
@@ -470,7 +478,7 @@ class SignupPrivate(SignupOwn):
 
 class AttendanceCounts(DTO):
     registered: int
-    arrived: int
+    arrived: int | None
 
 
 class InventoryCard(CardView):
@@ -492,8 +500,9 @@ class CheckInView(DTO):
 
 class MembershipBenefitView(DTO):
     quarter: QuarterPublic | None
-    budget: str
-    coverage: str
+    reimbursement_data_available: bool
+    budget: str | None
+    coverage: str | None
 
 
 class MemberListRow(DTO):
@@ -579,10 +588,11 @@ class EventCost(DTO):
 class QuarterReport(DTO):
     quarter_id: int
     state: str
-    budget: str
-    driver_cap: str
-    coverage: str
-    totals: dict[str, str]
+    reimbursement_data_available: bool
+    budget: str | None
+    driver_cap: str | None
+    coverage: str | None
+    totals: dict[str, str] | None
     drivers: list[DriverRow]
     events: list[EventCost]
 
@@ -590,9 +600,10 @@ class QuarterReport(DTO):
 class MyReimbursements(DTO):
     quarter: QuarterPublic | None
     driver: DriverRow | None
-    budget: str = "0.00"
-    driver_cap: str = "0.00"
-    coverage: str = "1.0000"
+    reimbursement_data_available: bool = False
+    budget: str | None = None
+    driver_cap: str | None = None
+    coverage: str | None = None
 
 
 class BoardTermView(DTO):
@@ -655,6 +666,7 @@ class GalleryRow(RecapContent):
     event_id: int
     event_name: str
     starts_at: datetime
+    ends_at: datetime
 
 
 class HomeView(DTO):
@@ -671,7 +683,8 @@ class AttentionItem(DTO):
 
 class AdminOverview(DTO):
     quarter_id: int | None
-    statistics: dict[str, str | int]
+    reimbursement_data_available: bool = False
+    statistics: dict[str, str | int | None]
     events: list[EventPrivate]
     attention: list[AttentionItem]
 

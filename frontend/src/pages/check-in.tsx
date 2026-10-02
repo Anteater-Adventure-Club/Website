@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router";
 import { ArrowLeft, Car, Check, CreditCard, Plus } from "lucide-react";
 import {
+  attendanceLabel,
   clock,
   dateLabel,
   eventURL,
@@ -167,6 +168,9 @@ export function FieldDesk({ seat = false }: { seat?: boolean }) {
           }
         />
       )}
+      {data.event.state === "completed" && !data.event.completion && (
+        <Message>Attendance not recorded</Message>
+      )}
       {seat ? (
         <div className="desk-content">
           <Link className="button secondary" to={`${base}/check-in`}>
@@ -199,7 +203,7 @@ export function FieldDesk({ seat = false }: { seat?: boolean }) {
           <div className="desk-content">
             <div className="desk-toolbar">
               <div className="tabs" aria-label="Ride groups">
-                {(["ride", "driver", "own"] as const).map((value) => (
+                {Object.keys(data.counts).map((value) => (
                   <button
                     key={value}
                     className={role === value ? "selected" : ""}
@@ -210,9 +214,11 @@ export function FieldDesk({ seat = false }: { seat?: boolean }) {
                       ? "Riders"
                       : value === "driver"
                         ? "Drivers"
-                        : "Own Ride"}{" "}
+                        : value === "own"
+                          ? "Own Ride"
+                          : "Unknown"}{" "}
                     <small>
-                      {data.counts[value].arrived}/
+                      {data.counts[value].arrived ?? "—"}/
                       {data.counts[value].registered}
                     </small>
                   </button>
@@ -263,16 +269,19 @@ export function FieldDesk({ seat = false }: { seat?: boolean }) {
                     <small>
                       {s.paid ? "Paid Member" : "General Member"}
                       {s.role === "driver" &&
-                        ` · ${s.seats} seats · ${carName(s)}`}
+                        ` · ${s.seats === null ? "Passenger seats not recorded" : `${s.seats} seats`} · ${carName(s)}`}
                     </small>
                     <small>
-                      {s.checked_in_at
-                        ? `Arrived ${clock(s.checked_in_at)}`
-                        : s.extended_until && !s.released
-                          ? `Held until ${clock(s.extended_until)}`
-                          : s.released
-                            ? "Seat priority released"
-                            : "Not here yet"}
+                      {s.attendance_status === "unknown" ||
+                      s.attendance_status === "missed"
+                        ? attendanceLabel(s)
+                        : s.checked_in_at
+                          ? `Arrived ${clock(s.checked_in_at)}`
+                          : s.extended_until && !s.released
+                            ? `Held until ${clock(s.extended_until)}`
+                            : s.released
+                              ? "Seat priority released"
+                              : "Not here yet"}
                     </small>
                   </span>
                   {s.card && (

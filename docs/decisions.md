@@ -19,7 +19,7 @@ The owner's answers during the planning session are authoritative. IDs are refer
 ## Requirements supplied before drafting
 
 - React rather than Next.js; FastAPI and PostgreSQL; a few hundred members.
-- Fresh deployment without transferred data or MVP compatibility migrations.
+- Fresh deployment without MVP compatibility migrations; the owner subsequently authorized a one-time historical import described in [historical-import.md](historical-import.md).
 - Support every supplied design view; adapt layouts where needed for responsiveness and accessibility.
 - For each MVP capability absent from the mockups, obtain an individual disposition instead of silently dropping it.
 - Use root SSH access to 192.168.4.77 and the supplied Coolify credential. The actual key is at workspace-root `.secrets/coolify_key.txt` (not `secrets/coolify_key.txt`). Never include its contents in source or documents.
@@ -31,7 +31,7 @@ The four uncovered active capabilities requiring decisions were audit reads, det
 
 Capabilities already represented include exact-email directory lookup (10b/1l), driver registration/eligibility override (10b/1n), payout destinations (3d/7e/1o), import preview and Google Forms (3k and design notes), receipt corrections (7e), event duplication (3i), card void/inventory (6f), custom-question answers (6b), and cost overrides/notes (1m). Consolidation into another view is recorded in the view/API matrices.
 
-Historical workbook imports, unknown historical payment dates, accommodation-name compatibility, pre-upgrade session fallback, schema backfills, migration scripts, and legacy URL aliases are excluded by the owner's explicit fresh-site/no-backward-compatibility requirement. These are not continuing club workflows. Panel 6i remains an archived/read-only view, but its workbook-specific sample text, historical seed data, and `data_status=imported/no_data` model are not carried forward. An empty new quarter is represented honestly as empty.
+Accommodation-name compatibility, pre-upgrade session fallback, MVP migration scripts and legacy URL aliases remain excluded. The owner's later historical-import instructions supersede the initial exclusion of source data: import past boards, BI participation/memberships and MVP operational/reimbursement records into the clean schema. Eligibility always belongs to the member/quarter. Use supplied retreat dates and quarter-end dates for known paid records without dates, without estimate flags or labels. Represent unavailable reimbursement data and unrecorded attendance explicitly, and preserve existing account bindings and grants. A one-time CLI with a fixed audit marker replaces a repeatable import framework; see [historical-import.md](historical-import.md).
 
 Old-site Sponsors and short-link routes are not new-design requirements. Old architecture is excluded. Gear lending, elections, automatic messaging, and payment processing are benefit/context copy or explicitly deferred MVP ideas, not existing capabilities that need porting.
 

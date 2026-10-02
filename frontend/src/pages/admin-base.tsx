@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router";
 import { useForm } from "react-hook-form";
 import { ArrowRight, Plus, Upload } from "lucide-react";
 import {
+  attendanceLabel,
   dateLabel,
   eventURL,
   money,
@@ -66,7 +67,12 @@ export function AdminOverview() {
               ["Members", stats.members || 0],
               ["Paid members", stats.paid || 0],
               ["Dues collected", money(stats.dues_collected as string)],
-              ["Ride budget", money(stats.budget as string)],
+              [
+                "Ride budget",
+                query.data.reimbursement_data_available
+                  ? money(stats.budget as string)
+                  : "Not recorded",
+              ],
             ].map(([label, value]) => (
               <Panel key={label}>
                 <small>{label}</small>
@@ -798,13 +804,10 @@ function MemberDetailDialog({
                         ? "Needs ride"
                         : s.role === "driver"
                           ? "Driving"
-                          : "Own ride"}{" "}
-                      ·{" "}
-                      {s.cancelled || s.event!.state === "cancelled"
-                        ? "Cancelled"
-                        : s.checked_in_at
-                          ? "Attended"
-                          : "Not checked in"}
+                          : s.role === "own"
+                            ? "Own ride"
+                            : "Transportation not recorded"}{" "}
+                      · {attendanceLabel(s)}
                     </span>
                   </Link>
                 ))}
