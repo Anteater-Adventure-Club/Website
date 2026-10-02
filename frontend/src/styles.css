@@ -3,17 +3,40 @@
   src: url("/fonts/Chivo-Regular.woff2") format("woff2");
   font-weight: 100 900;
   font-display: swap;
+  unicode-range: U+250-1FFF, U+2070-209F, U+20D0-218F, U+2200-10FFFF;
+}
+@font-face {
+  font-family: Chivo;
+  src: url("/fonts/Chivo-Regular-latin.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+0-24F, U+2000-206F, U+20A0-20CF, U+2190-21FF;
 }
 @font-face {
   font-family: Chivo;
   src: url("/fonts/Chivo-Italic.woff2") format("woff2");
   font-style: italic;
   font-display: swap;
+  unicode-range: U+250-1FFF, U+2070-209F, U+20D0-218F, U+2200-10FFFF;
+}
+@font-face {
+  font-family: Chivo;
+  src: url("/fonts/Chivo-Italic-latin.woff2") format("woff2");
+  font-style: italic;
+  font-display: swap;
+  unicode-range: U+0-24F, U+2000-206F, U+20A0-20CF, U+2190-21FF;
 }
 @font-face {
   font-family: Lazydog;
   src: url("/fonts/Lazydog.woff2") format("woff2");
   font-display: swap;
+  unicode-range: U+250-1FFF, U+2070-209F, U+20D0-218F, U+2200-10FFFF;
+}
+@font-face {
+  font-family: Lazydog;
+  src: url("/fonts/Lazydog-latin.woff2") format("woff2");
+  font-display: swap;
+  unicode-range: U+0-24F, U+2000-206F, U+20A0-20CF, U+2190-21FF;
 }
 :root {
   font-family: Chivo, Arial, sans-serif;
