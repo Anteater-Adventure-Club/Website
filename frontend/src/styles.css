@@ -331,6 +331,13 @@ form {
   gap: 0.4rem;
   font-family: Lazydog;
   font-size: 1.3rem;
+  flex-shrink: 0;
+}
+.brand img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 50%;
 }
 .desktop-navigation {
   display: flex;
@@ -1923,7 +1930,15 @@ dialog::backdrop {
     display: none;
   }
   .brand {
+    order: 1;
+    margin-right: auto;
+  }
+  .brand span {
     display: none;
+  }
+  .site-header > .account,
+  .site-header > .button {
+    order: 2;
   }
   .mobile-menu {
     display: inline-flex;

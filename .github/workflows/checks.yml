@@ -129,6 +129,21 @@ jobs:
       - name: Phone forms with simulated visual and layout viewport keyboards
         run: npm run test:e2e:keyboard
         working-directory: frontend
+      - name: Production HTML embeds and responsive branding
+        working-directory: frontend
+        run: |
+          npm run build
+          python - <<'PY'
+          from pathlib import Path
+          config = Path('../deploy/nginx.conf').read_text()
+          Path('../artifacts/social-nginx.conf').write_text(config.replace('http://aac-api:8000', 'http://127.0.0.1:8000'))
+          PY
+          docker run -d --name aac-social-nginx --network host \
+            -v "$PWD/dist:/usr/share/nginx/html:ro" \
+            -v "$PWD/../artifacts/social-nginx.conf:/etc/nginx/conf.d/default.conf:ro" \
+            -v "$PWD/../deploy/security-headers.conf:/etc/nginx/aac-security-headers.conf:ro" \
+            nginxinc/nginx-unprivileged:1.28.0-alpine@sha256:a6bd0e0995ab4723fb65068665f8016decb67dc6a6a32eddc415c7d1229cada6
+          E2E_URL=http://localhost:8080 E2E_SERVES_METADATA=1 npm run test:e2e:social
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
@@ -142,6 +157,8 @@ jobs:
             artifacts/boundary-traces
             artifacts/keyboard-results.json
             artifacts/keyboard-traces
+            artifacts/social-results.json
+            artifacts/social-traces
             artifacts/api.log
             artifacts/web.log
           retention-days: 7

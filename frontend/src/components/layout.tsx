@@ -8,7 +8,7 @@ import {
   useNavigate,
 } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Menu, LogOut, Mountain } from "lucide-react";
+import { Menu, LogOut } from "lucide-react";
 import { request, useAPI } from "../lib/api";
 import { quarterURL, useIdentity, useQuarter } from "../lib/context";
 import { Button, Dialog, Empty, Failure, Loading, Pill } from "./ui";
@@ -142,7 +142,7 @@ export function Layout() {
       </a>
       <header className="site-header">
         <Link className="brand" to="/" aria-label="AAC Home">
-          <Mountain size={23} aria-hidden="true" />
+          <img src="/logos/aac.svg" alt="" width="44" height="44" />
           <span>AAC</span>
         </Link>
         <Button
