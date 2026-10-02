@@ -24,7 +24,7 @@ export function Home() {
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
   );
   useEffect(() => {
-    if (polaroids.length < 3 || photosPaused) return;
+    if (polaroids.length < 2 || photosPaused) return;
     const timer = window.setInterval(() => {
       if (!document.hidden) setRotation((i) => (i + 1) % polaroids.length);
     }, 6000);
@@ -79,7 +79,7 @@ export function Home() {
           <Link className="button primary heading-button" to="/events">
             Join the adventure! <ArrowRight size={18} />
           </Link>
-          {polaroids.length > 2 && (
+          {polaroids.length > 1 && (
             <div className="actions">
               <Button
                 variant="quiet"

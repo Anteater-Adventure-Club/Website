@@ -90,10 +90,11 @@ test("B05 homepage photo rotation can pause and resume", async ({
     "One rotation-control check is sufficient",
   );
   await page.clock.install();
+  let photoCount = 3;
   await page.route("**/api/home", async (route) => {
     const response = await route.fetch();
     const data = await response.json();
-    data.polaroids = [0, 1, 2].map((index) => ({
+    data.polaroids = Array.from({ length: photoCount }, (_, index) => ({
       ...data.polaroids[0],
       event_id: 10000 + index,
       title: `Rotation fixture ${index}`,
@@ -112,6 +113,20 @@ test("B05 homepage photo rotation can pause and resume", async ({
     .click();
   await page.clock.fastForward(6500);
   await expect(photos).not.toHaveText(initial);
+
+  // A phone shows one card, so two published recaps must still cycle.
+  photoCount = 2;
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload();
+  await pause.click();
+  const visibleTitle = page.locator(".hero-polaroids .polaroid:visible h3");
+  await expect(visibleTitle).toHaveCount(1);
+  const firstTitle = await visibleTitle.innerText();
+  await page.clock.fastForward(6500);
+  await expect(visibleTitle).toHaveText(firstTitle);
+  await page.getByRole("button", { name: "Resume photos", exact: true }).click();
+  await page.clock.fastForward(6500);
+  await expect(visibleTitle).not.toHaveText(firstTitle);
 });
 
 test("B03 keyboard menu dismissal and dialog focus restoration", async ({
