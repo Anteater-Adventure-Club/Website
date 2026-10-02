@@ -258,19 +258,22 @@ export function Polaroid({
   caption,
   onClick,
   rotation = 0,
+  eager = false,
 }: {
   image?: string;
   title: string;
   caption?: string;
   onClick?: () => void;
   rotation?: number;
+  eager?: boolean;
 }) {
   const content = (
     <>
       <img
         src={image || photoURL(null)}
         alt=""
-        loading="lazy"
+        loading={eager ? "eager" : "lazy"}
+        fetchPriority={eager ? "high" : "auto"}
         width={640}
         height={480}
       />

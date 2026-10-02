@@ -298,6 +298,19 @@ for (const c of cases)
       overflow.width + 1,
     );
     expect(errors).toEqual([]);
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          Array.from(document.images)
+            .filter((img) => {
+              const rect = img.getBoundingClientRect();
+              return rect.width > 0 && rect.height > 0 && rect.top < innerHeight && rect.bottom > 0;
+            })
+            .filter((img) => !img.complete || img.naturalWidth === 0)
+            .map((img) => img.getAttribute("src")),
+        ),
+      )
+      .toEqual([]);
     const directory = path.resolve(
       `../artifacts/viewports/${info.project.name}`,
     );

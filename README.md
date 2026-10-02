@@ -6,7 +6,7 @@ The internal deployment is **https://aac.internal.gdodge.dev**. Coolify builds t
 
 ## Local development
 
-Use Python 3.12, Node 22, and PostgreSQL 17. Create a disposable local PostgreSQL instance with database/user/password `aac` on port 55432, or set `DATABASE_URL` to your own development database. Never point test or fixture commands at a durable database.
+Use Python 3.12, Node 24 LTS (the exact build version is in `.node-version`), and PostgreSQL 17. Create a disposable local PostgreSQL instance with database/user/password `aac` on port 55432, or set `DATABASE_URL` to your own development database. Never point test or fixture commands at a durable database.
 
 ```sh
 python3.12 -m venv .venv
@@ -22,7 +22,7 @@ From `backend/`: `../.venv/bin/pytest -q` and `../.venv/bin/ruff check .`. Tests
 
 Browser checks use a separate `aac_browser` database on local port 55432. Run `.venv/bin/python scripts/seed-browser-fixtures.py`, start the API with its documented synthetic session configuration, then run `npm run test:e2e` from `frontend/`. The guarded seeder refuses non-local database URLs, records fixture cookies only in ignored `artifacts/`, and provides no authentication bypass in the deployed application.
 
-`npm run test:e2e:journeys` exercises nine member/officer workflows in Chromium, Firefox, and WebKit at phone, tablet, and desktop sizes. Each test resets the isolated fixture database. On hosts without supported browser dependencies, build `deploy/browser-tests.Dockerfile` and run it with the checkout mounted at `/work` and access to the local test API. Set `E2E_PYTHON` when the fixture interpreter is elsewhere. CI installs supported browser dependencies and runs both suites.
+`npm run test:e2e:journeys` exercises nine member/officer workflows in Chromium, Firefox, and WebKit at phone, tablet, and desktop sizes. Each test resets the isolated fixture database. On hosts without supported browser dependencies, build `deploy/browser-tests.Dockerfile` and run it with the checkout mounted at `/work` and access to the local test API. When that API runs outside the test container, also mount `/tmp/aac-browser-media` at the same path so seeded uploads reach both processes. Set `E2E_PYTHON` when the fixture interpreter is elsewhere. CI installs supported browser dependencies and runs both suites.
 
 Run `npm run test:e2e:boundaries` after refreshing browser fixtures to check 320-pixel phones, navigation/layout breakpoints, 200% reflow, orientation changes, and keyboard focus. The zoom case emulates a 1440-pixel desktop's layout at 200%; it is not a physical-device or browser-toolbar zoom test. `scripts/seed-load-fixtures.py` and `scripts/load-acceptance.py` are guarded synthetic performance-test tools for disposable databases, not deployment commands.
 

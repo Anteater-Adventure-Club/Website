@@ -2,6 +2,7 @@ name: Website checks
 on:
   push:
     branches: [aac-rebuild]
+    paths-ignore: ["docs/**", "**/*.md"]
   pull_request:
     branches: [aac-rebuild, main]
 permissions:
@@ -27,8 +28,8 @@ jobs:
       DATABASE_URL: postgresql+psycopg://aac:aac@127.0.0.1:55432/aac
       SESSION_SECRET: aac-isolated-ci-only-session-secret-123456789
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -50,10 +51,10 @@ jobs:
   frontend:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: "22"
+          node-version-file: ".node-version"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
@@ -85,13 +86,13 @@ jobs:
       DUES_ZELLE_CONTACT: fixture@uci.edu
       E2E_PYTHON: python
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: "22"
+          node-version-file: ".node-version"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: pip install -r backend/requirements-dev.txt
@@ -125,7 +126,7 @@ jobs:
       - name: Layout boundaries, orientation and keyboard focus
         run: npm run test:e2e:boundaries
         working-directory: frontend
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: browser-failure-evidence

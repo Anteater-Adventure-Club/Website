@@ -1,7 +1,7 @@
 {
   "recorded_at": "2026-10-02T18:22:17.720781+00:00",
   "backend": {
-    "integration_tests_passed": 44,
+    "integration_tests_passed": 45,
     "ruff": "passed"
   },
   "frontend": {
@@ -58,5 +58,11 @@
     "Physical phone unavailable",
     "200% layout reflow is emulated, not browser toolbar zoom",
     "Cross-engine workflows use synthetic sessions; live Google sign-in confirmed separately by owner"
-  ]
+  ],
+  "changed_view_checks": {
+    "cases": 60,
+    "pass": true,
+    "includes_visible_image_loading": true,
+    "source": "Final local targeted checks across six primary viewports"
+  }
 }

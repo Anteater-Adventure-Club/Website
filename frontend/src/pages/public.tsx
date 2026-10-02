@@ -102,6 +102,7 @@ export function Home() {
                 title={p.title || p.event_name}
                 caption={dateLabel(p.starts_at)}
                 rotation={i ? 5 : -5}
+                eager={i === 0}
               />
             ))
           ) : (
@@ -111,6 +112,7 @@ export function Home() {
                 title="Explore California"
                 caption="Adventures near and far"
                 rotation={-5}
+                eager
               />
               <Polaroid
                 image="/images/balboa_pier.webp"

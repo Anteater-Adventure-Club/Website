@@ -23,7 +23,7 @@ import {
 
 export function Membership() {
   const { quarter, loading } = useQuarter();
-  const { session } = useIdentity();
+  const { session, loading: identityLoading } = useIdentity();
   const benefits = useAPI(
     "MembershipBenefitView",
     `/api/membership-benefits${quarter ? `?quarter_id=${quarter.id}` : ""}`,
@@ -61,12 +61,6 @@ export function Membership() {
       "Your membership supports the activities and shared resources that bring us together.",
     ],
   ];
-  if (loading)
-    return (
-      <div className="page">
-        <Loading />
-      </div>
-    );
   return (
     <div className="page membership-page">
       <div className="center-heading">
@@ -120,7 +114,9 @@ export function Membership() {
         </div>
         <aside>
           <Panel className="status-card">
-            {!session?.member ? (
+            {loading || identityLoading ? (
+              <Loading />
+            ) : !session?.member ? (
               <>
                 <h2>Come along!</h2>
                 <p>

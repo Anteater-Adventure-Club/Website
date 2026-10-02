@@ -1,0 +1,188 @@
+{
+  "started_at": "2026-10-02T18:17:04.020332+00:00",
+  "base_url": "http://127.0.0.1:18001",
+  "release": {
+    "status": "ok",
+    "release_sha": "b3d4dc26b4f0dd70612b4b6e2b5196c4c21482ba"
+  },
+  "fixtures": {
+    "members": 500,
+    "active_events": 40,
+    "historical_events": 10,
+    "roster": 200,
+    "officers": 10
+  },
+  "measurement": "HTTP over SSH loopback tunnel to isolated Docker API on lab0-apps; external OAuth and TLS excluded",
+  "phases": [
+    {
+      "users": 50,
+      "desks": 10,
+      "duration_seconds": 301.1,
+      "pacing_seconds": {
+        "users": 1,
+        "desks": 2
+      },
+      "metrics": {
+        "read": {
+          "requests": 13972,
+          "p50_ms": 53.2,
+          "p95_ms": 724.7,
+          "max_ms": 2546.2
+        },
+        "desk": {
+          "requests": 1500,
+          "p50_ms": 50.6,
+          "p95_ms": 675.7,
+          "max_ms": 1678.1
+        },
+        "mutation": {
+          "requests": 2459,
+          "p50_ms": 63.6,
+          "p95_ms": 693.1,
+          "max_ms": 1590.6
+        }
+      },
+      "unexpected_errors": 10,
+      "error_examples": [
+        {
+          "status": "RemoteProtocolError",
+          "method": "GET",
+          "route": "/api/me/signups?limit=200"
+        },
+        {
+          "status": "RemoteProtocolError",
+          "method": "GET",
+          "route": "/api/me/signups?limit=200"
+        },
+        {
+          "status": "RemoteProtocolError",
+          "method": "GET",
+          "route": "/api/me/signups?limit=200"
+        },
+        {
+          "status": "RemoteProtocolError",
+          "method": "GET",
+          "route": "/api/me/signups?limit=200"
+        },
+        {
+          "status": "RemoteProtocolError",
+          "method": "GET",
+          "route": "/api/admin/events/1/check-in"
+        },
+        {
+          "status": "RemoteProtocolError",
+          "method": "GET",
+          "route": "/api/me/signups?limit=200"
+        },
+        {
+          "status": "RemoteProtocolError",
+          "method": "GET",
+          "route": "/api/me/signups?limit=200"
+        },
+        {
+          "status": "RemoteProtocolError",
+          "method": "GET",
+          "route": "/api/me/memberships/1"
+        },
+        {
+          "status": "RemoteProtocolError",
+          "method": "GET",
+          "route": "/api/admin/events/1/check-in"
+        },
+        {
+          "status": "RemoteProtocolError",
+          "method": "GET",
+          "route": "/api/me/memberships/1"
+        }
+      ],
+      "error_rate": 0.0006086056843770921,
+      "targets_pass": false
+    },
+    {
+      "users": 100,
+      "desks": 10,
+      "duration_seconds": 70.9,
+      "pacing_seconds": {
+        "users": 1,
+        "desks": 2
+      },
+      "metrics": {
+        "read": {
+          "requests": 2799,
+          "p50_ms": 321.0,
+          "p95_ms": 15003.0,
+          "max_ms": 15014.3
+        },
+        "desk": {
+          "requests": 185,
+          "p50_ms": 378.8,
+          "p95_ms": 15003.8,
+          "max_ms": 15005.3
+        },
+        "mutation": {
+          "requests": 472,
+          "p50_ms": 300.3,
+          "p95_ms": 15002.8,
+          "max_ms": 15007.1
+        }
+      },
+      "unexpected_errors": 252,
+      "error_examples": [
+        {
+          "status": "RemoteProtocolError",
+          "method": "GET",
+          "route": "/api/events/29"
+        },
+        {
+          "status": "ReadTimeout",
+          "method": "GET",
+          "route": "/api/events?from=2026-09-27&to=2026-12-01&limit=100"
+        },
+        {
+          "status": "ReadTimeout",
+          "method": "GET",
+          "route": "/api/events?from=2026-09-27&to=2026-12-01&limit=100"
+        },
+        {
+          "status": "ReadTimeout",
+          "method": "GET",
+          "route": "/api/events?from=2026-09-27&to=2026-12-01&limit=100"
+        },
+        {
+          "status": "ReadTimeout",
+          "method": "GET",
+          "route": "/api/events/2"
+        },
+        {
+          "status": "ReadTimeout",
+          "method": "GET",
+          "route": "/api/admin/events/1/check-in"
+        },
+        {
+          "status": "ReadTimeout",
+          "method": "GET",
+          "route": "/api/events/3"
+        },
+        {
+          "status": "ReadTimeout",
+          "method": "GET",
+          "route": "/api/events/4"
+        },
+        {
+          "status": "ReadTimeout",
+          "method": "GET",
+          "route": "/api/events/5"
+        },
+        {
+          "status": "ReadTimeout",
+          "method": "GET",
+          "route": "/api/events/6"
+        }
+      ],
+      "error_rate": 0.07704066034851727,
+      "targets_pass": false
+    }
+  ],
+  "diagnosis": "Docker logs showed SQLAlchemy QueuePool timeouts under the authenticated burst. Synchronous authentication held connections while other dependencies waited for the same thread pool.",
+  "correction": "Limit each worker to eight active requests below its ten-connection database pool. Aggregate event counts in SQL and fetch only signups needed for selected members/carpools."
+}
