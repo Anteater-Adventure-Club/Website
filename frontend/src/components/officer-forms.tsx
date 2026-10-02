@@ -345,10 +345,12 @@ export function ImportDialog({
 
 export function ImageUpload({
   purpose,
+  label,
   value,
   onChange,
 }: {
   purpose: "board" | "event";
+  label?: string;
   value?: string | null;
   onChange: (id: string) => void;
 }) {
@@ -378,7 +380,7 @@ export function ImageUpload({
         />
       )}
       <Field
-        label={purpose === "board" ? "Board photo" : "Event / recap photo"}
+        label={label || (purpose === "board" ? "Board photo" : "Event photo")}
         type="file"
         accept="image/jpeg,image/png,image/webp"
         hint="JPEG, PNG or WebP · 10 MiB maximum"

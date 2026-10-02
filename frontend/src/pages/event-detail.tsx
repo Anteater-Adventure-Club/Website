@@ -460,13 +460,15 @@ export function EventDetail() {
       </Link>
       <div className="event-layout section">
         <article>
-          <div className="event-intro">
-            <Polaroid
-              image={photoURL(e.photo_id)}
-              title={e.name}
-              caption={dateLabel(e.starts_at)}
-              rotation={-3}
-            />
+          <div className={`event-intro${e.photo_id ? "" : " without-photo"}`}>
+            {e.photo_id && (
+              <Polaroid
+                image={photoURL(e.photo_id)}
+                title={e.name}
+                caption={dateLabel(e.starts_at)}
+                rotation={-3}
+              />
+            )}
             <div>
               <div className="actions">
                 <Pill tone={e.state === "cancelled" ? "orange" : "green"}>

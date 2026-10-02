@@ -24,7 +24,14 @@ const cases: Case[] = [
   { id: "3c-pending-membership", route: "/membership", role: "Pending" },
   { id: "8a-paid-membership", route: "/membership", role: "Member" },
   { id: "8a-exception-membership", route: "/membership", role: "Exception" },
-  { id: "1e-8b-event", route: event("Adventure") },
+  {
+    id: "1e-8b-event",
+    route: event("Adventure"),
+    open: async (p) => {
+      await expect(p.locator(".event-intro .polaroid")).toHaveCount(0);
+      await expect(p.locator(".event-intro.without-photo")).toBeVisible();
+    },
+  },
   { id: "1f-not-open", route: event("Not Open"), role: "Member" },
   { id: "1f-closed", route: event("Closed"), role: "Member" },
   { id: "8c-cancelled", route: event("Cancelled"), role: "Member" },
@@ -112,8 +119,18 @@ const cases: Case[] = [
     id: "1d-recap",
     route: event("Completed", true) + "?tab=recap",
     role: "officer",
+    open: async (p) => {
+      await expect(p.getByLabel("Recap photo", { exact: true })).toBeVisible();
+    },
   },
-  { id: "2a-basics", route: "/admin/events/new", role: "officer" },
+  {
+    id: "2a-basics",
+    route: "/admin/events/new",
+    role: "officer",
+    open: async (p) => {
+      await expect(p.getByLabel("Event photo", { exact: true })).toBeVisible();
+    },
+  },
   {
     id: "2b-signups-editor",
     route: "/admin/events/new",

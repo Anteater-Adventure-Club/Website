@@ -1083,7 +1083,12 @@ function RecapForm({
               <textarea rows={5} maxLength={500} {...form.register("text")} />
               <small>{form.watch("text").length}/500 characters</small>
             </label>
-            <ImageUpload purpose="event" value={image} onChange={setImage} />
+            <ImageUpload
+              purpose="event"
+              label="Recap photo"
+              value={image}
+              onChange={setImage}
+            />
             <label className="check-field">
               <input type="checkbox" {...form.register("homepage")} />
               Feature in the homepage polaroid rotation

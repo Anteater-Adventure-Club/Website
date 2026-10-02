@@ -1253,6 +1253,9 @@ dialog::backdrop {
 .event-intro h1 {
   font-size: 2.5rem;
 }
+.event-intro.without-photo {
+  grid-template-columns: minmax(0, 1fr);
+}
 .event-schedule {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
