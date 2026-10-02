@@ -1,102 +1,34 @@
-# Anteater Adventure Club Website 🌲🏕️🥾
+# Anteater Adventure Club website
 
-This is the GitHub repository for the Anteater Adventure Club's (AAC) official website. AAC is an official UCI organization with the mission to foster a sense of community while making nature as accessible as possible for our college community! 
+AAC's public website, member portal, and officer workspace, built with React, FastAPI, and PostgreSQL. The implementation lives on `aac-rebuild` in [Anteater-Adventure-Club/Website](https://github.com/Anteater-Adventure-Club/Website/tree/aac-rebuild). This branch replaces the site's architecture while retaining its Git history.
 
-This project redesigns AAC's digital presence by:
-- **Centralizing** event information
-- **Improving** event sign-up flows
-- **Showcasing** past adventures in a media gallery
-- **Introducing** the board members
-- **Providing** clear membership details and registration
+The internal deployment is **https://aac.internal.gdodge.dev**. Coolify builds two independent applications from repository Dockerfiles on branch pushes; PostgreSQL is a separate private resource. Deployment status and remaining acceptance work are recorded in [docs/execution-status.md](docs/execution-status.md).
 
-## Tech Stack
+## Local development
 
-- **Frontend:** Next.js (App Router), React, TypeScript, CSS
-- **Backend:** Next.js API Routes (REST)
-- **Database:** Supabase (PostgreSQL)
-- **Deployment:** Vercel
-- **Tooling:** ESLint, npm
+Use Python 3.12, Node 22, and PostgreSQL 17. Create a disposable local PostgreSQL instance with database/user/password `aac` on port 55432, or set `DATABASE_URL` to your own development database. Never point test or fixture commands at a durable database.
 
-## Page Previews
+```sh
+python3.12 -m venv .venv
+.venv/bin/pip install -r backend/requirements-dev.txt
+cp .env.example .env
+```
 
-### 🏠 Home Page
-<img src="https://github.com/user-attachments/assets/924a33af-6adc-4355-b0a8-40abe2e3e82e" align="right" width="500">
+Load the configuration into your process environment. From `backend/`, run `../.venv/bin/alembic upgrade head`, then `../.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000`. From `frontend/`, run `npm ci` and `npm run dev`. Vite forwards `/api/` and `/media/` to the local API. Configure a Google OAuth client and a matching `/api/auth/callback` redirect to test actual sign-in; there is no development-login route.
 
-The Home Page serves as the primary hub for AAC members. Key features include:
-* **Dynamic Event Spotlights:** A real-time display of some of the recent events, styled as polaroids that automatically refresh.
-* **Streamlined Navigation:** A direct link to the full Events Page, making it easy to see the calendar and sign up for upcoming trips.
+## Checks
 
-<br clear="right"/>
+From `backend/`: `../.venv/bin/pytest -q` and `../.venv/bin/ruff check .`. Tests use the disposable `TEST_DATABASE_URL` (default local `aac`). From `frontend/`: `npm run build` and `npm test`. Run `npm run api:types` after regenerating `backend/openapi.json` when API contracts change.
 
-### 🌲 About Page
-<img src="https://github.com/user-attachments/assets/17ba71d3-dec6-4c19-960a-8aa29ddae308" align="right" width="500">
+Browser checks use a separate `aac_browser` database on local port 55432. Run `.venv/bin/python scripts/seed-browser-fixtures.py`, start the API with its documented synthetic session configuration, then run `npm run test:e2e` from `frontend/`. The guarded seeder refuses non-local database URLs, records fixture cookies only in ignored `artifacts/`, and provides no authentication bypass in the deployed application.
 
-The About Page showcases our mission and the core activities of AAC:
-* **Club Activities:** A gallery of our primary events, including local hikes, city explorations, and our weekly potluck picnics in Aldrich Park.
-* **Quarterly Retreats:** Highlighting our larger quarterly trips where members get away for a full weekend of nature and exploration.
-* **Socials:** Direct links at the bottom of the page to join our community Discord and follow our Instagram for the latest updates.
+## Design and operations
 
-<br clear="right"/>
+- [Implementation plan](docs/implementation-plan.md): features, stack, milestones, and acceptance requirements.
+- [View matrix](docs/view-matrix.md): every supplied panel and state.
+- [API gap matrix](docs/api-gap-matrix.md): MVP behavior and new requirements.
+- [Decisions](docs/decisions.md): accepted workflow choices.
+- [Deployment plan](docs/deployment-plan.md): separate resources, OAuth, push deployment, and recovery requirements.
+- [Verification](docs/verification.md): viewport, workflow, security, and performance checks.
 
-### 🗓️ Events Page
-<>
-
-The Events Page serves as the central hub for all club activities:
-* **Upcoming Event's Calendar:** A monthly view that makes it easy to find and sign up for our next hikes and trips.
-* **Past Event Gallery:** A collection of photos from our previous outings, which acts as club archive.
-* **Backend Integration:** A custom-built system that automatically handles moving events from the calendar to the past events section once the event has happened.
-
-<br clear="right"/>
-
-### 🤝 Board Page
-<img src="https://github.com/user-attachments/assets/0a8d6c9b-0f3c-4719-be56-caaade7e6678" align="right" width="500">
-
-The Meet the Board Page introduces the student leaders behind AAC:
-* **Interactive Polaroids:** A grid of board members styled as polaroids that display their names and specific leadership positions.
-* **Member Info:** Clicking on photo reveals more personal details, such as their major, their reason for joining AAC, their favorite AAC memory and a direct link to their Instagram
-* **Past Board Archive:** A section at the bottom of the page that preserves a record of board members from previous academic years.
-
-<br clear="right"/>
-  
-### ✍️ Membership Page
-
-<img src="https://github.com/user-attachments/assets/9ac25f62-04a5-46f1-823d-0aa070f7ebe4" align="right" width="500">
-
-The Membership Page explains how students can officially join the AAC community:
-* **Membership Overview:** Clear details on what it costs to join and the specific benefits of being a member.
-* **Funding Transparency:** A breakdown of how membership fees directly support club gear, trips, and upcoming events.
-* **Direct Registration:** A button at the bottom that links directly to our membership and payment form.
-
-<br clear="right"/>
-
-## File Layout
-
-- `public/` = static assets served by Next.js
-  - `fonts/` = custom fonts
-  - `images/`
-    - `events/` = event photos grouped by academic year
-    - `officers/` = board member photos
-  - `logos/` = social/brand icons
-
-- `src/` = application source code
-  - `app/` = Next.js App Router pages and route handlers
-    - `about/`, `board/`, `events/`, `membership/` = page routes
-    - `api/events/` = REST API endpoints for event CRUD + seeding
-    - `link/[slug]/` = short-link redirect route
-    - `layout.tsx`, `page.tsx`, `globals.css` = app shell + home page
-  - `components/` = reusable UI components
-    - `Header/`, `Footer/`, `PolaroidCard/`, `PolaroidGallery/`, `Popup/`, `UpcomingCalendar/`
-  - `data/` = seed/static content used by the app
-    - `upcomingEvents.ts`, `pastEvents.ts`, `officers.ts`, `previousOfficers.ts`
-  - `lib/` = backend/data access logic
-    - `eventsDb.ts` = database adapter used by API routes
-  - `types.d.ts` = shared TypeScript types/interfaces
-
-- `supabase/` = database setup scripts
-  - `events_schema.sql` = SQL schema for the `events` table and related setup
-
-- root config files
-  - `package.json`, `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `.env.example`
-
-- `data/` (project root) = local runtime DB artifacts for development (if generated)
-
+Runtime credentials belong in Coolify or an ignored local secrets directory. Production initialization creates the clean schema and configured initial officer identity; it does not transfer old data or seed demo quarters, members, events, or payments.

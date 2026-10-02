@@ -1,0 +1,139 @@
+import React, { lazy, Suspense } from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter, Route, Routes } from "react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Providers } from "./lib/context";
+import { Guard, Layout, Workspace } from "./components/layout";
+import { Board, Events, Home, NotFound, SignIn } from "./pages/public";
+import {
+  Membership,
+  MyOverview,
+  MyReimbursements,
+  MySignups,
+  Profile,
+} from "./pages/members";
+import { EventDetail } from "./pages/event-detail";
+import { Loading } from "./components/ui";
+
+const AdminOverview = lazy(() =>
+  import("./pages/admin-base").then((m) => ({ default: m.AdminOverview })),
+);
+const AdminEvents = lazy(() =>
+  import("./pages/admin-base").then((m) => ({ default: m.AdminEvents })),
+);
+const Members = lazy(() =>
+  import("./pages/admin-base").then((m) => ({ default: m.Members })),
+);
+const Settings = lazy(() =>
+  import("./pages/admin-base").then((m) => ({ default: m.Settings })),
+);
+const EventEditor = lazy(() =>
+  import("./pages/event-editor").then((m) => ({ default: m.EventEditor })),
+);
+const SeriesEditor = lazy(() =>
+  import("./pages/event-editor").then((m) => ({ default: m.SeriesEditor })),
+);
+const SeriesDetail = lazy(() =>
+  import("./pages/event-editor").then((m) => ({ default: m.SeriesDetail })),
+);
+const EventManagement = lazy(() =>
+  import("./pages/event-management").then((m) => ({
+    default: m.EventManagement,
+  })),
+);
+const Reimbursements = lazy(() =>
+  import("./pages/reimbursements").then((m) => ({ default: m.Reimbursements })),
+);
+const Officers = lazy(() =>
+  import("./pages/officers").then((m) => ({ default: m.Officers })),
+);
+const CheckInPicker = lazy(() =>
+  import("./pages/check-in").then((m) => ({ default: m.CheckInPicker })),
+);
+const FieldDesk = lazy(() =>
+  import("./pages/check-in").then((m) => ({ default: m.FieldDesk })),
+);
+import "./styles.css";
+
+const client = new QueryClient({
+  defaultOptions: { queries: { refetchOnWindowFocus: true } },
+});
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <QueryClientProvider client={client}>
+      <BrowserRouter>
+        <Providers>
+          <Suspense
+            fallback={
+              <div className="page">
+                <Loading />
+              </div>
+            }
+          >
+            <Routes>
+              <Route element={<Layout />}>
+                <Route index element={<Home />} />
+                <Route path="events" element={<Events />} />
+                <Route path="events/:slug/:id" element={<EventDetail />} />
+                <Route path="board" element={<Board />} />
+                <Route path="membership" element={<Membership />} />
+                <Route path="sign-in" element={<SignIn />} />
+                <Route element={<Guard />}>
+                  <Route element={<Workspace />}>
+                    <Route path="my-aac" element={<MyOverview />} />
+                    <Route path="my-aac/profile" element={<Profile />} />
+                    <Route path="my-aac/signups" element={<MySignups />} />
+                    <Route
+                      path="my-aac/reimbursements"
+                      element={<MyReimbursements />}
+                    />
+                  </Route>
+                </Route>
+                <Route element={<Guard officer />}>
+                  <Route element={<Workspace admin />}>
+                    <Route path="admin/overview" element={<AdminOverview />} />
+                    <Route path="admin/events" element={<AdminEvents />} />
+                    <Route path="admin/events/new" element={<EventEditor />} />
+                    <Route
+                      path="admin/events/:slug/:id"
+                      element={<EventManagement />}
+                    />
+                    <Route
+                      path="admin/events/:slug/:id/edit"
+                      element={<EventEditor />}
+                    />
+                    <Route path="admin/series/:id" element={<SeriesDetail />} />
+                    <Route
+                      path="admin/series/:id/edit"
+                      element={<SeriesEditor />}
+                    />
+                    <Route path="admin/check-in" element={<CheckInPicker />} />
+                    <Route path="admin/members" element={<Members />} />
+                    <Route
+                      path="admin/reimbursements"
+                      element={<Reimbursements />}
+                    />
+                    <Route path="admin/officers" element={<Officers />} />
+                    <Route path="admin/settings" element={<Settings />} />
+                  </Route>
+                </Route>
+                <Route path="*" element={<NotFound />} />
+              </Route>
+              <Route element={<Guard officer />}>
+                <Route
+                  path="admin/events/:slug/:id/check-in"
+                  element={<FieldDesk />}
+                />
+                <Route
+                  path="admin/events/:slug/:id/seat"
+                  element={<FieldDesk seat />}
+                />
+              </Route>
+            </Routes>
+          </Suspense>
+        </Providers>
+      </BrowserRouter>
+    </QueryClientProvider>
+  </React.StrictMode>,
+);

@@ -1,0 +1,130 @@
+name: Website checks
+on:
+  push:
+    branches: [aac-rebuild]
+  pull_request:
+    branches: [aac-rebuild, main]
+permissions:
+  contents: read
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  backend:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: aac
+          POSTGRES_PASSWORD: aac
+          POSTGRES_DB: aac
+        ports: ["55432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U aac" --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://aac:aac@127.0.0.1:55432/aac
+      SESSION_SECRET: aac-isolated-ci-only-session-secret-123456789
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+      - run: pip install -r backend/requirements-dev.txt
+      - run: ruff check backend deploy scripts
+      - run: alembic upgrade head && alembic check && pytest -q
+        working-directory: backend
+      - name: Check generated OpenAPI
+        working-directory: backend
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from app.main import app
+          Path('openapi.json').write_text(json.dumps(app.openapi(), indent=2) + '\n')
+          PY
+          git diff --exit-code -- openapi.json
+  frontend:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run api:types && npm run build && npm test
+        working-directory: frontend
+      - run: git diff --exit-code -- frontend/src/lib/api-schema.d.ts
+  views:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: aac
+          POSTGRES_PASSWORD: aac
+          POSTGRES_DB: aac_browser
+        ports: ["55432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U aac" --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://aac:aac@127.0.0.1:55432/aac_browser
+      APP_URL: http://localhost:5173
+      SESSION_SECRET: aac-isolated-browser-only-session-secret-123456789
+      INITIAL_OFFICER_EMAILS: officer@uci.edu
+      MEDIA_ROOT: /tmp/aac-browser-media
+      DUES_VENMO_HANDLE: "@fixture-club"
+      DUES_ZELLE_CONTACT: fixture@uci.edu
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: pip install -r backend/requirements-dev.txt
+      - run: alembic upgrade head
+        working-directory: backend
+      - run: python scripts/seed-browser-fixtures.py
+      - run: npm ci && npx playwright install --with-deps chromium
+        working-directory: frontend
+      - name: Start isolated application
+        run: |
+          mkdir -p artifacts
+          (cd backend && uvicorn app.main:app --host 127.0.0.1 --port 8000) > artifacts/api.log 2>&1 &
+          (cd frontend && npm run dev -- --host localhost --port 5173) > artifacts/web.log 2>&1 &
+          python - <<'PY'
+          import time, urllib.request
+          for url in ['http://127.0.0.1:8000/api/health/ready', 'http://localhost:5173']:
+              for attempt in range(60):
+                  try:
+                      urllib.request.urlopen(url, timeout=2)
+                      break
+                  except Exception:
+                      time.sleep(1)
+              else:
+                  raise SystemExit(f'Application did not become ready: {url}')
+          PY
+      - run: npm run test:e2e
+        working-directory: frontend
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-failure-evidence
+          path: |
+            artifacts/test-results
+            artifacts/playwright-results.json
+            artifacts/api.log
+            artifacts/web.log
+          retention-days: 7

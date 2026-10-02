@@ -1,0 +1,13 @@
+{
+  "project_uuid": "t4rtr3unr69yofmklyd6kxwt",
+  "server_uuid": "qd6at0pkjdbcefaa3z15onu5",
+  "destination_uuid": "vo0o44zasrdmixik3g6e46bc",
+  "github_app_uuid": "ovykddu0mo65gmnsujvzd64g",
+  "environment_uuid": "adck44hcheotwk6bkwbeot8e",
+  "postgres_uuid": "r5iqf5ngzoj4bynmxbioztcp",
+  "api_uuid": "a4aga8mw31b5d3ducpybldcq",
+  "web_uuid": "kq40ebuextoesfcfe6jontug",
+  "repository": "Anteater-Adventure-Club/Website",
+  "branch": "aac-rebuild",
+  "branch_base_sha": "8fd1fd7ed937ddc02c6cfc26b49a57754ac90b20"
+}

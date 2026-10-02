@@ -1,0 +1,653 @@
+import { useEffect, useState } from "react";
+import { Link, useLocation, useSearchParams } from "react-router";
+import { ArrowRight, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { dateLabel, pacificDate, photoURL, useAPI } from "../lib/api";
+import type { Schema } from "../lib/api";
+import { useIdentity } from "../lib/context";
+import {
+  Button,
+  Dialog,
+  EventCard,
+  Failure,
+  Loading,
+  Panel,
+  Pill,
+  Polaroid,
+} from "../components/ui";
+
+export function Home() {
+  const home = useAPI("HomeView", "/api/home");
+  const settings = useAPI("SiteSettings", "/api/site-settings");
+  const polaroids = home.data?.polaroids || [];
+  const [rotation, setRotation] = useState(0);
+  useEffect(() => {
+    if (
+      polaroids.length < 3 ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
+      return;
+    const timer = window.setInterval(() => {
+      if (!document.hidden) setRotation((i) => (i + 1) % polaroids.length);
+    }, 6000);
+    return () => window.clearInterval(timer);
+  }, [polaroids.length]);
+  const activities = [
+    {
+      title: "Beaches",
+      text: "Catch a sunset, explore tide pools, or spend a day by the water. Orange County has plenty of coastline to discover together.",
+      images: ["about_tide_pools", "about_salt_creek"],
+      labels: ["Tide pools", "Coastal trails"],
+      search: "beach",
+    },
+    {
+      title: "City exploration",
+      text: "A change of scenery is closer than you think. Explore a new neighborhood, find a good bite, and make a day of it with friends.",
+      images: ["about_la_city", "about_san_diego"],
+      labels: ["Los Angeles", "San Diego"],
+      search: "city",
+    },
+    {
+      title: "National parks",
+      text: "Big trees, wide skies, and a weekend away. Our quarterly retreats bring the club together for adventures a little farther from home.",
+      images: ["about_sequoia", "about_death_valley"],
+      labels: ["Sequoia", "Death Valley"],
+      search: "retreat",
+    },
+    {
+      title: "Everyday adventures",
+      text: "Adventure starts with community. Join a weekly meeting, share food at a potluck picnic, and meet the people you’ll explore with.",
+      images: ["about_picnic_w3", "about_salt_creek"],
+      labels: ["Picnics with friends", "Fresh air, good company"],
+      search: "meeting",
+    },
+  ];
+  return (
+    <div className="page home-page">
+      <section className="hero">
+        <div>
+          <h1>
+            <span>Anteater</span>
+            <br />
+            Adventure Club
+          </h1>
+          <p>
+            Fostering a sense of community while making nature as accessible as
+            possible!
+          </p>
+          <Link className="button primary heading-button" to="/events">
+            Join the adventure! <ArrowRight size={18} />
+          </Link>
+        </div>
+        <div className="hero-polaroids">
+          {polaroids.length ? (
+            ([polaroids[rotation % polaroids.length], ...(polaroids.length > 1 ? [polaroids[(rotation + 1) % polaroids.length]] : [])])
+              .map((p, i) => (
+                <Polaroid
+                  key={p.event_id}
+                  image={photoURL(p.image_id)}
+                  title={p.title || p.event_name}
+                  caption={dateLabel(p.starts_at)}
+                  rotation={i ? 5 : -5}
+                />
+              ))
+          ) : (
+            <>
+              <Polaroid
+                image="/images/sequoia.webp"
+                title="Explore California"
+                caption="Adventures near and far"
+                rotation={-5}
+              />
+              <Polaroid
+                image="/images/balboa_pier.webp"
+                title="Find your people"
+                caption="A community at UCI"
+                rotation={5}
+              />
+            </>
+          )}
+        </div>
+      </section>
+      <section className="section">
+        <div className="section-heading">
+          <h2>Coming up!</h2>
+          <Link to="/events">
+            Calendar <ArrowRight size={15} />
+          </Link>
+        </div>
+        {home.isPending ? (
+          <Loading />
+        ) : home.error ? (
+          <Failure error={home.error} retry={home.refetch} />
+        ) : home.data?.upcoming.length ? (
+          <div className="card-grid">
+            {home.data.upcoming.slice(0, 3).map((e) => (
+              <EventCard key={e.id} event={e} />
+            ))}
+          </div>
+        ) : (
+          <Panel>
+            <p>
+              Our next adventures are on the way. Check back for dates, or come
+              meet the club.
+            </p>
+            <Link to="/membership">
+              Get to know AAC <ArrowRight size={16} />
+            </Link>
+          </Panel>
+        )}
+      </section>
+      <section className="section activities">
+        <div className="center-heading">
+          <h2>What we do!</h2>
+          <p>From a little fresh air to a weekend under the stars.</p>
+        </div>
+        {activities.map((activity, index) => (
+          <div
+            className={`activity-row ${index % 2 ? "reverse" : ""}`}
+            key={activity.title}
+          >
+            <div className="activity-copy">
+              <h2>{activity.title}</h2>
+              <p>{activity.text}</p>
+              <Link to={`/events?activity=${activity.search}`}>
+                Find your next adventure <ArrowRight size={16} />
+              </Link>
+            </div>
+            <div className="activity-polaroids">
+              {activity.images.map((image, i) => (
+                <Polaroid
+                  key={image}
+                  image={`/images/${image}.webp`}
+                  title={activity.labels[i]}
+                  rotation={i ? 3 : -3}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </section>
+      <section className="section center-heading">
+        <h2>Join the adventure!</h2>
+        <p>Find us online and stay in the loop.</p>
+        <div className="actions centered">
+          {settings.data?.discord && (
+            <a
+              className="button discord"
+              href={settings.data.discord}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <img alt="" src="/logos/discord.svg" />
+              Discord
+            </a>
+          )}
+          <a
+            className="button instagram"
+            href="https://www.instagram.com/anteateradventureclub/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <img alt="" src="/logos/instagram_white.svg" />
+            Instagram
+          </a>
+        </div>
+      </section>
+      <Panel className="membership-cta">
+        <div>
+          <h2>Become a member!</h2>
+          <p>
+            Weekly activities are always free. Paid membership supports rides,
+            retreats, and the community we build together.
+          </p>
+          <Link className="button primary" to="/membership">
+            Explore membership
+          </Link>
+        </div>
+        <div className="price-block">
+          <strong>$25</strong>
+          <span>per quarter · UCI students</span>
+          <small>$30 for non-students</small>
+        </div>
+      </Panel>
+    </div>
+  );
+}
+
+function GalleryDialog({
+  row,
+  onClose,
+}: {
+  row: Schema<"GalleryRow">;
+  onClose: () => void;
+}) {
+  return (
+    <Dialog title={row.title || row.event_name} onClose={onClose}>
+      <img
+        className="dialog-photo"
+        src={photoURL(row.image_id, false, "large")}
+        alt={row.caption || row.event_name}
+      />
+      <p className="muted">
+        {dateLabel(row.starts_at, {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        })}
+      </p>
+      <p>{row.caption}</p>
+      <p className="preserve-lines">{row.text}</p>
+      <Link
+        to={`/events/event/${row.event_id}`}
+        className="button secondary"
+        onClick={onClose}
+      >
+        View event
+      </Link>
+    </Dialog>
+  );
+}
+
+export function Events() {
+  const [params] = useSearchParams();
+  const initial = pacificDate().split("-").map(Number);
+  const [month, setMonth] = useState({
+    year: initial[0],
+    month: initial[1] - 1,
+  });
+  const [selected, setSelected] = useState(pacificDate());
+  const [galleryRow, setGalleryRow] = useState<Schema<"GalleryRow"> | null>(
+    null,
+  );
+  const first = new Date(Date.UTC(month.year, month.month, 1));
+  const last = new Date(Date.UTC(month.year, month.month + 1, 0));
+  const iso = (day: number) =>
+    `${month.year}-${String(month.month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  const events = useAPI(
+    "Page_EventPublic_",
+    `/api/events?from=${iso(1)}&to=${iso(last.getUTCDate())}&limit=200`,
+  );
+  const gallery = useAPI("Page_GalleryRow_", "/api/gallery?limit=100");
+  const activity = params.get("activity");
+  const all = (events.data?.items || []).filter((e) =>
+    !activity || activity === "retreat"
+      ? !activity || e.kind === "retreat"
+      : activity === "meeting"
+        ? ["meeting", "picnic"].includes(e.kind)
+        : activity === "beach"
+          ? /beach|tide|coast|creek|laguna|pier/i.test(e.name + e.destination)
+          : activity === "city"
+            ? /city|los angeles|san diego|balboa/i.test(e.name + e.destination)
+            : true,
+  );
+  const onDay = (day: string) =>
+    all.filter(
+      (e) =>
+        pacificDate(new Date(e.starts_at)) <= day &&
+        pacificDate(new Date(e.ends_at)) >= day,
+    );
+  const recurring = [
+    ...new Map(
+      all.filter((e) => e.series_id).map((e) => [e.series_id, e]),
+    ).values(),
+  ];
+  function shift(delta: number) {
+    const next = new Date(Date.UTC(month.year, month.month + delta, 1));
+    setMonth({ year: next.getUTCFullYear(), month: next.getUTCMonth() });
+    setSelected(
+      `${next.getUTCFullYear()}-${String(next.getUTCMonth() + 1).padStart(2, "0")}-01`,
+    );
+  }
+  return (
+    <div className="page events-page">
+      <div className="center-heading">
+        <h1>Stay up to date!</h1>
+        <p>Tap any date or past event to learn more!</p>
+      </div>
+      {activity && (
+        <div className="notice">
+          Showing {activity} adventures.{" "}
+          <Link to="/events">See all activities</Link>
+        </div>
+      )}
+      <h2 className="center-heading">Upcoming events</h2>
+      <Panel className="calendar-panel">
+        <div className="calendar-heading">
+          <Button
+            variant="secondary"
+            aria-label="Previous month"
+            onClick={() => shift(-1)}
+          >
+            <ChevronLeft size={18} />
+          </Button>
+          <h3>
+            {new Intl.DateTimeFormat("en-US", {
+              month: "long",
+              year: "numeric",
+              timeZone: "UTC",
+            }).format(first)}
+          </h3>
+          <Button
+            variant="secondary"
+            aria-label="Next month"
+            onClick={() => shift(1)}
+          >
+            <ChevronRight size={18} />
+          </Button>
+        </div>
+        <div className="calendar-legend">
+          <span className="regular">Event</span>
+          <span className="meeting">Weekly meeting</span>
+          <span className="picnic">Potluck picnic</span>
+          <span className="retreat">Retreat</span>
+        </div>
+        {events.error ? (
+          <Failure error={events.error} retry={events.refetch} />
+        ) : (
+          <div className="calendar" role="group" aria-label="Event calendar">
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+              <span className="weekday" key={d}>
+                {d}
+              </span>
+            ))}
+            {Array.from({ length: first.getUTCDay() }, (_, i) => (
+              <span key={`empty-${i}`} />
+            ))}
+            {Array.from({ length: last.getUTCDate() }, (_, i) => {
+              const day = iso(i + 1);
+              const rows = onDay(day);
+              return (
+                <button
+                  key={day}
+                  className={`calendar-day ${rows[0]?.kind || ""} ${rows.every((e) => e.state === "cancelled") && rows.length ? "cancelled" : ""} ${selected === day ? "selected" : ""}`}
+                  aria-pressed={selected === day}
+                  aria-label={`${dateLabel(day, { month: "long", day: "numeric" })}, ${rows.length} events`}
+                  onClick={() => setSelected(day)}
+                >
+                  <span>{i + 1}</span>
+                  <div className="calendar-day-events">
+                    {rows.map((e) => (
+                      <span key={e.id}>{e.name}</span>
+                    ))}
+                  </div>
+                  {rows.length > 1 && (
+                    <small className="event-count">{rows.length} events</small>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </Panel>
+      <section className="section">
+        <div className="section-heading">
+          <h2>
+            {dateLabel(selected, {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+            })}
+          </h2>
+          <span className="muted">Pacific time</span>
+        </div>
+        {events.isPending ? (
+          <Loading />
+        ) : onDay(selected).length ? (
+          <div className="card-grid">
+            {onDay(selected).map((e) => (
+              <EventCard key={e.id} event={e} />
+            ))}
+          </div>
+        ) : (
+          <Panel>
+            <p>No adventures on this date. Pick another day to explore.</p>
+          </Panel>
+        )}
+      </section>
+      {recurring.length > 0 && (
+        <section className="section">
+          <h2>Every week!</h2>
+          <div className="card-grid">
+            {recurring.map((e) => (
+              <EventCard key={e.id} event={e} />
+            ))}
+          </div>
+        </section>
+      )}
+      <section className="section">
+        <div className="center-heading">
+          <h2>Past adventures</h2>
+          <p>A few memories from the trail.</p>
+        </div>
+        {gallery.isPending ? (
+          <Loading />
+        ) : gallery.error ? (
+          <Failure error={gallery.error} retry={gallery.refetch} />
+        ) : gallery.data?.items.length ? (
+          <div className="gallery-grid">
+            {gallery.data.items.map((p, i) => (
+              <Polaroid
+                key={p.event_id}
+                image={photoURL(p.image_id)}
+                title={p.title || p.event_name}
+                caption={dateLabel(p.starts_at)}
+                rotation={i % 2 ? 2 : -2}
+                onClick={() => setGalleryRow(p)}
+              />
+            ))}
+          </div>
+        ) : (
+          <Panel className="empty">
+            <p>Our photo gallery will grow with our adventures.</p>
+          </Panel>
+        )}
+      </section>
+      {galleryRow && (
+        <GalleryDialog row={galleryRow} onClose={() => setGalleryRow(null)} />
+      )}
+    </div>
+  );
+}
+
+function BoardTerm({
+  id,
+  compact = false,
+}: {
+  id?: number;
+  compact?: boolean;
+}) {
+  const query = useAPI("BoardView", `/api/board${id ? `?term_id=${id}` : ""}`);
+  const [selected, setSelected] = useState<Schema<"BoardEntryPublic"> | null>(
+    null,
+  );
+  if (query.isPending) return <Loading />;
+  if (query.error) return <Failure error={query.error} retry={query.refetch} />;
+  return (
+    <>
+      <div className={compact ? "prior-board-grid" : "board-grid"}>
+        {query.data?.entries.map((entry, i) =>
+          compact ? (
+            <button
+              className="board-name"
+              key={entry.id}
+              onClick={() => setSelected(entry)}
+            >
+              <strong>{entry.name}</strong>
+              <small>{entry.role}</small>
+            </button>
+          ) : (
+            <Polaroid
+              key={entry.id}
+              title={entry.name}
+              caption={entry.role}
+              image={
+                entry.photo_id
+                  ? photoURL(entry.photo_id)
+                  : "/images/board-placeholder.svg"
+              }
+              rotation={i % 2 ? 1 : -1}
+              onClick={() => setSelected(entry)}
+            />
+          ),
+        )}
+      </div>
+      {!query.data?.entries.length && (
+        <Panel className="empty">
+          <p>Meet the board soon. Officer profiles are being prepared.</p>
+        </Panel>
+      )}
+      {selected && (
+        <Dialog title={selected.name} onClose={() => setSelected(null)}>
+          <div className={`board-profile ${selected.palette}`}>
+            <img
+              src={
+                selected.photo_id
+                  ? photoURL(selected.photo_id)
+                  : "/images/board-placeholder.svg"
+              }
+              alt={selected.name}
+            />
+            <Pill>{selected.role}</Pill>
+            <p>{selected.major}</p>
+            <p className="preserve-lines">{selected.bio}</p>
+            {selected.memory && (
+              <>
+                <h3>Favorite AAC memory</h3>
+                <p>{selected.memory}</p>
+              </>
+            )}
+            {selected.instagram && (
+              <a
+                className="button secondary"
+                href={selected.instagram}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Instagram <ArrowRight size={16} />
+              </a>
+            )}
+          </div>
+        </Dialog>
+      )}
+    </>
+  );
+}
+
+export function Board() {
+  const terms = useAPI("Items_BoardTermView_", "/api/board/terms");
+  const current = terms.data?.items.find((t) => t.current);
+  const previous = terms.data?.items.filter((t) => !t.current) || [];
+  const [older, setOlder] = useState("");
+  return (
+    <div className="page board-page">
+      <div className="center-heading">
+        <h1>Meet the board!</h1>
+        <p>Here to turn more days into adventures.</p>
+        {current && <Pill>{current.label}</Pill>}
+      </div>
+      <BoardTerm />
+      {previous[0] && (
+        <details className="panel previous-board" open>
+          <summary>{previous[0].label} Board</summary>
+          <BoardTerm id={previous[0].id} compact />
+        </details>
+      )}
+      {previous.length > 1 && (
+        <section className="section">
+          <label className="field">
+            Previous boards
+            <select value={older} onChange={(e) => setOlder(e.target.value)}>
+              <option value="">Choose a board year</option>
+              {previous.slice(1).map((t) => (
+                <option value={t.id} key={t.id}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          {older && (
+            <Panel>
+              <BoardTerm id={Number(older)} compact />
+            </Panel>
+          )}
+        </section>
+      )}
+    </div>
+  );
+}
+
+export function SignIn() {
+  const { session } = useIdentity();
+  const [params] = useSearchParams();
+  const error = params.get("error");
+  const messages: Record<string, string> = {
+    uci: "Use a verified UCI Google account, including UCI subdomains.",
+    oauth: "We could not finish signing you in. Please try again.",
+    unconfigured:
+      "Google sign-in is being configured. You can browse public events in the meantime.",
+  };
+  return (
+    <div className="page sign-in-page">
+      <div className="hero-polaroids">
+        <Polaroid image="/images/sequoia.webp" title="Sequoia" rotation={-5} />
+        <Polaroid
+          image="/images/death_valley.webp"
+          title="Death Valley"
+          rotation={5}
+        />
+      </div>
+      <Panel>
+        <h1>Sign in!</h1>
+        <p>Join events, coordinate rides, and manage your membership.</p>
+        {error && (
+          <div className="notice error" role="alert">
+            {messages[error] || messages.oauth}
+          </div>
+        )}
+        {session?.member ? (
+          <Link className="button primary" to="/my-aac">
+            Continue to My AAC
+          </Link>
+        ) : (
+          <a
+            className="button secondary google-button"
+            href={`/api/auth/login?return_to=${encodeURIComponent(params.get("return_to") || "/my-aac")}`}
+          >
+            <span className="google-g" aria-hidden="true">
+              G
+            </span>
+            Continue with UCI Google
+          </a>
+        )}
+        <small className="muted">
+          Your UCI account is used to identify you. We don’t read your email.
+        </small>
+        <Link className="text-link" to="/events">
+          Browse events without signing in <ArrowRight size={16} />
+        </Link>
+      </Panel>
+    </div>
+  );
+}
+
+export function NotFound() {
+  const location = useLocation();
+  return (
+    <div className="page not-found">
+      <MapPin size={48} aria-hidden="true" />
+      <h1>A little off the trail!</h1>
+      <p>
+        We couldn’t find {location.pathname}. Let’s get you back to an
+        adventure.
+      </p>
+      <div className="actions centered">
+        <Link className="button primary" to="/">
+          Head Home
+        </Link>
+        <Link className="button secondary" to="/events">
+          Explore Events
+        </Link>
+      </div>
+    </div>
+  );
+}
