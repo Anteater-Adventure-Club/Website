@@ -2,6 +2,7 @@ import logging
 import json
 import sys
 import time
+import asyncio
 from uuid import uuid4
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
@@ -29,6 +30,9 @@ def create_app(settings=None, engine=None):
 
     @asynccontextmanager
     async def lifespan(app):
+        # Keep synchronous authentication/handlers below the ten-connection
+        # pool capacity so waiting dependencies cannot exhaust worker threads.
+        app.state.request_limit = asyncio.Semaphore(8)
         with sessions() as db:
             bootstrap(db, settings)
         yield
@@ -64,7 +68,8 @@ def create_app(settings=None, engine=None):
                     status_code=403,
                 )
         if response is None:
-            response = await call_next(request)
+            async with request.app.state.request_limit:
+                response = await call_next(request)
         response.headers["X-Request-ID"] = request_id
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"

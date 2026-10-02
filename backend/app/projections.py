@@ -1,7 +1,7 @@
 from datetime import timedelta
 from decimal import Decimal, ROUND_HALF_UP
 from .services.finance import rate
-from sqlalchemy import select
+from sqlalchemy import and_, func, select
 from .domain import slug, utcnow
 from .models import Assignment, Card, Event, Member, Membership, Receipt, Recap, Signup, Quarter
 from .schemas import EventPrivate, EventPublic, MembershipView, ReceiptView
@@ -43,25 +43,23 @@ def events_projection(db, events, private=False):
     if not events:
         return []
     ids = [e.id for e in events]
-    signups = list(db.scalars(select(Signup).where(Signup.event_id.in_(ids), Signup.cancelled.is_(False))))
-    approved = set(
-        db.execute(
-            select(Membership.member_id, Membership.quarter_id).where(
-                Membership.quarter_id.in_({e.quarter_id for e in events}), Membership.status == "approved"
-            )
-        ).all()
-    )
+    seats = dict(db.execute(
+        select(Signup.event_id, func.sum(Signup.seats))
+        .where(Signup.event_id.in_(ids), Signup.role == "driver", Signup.cancelled.is_(False))
+        .group_by(Signup.event_id)
+    ).all())
+    paid_counts = dict(db.execute(
+        select(Signup.event_id, func.count())
+        .join(Event, Event.id == Signup.event_id)
+        .join(Membership, and_(Membership.member_id == Signup.member_id, Membership.quarter_id == Event.quarter_id))
+        .where(Signup.event_id.in_(ids), Signup.role == "ride", Signup.cancelled.is_(False), Membership.status == "approved")
+        .group_by(Signup.event_id)
+    ).all())
     recaps = {r.event_id: r.published for r in db.scalars(select(Recap).where(Recap.event_id.in_(ids)))}
-    seats, riders = {}, {}
-    for s in signups:
-        if s.role == "driver":
-            seats[s.event_id] = seats.get(s.event_id, 0) + s.seats
-        if s.role == "ride":
-            riders.setdefault(s.event_id, []).append(s.member_id)
     values = []
     for e in events:
         data = {k: getattr(e, k) for k in EventPublic.model_fields if hasattr(e, k)}
-        paid_riders = sum((m, e.quarter_id) in approved for m in riders.get(e.id, []))
+        paid_riders = paid_counts.get(e.id, 0)
         data.update(
             slug=slug(e.name),
             signup_status=signup_window(e),
@@ -90,21 +88,29 @@ def signups_projection(db, signups, own=False, include_event=True):
         q.id: q
         for q in db.scalars(select(Quarter).where(Quarter.id.in_({e.quarter_id for e in events.values()})))
     }
-    related = {s.id: s for s in db.scalars(select(Signup).where(Signup.event_id.in_(event_ids)))}
+    selected_ids = {s.id for s in signups}
+    driver_ids = {s.id for s in signups if s.role == "driver" and s.checked_in_at}
+    own_assignments = list(db.scalars(select(Assignment).where(Assignment.rider_id.in_(selected_ids))))
+    driver_ids.update(a.driver_id for a in own_assignments)
+    assignments = {a.rider_id: a for a in own_assignments}
+    if driver_ids:
+        assignments.update({a.rider_id: a for a in db.scalars(select(Assignment).where(Assignment.driver_id.in_(driver_ids)))})
+    related_ids = selected_ids | driver_ids | set(assignments)
+    related = {s.id: s for s in signups}
+    if related_ids - selected_ids:
+        related.update({s.id: s for s in db.scalars(select(Signup).where(Signup.id.in_(related_ids - selected_ids)))})
     members = {
         m.id: m
         for m in db.scalars(select(Member).where(Member.id.in_({s.member_id for s in related.values()})))
     }
     cards = {
         c.signup_id: c
-        for c in db.scalars(select(Card).where(Card.event_id.in_(event_ids), Card.voided.is_(False)))
-    }
-    assignments = {
-        a.rider_id: a for a in db.scalars(select(Assignment).where(Assignment.rider_id.in_(related)))
+        for c in db.scalars(select(Card).where(Card.signup_id.in_(selected_ids), Card.voided.is_(False)))
     }
     approved = set(
         db.execute(
             select(Membership.member_id, Membership.quarter_id).where(
+                Membership.member_id.in_({s.member_id for s in signups}),
                 Membership.quarter_id.in_({e.quarter_id for e in events.values()}),
                 Membership.status == "approved",
             )

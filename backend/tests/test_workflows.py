@@ -24,6 +24,14 @@ def test_auth_roles_origin_and_no_test_endpoint(api):
     assert api.post("/api/auth/test", json={}).status_code == 404
 
 
+def test_authenticated_burst_avoids_connection_starvation(api, engine):
+    quarter(api)
+    with ThreadPoolExecutor(max_workers=100) as pool:
+        responses = list(pool.map(lambda _: api.get("/api/admin/members?limit=200"), range(100)))
+    assert all(response.status_code == 200 for response in responses)
+    assert engine.pool.checkedout() == 0
+
+
 def test_last_officer_and_bootstrap_once(api):
     assert api.delete("/api/admin/officers/1").status_code == 409
     m = person(api)
