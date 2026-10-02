@@ -122,6 +122,10 @@ These are additions, not capabilities inferred to exist merely because a Vue pag
 | `GET /api/admin/series/{id}` | Series ID | Definition, dated occurrences, exception and participation flags for series management. |
 | `PUT /api/admin/series/{id}` | SeriesInput + `effective_from` + revision | Future-only change; return affected IDs or 409 listing protected/participating conflicts. |
 | `POST /api/admin/events/{id}/skip` | Expected revision; series occurrence only | Skip only an unparticipated occurrence; otherwise require event cancellation with reason. |
+| `DELETE /api/admin/events/{id}` | Expected event revision | Delete an unused draft in an open quarter; a recurring date is also added to the series exclusions. Remove its private recap and retain audit records. |
+| `DELETE /api/admin/series/{id}` | Expected series revision | Delete all occurrences and the series only if every date is an unused draft. Reject the whole operation if any date is published or has participation. |
+| `POST /api/admin/events/{id}/series` | `SeriesWrite`, expected event revision | Convert an existing unused draft to recurrence, retaining its ID as the first generated occurrence. |
+| `POST /api/admin/series/{id}/single` | `SeriesSingleWrite`: event fields and expected series revision | Retain the first active occurrence's ID as a standalone event; remove other unused drafts and the series transactionally. |
 | `GET /api/admin/events/{id}/questions` | Event ID | Stable question definitions, answer aggregates and private per-member rows. |
 | `GET /api/admin/events/{id}/check-in-log` | Pagination | Recorded arrivals/undos, actor/time, current status; not reconstructed solely from active check-ins. |
 | `POST /api/admin/events/{id}/walk-ins` | Member/contact/transport/vehicle/answers + request ID | One atomic member+signup+arrival transaction; returns actual issued card, never an optimistic preview. |

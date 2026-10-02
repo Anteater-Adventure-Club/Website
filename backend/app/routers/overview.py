@@ -42,16 +42,21 @@ def overview(quarter_id: int | None = None, user=Depends(officer), db=Depends(ge
                 "url": f"/admin/members?quarter={q.id}&status=pending",
             }
         )
+    draft_series = {}
     for e in projections:
         if e.state == "draft":
-            attention.append(
-                {
+            if e.series_id and e.series_id in draft_series:
+                draft_series[e.series_id]["count"] += 1
+            else:
+                item = {
                     "kind": "draft",
                     "count": 1,
-                    "title": e.name + " is a draft",
-                    "url": f"/admin/events/{e.slug}/{e.id}/edit",
+                    "title": e.name + (" has draft dates" if e.series_id else " is a draft"),
+                    "url": f"/admin/series/{e.series_id}" if e.series_id else f"/admin/events/{e.slug}/{e.id}/edit",
                 }
-            )
+                attention.append(item)
+                if e.series_id:
+                    draft_series[e.series_id] = item
         if e.state == "completed" and e.id not in published_recaps:
             attention.append(
                 {

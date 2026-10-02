@@ -1,7 +1,7 @@
 from datetime import date, datetime, timedelta
 from typing import Annotated
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from ..auth import officer
 from ..db import get_db
 from ..domain import (
@@ -17,7 +17,7 @@ from ..domain import (
     today,
     utcnow,
 )
-from ..models import Event, Media, Series, Signup, Trip
+from ..models import AttendanceAction, Card, Event, Media, Recap, Series, Signup, Trip
 from ..projections import event_projection, events_projection
 from ..schemas import (
     SeriesView,
@@ -28,6 +28,7 @@ from ..schemas import (
     Page,
     Revision,
     SeriesWrite,
+    SeriesSingleWrite,
     StateChange,
 )
 
@@ -75,6 +76,11 @@ def apply_event(e, value):
         e.opens_at = e.closes_at = e.arrival_at = e.departure_at = e.return_at = None
         e.miles = e.gas_price = 0
         e.rate_override = None
+
+
+def touch_series(db, e):
+    if e.series_id:
+        require(db, Series, e.series_id, True).revision += 1
 
 
 @router.get("/events", response_model=Page[EventPublic])
@@ -157,9 +163,47 @@ def edit_event(eid: int, value: EventWrite, user=Depends(officer), db=Depends(ge
     apply_event(e, value)
     e.exception = bool(e.series_id)
     e.revision += 1
+    touch_series(db, e)
     db.flush()
     audit(db, user, "event.edit", e.id)
     return event_projection(db, e, True)
+
+
+def require_unused_drafts(db, events):
+    if any(e.state != "draft" for e in events):
+        fail(409, "not_draft", "Only unpublished drafts can be deleted or converted.")
+    ids = [e.id for e in events]
+    if any(
+        db.scalar(select(model.event_id).where(model.event_id.in_(ids)).limit(1))
+        for model in (Signup, Trip, Card, AttendanceAction)
+    ) or db.scalar(select(Recap.event_id).where(Recap.event_id.in_(ids), Recap.published.is_not(None)).limit(1)):
+        fail(409, "participation_exists", "Keep events with participation or published recaps; cancel them instead.")
+
+
+def remove_drafts(db, events):
+    db.execute(delete(Recap).where(Recap.event_id.in_([e.id for e in events])))
+    for e in events:
+        db.delete(e)
+    db.flush()
+
+
+@router.delete("/admin/events/{eid}")
+def delete_draft(eid: int, value: Revision, user=Depends(officer), db=Depends(get_db, scope="function")):
+    initial = require(db, Event, eid)
+    open_quarter(db, initial.quarter_id)
+    series = require(db, Series, initial.series_id, True) if initial.series_id else None
+    e = require(db, Event, eid, True)
+    revision(e, value.expected_revision)
+    require_unused_drafts(db, [e])
+    if series:
+        # A later series edit must not recreate a deleted date from its stored schedule.
+        definition = dict(series.definition)
+        definition["excluded"] = sorted(set(definition.get("excluded", [])) | {e.original_date.isoformat()})
+        series.definition = definition
+        series.revision += 1
+    audit(db, user, "event.delete", eid, {"name": e.name, "series_id": e.series_id})
+    remove_drafts(db, [e])
+    return {"ok": True}
 
 
 @router.post("/admin/events/{eid}/state", response_model=EventPrivate)
@@ -198,6 +242,7 @@ def event_state(eid: int, value: StateChange, user=Depends(officer), db=Depends(
         }
     e.state = value.state
     e.revision += 1
+    touch_series(db, e)
     if e.series_id and value.state in {"completed", "cancelled"}:
         e.exception = True
     audit(db, user, "event." + value.state, eid, {"reason": value.reason})
@@ -230,6 +275,7 @@ def skip(eid: int, value: Revision, user=Depends(officer), db=Depends(get_db, sc
         fail(409, "participation_exists", "Cancel this date with a reason to preserve its participants.")
     e.skipped = e.exception = True
     e.revision += 1
+    touch_series(db, e)
     audit(db, user, "event.skip", eid)
     return {"ok": True}
 
@@ -263,7 +309,13 @@ def preview_series(value: SeriesWrite, user=Depends(officer), db=Depends(get_db,
 
 @router.post("/admin/series", status_code=201, response_model=SeriesView)
 def create_series(value: SeriesWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
+    return new_series(db, user, value)
+
+
+def new_series(db, user, value, reuse=None):
     rows = series_dates(db, value)
+    if not rows:
+        fail(422, "empty_series", "Choose a schedule with at least one date.")
     existing = db.scalar(select(Series).where(Series.request_id == value.request_id))
     if existing:
         return series_detail(existing.id, user, db)
@@ -274,15 +326,77 @@ def create_series(value: SeriesWrite, user=Depends(officer), db=Depends(get_db, 
     )
     db.add(series)
     db.flush()
-    for row in rows:
+    for index, row in enumerate(rows):
         item = occurrence_input(value, row)
         validate_event(db, item)
-        event = Event(series_id=series.id, original_date=row["date"])
+        event = reuse if index == 0 and reuse is not None else Event()
+        event.series_id, event.original_date = series.id, row["date"]
+        if event is reuse:
+            event.revision += 1
         apply_event(event, item)
         db.add(event)
     audit(db, user, "series.create", series.id)
     db.flush()
     return series_detail(series.id, user, db)
+
+
+@router.post("/admin/events/{eid}/series", response_model=SeriesView)
+def event_to_series(eid: int, value: SeriesWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
+    initial = require(db, Event, eid)
+    open_quarter(db, initial.quarter_id)
+    e = require(db, Event, eid, True)
+    revision(e, value.expected_revision)
+    if e.series_id:
+        fail(409, "already_recurring", "Edit this event's existing series instead.")
+    require_unused_drafts(db, [e])
+    validate_event(db, value.event, e)
+    if not series_dates(db, value):
+        fail(422, "empty_series", "Choose a schedule with at least one date.")
+    if db.scalar(select(Series.id).where(Series.request_id == value.request_id)):
+        fail(409, "request_used", "This recurring schedule has already been saved. Refresh the events list.")
+    audit(db, user, "event.to_series", eid)
+    return new_series(db, user, value, e)
+
+
+def locked_series_events(db, sid):
+    initial = require(db, Series, sid)
+    open_quarter(db, initial.quarter_id)
+    series = require(db, Series, sid, True)
+    events = list(db.scalars(select(Event).where(Event.series_id == sid).order_by(Event.id).with_for_update()))
+    return series, events
+
+
+@router.delete("/admin/series/{sid}")
+def delete_draft_series(sid: int, value: Revision, user=Depends(officer), db=Depends(get_db, scope="function")):
+    series, events = locked_series_events(db, sid)
+    revision(series, value.expected_revision)
+    require_unused_drafts(db, events)
+    audit(db, user, "series.delete", sid, {"event_ids": [e.id for e in events]})
+    remove_drafts(db, events)
+    db.delete(series)
+    return {"ok": True}
+
+
+@router.post("/admin/series/{sid}/single", response_model=EventPrivate)
+def series_to_event(sid: int, value: SeriesSingleWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
+    series, events = locked_series_events(db, sid)
+    revision(series, value.expected_revision)
+    require_unused_drafts(db, events)
+    active = sorted((e for e in events if not e.skipped), key=lambda e: (e.starts_at, e.id))
+    if not active:
+        fail(409, "empty_series", "This series has no active draft date to keep.")
+    keep = active[0]
+    validate_event(db, value.event, keep)
+    apply_event(keep, value.event)
+    keep.series_id = keep.original_date = None
+    keep.exception = False
+    keep.revision += 1
+    removed = [e for e in events if e.id != keep.id]
+    audit(db, user, "series.to_event", sid, {"event_id": keep.id, "deleted_event_ids": [e.id for e in removed]})
+    remove_drafts(db, removed)
+    db.delete(series)
+    db.flush()
+    return event_projection(db, keep, True)
 
 
 @router.get("/admin/series/{sid}", response_model=SeriesView)
@@ -292,6 +406,7 @@ def series_detail(sid: int, user=Depends(officer), db=Depends(get_db, scope="fun
     participated = set(
         db.scalars(select(Signup.event_id).where(Signup.event_id.in_([e.id for e in events])).distinct())
     )
+    participated.update(db.scalars(select(Trip.event_id).where(Trip.event_id.in_([e.id for e in events]))))
     return {
         "id": series.id,
         "revision": series.revision,

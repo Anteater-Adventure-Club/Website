@@ -16,6 +16,7 @@ import type { AdminEvent, Schema } from "../lib/api";
 import { useQuarter } from "../lib/context";
 import {
   Button,
+  Dialog,
   Empty,
   Failure,
   Field,
@@ -25,7 +26,11 @@ import {
   Panel,
   Pill,
 } from "../components/ui";
-import { ImageUpload, SetupQuarter } from "../components/officer-forms";
+import {
+  DeleteDraftButton,
+  ImageUpload,
+  SetupQuarter,
+} from "../components/officer-forms";
 
 type EditorValues = {
   name: string;
@@ -109,6 +114,14 @@ function Editor({
   >([]);
   const [localError, setLocalError] = useState<Error | null>(null);
   const [saving, setSaving] = useState(false);
+  const [singleConfirmation, setSingleConfirmation] = useState<boolean | null>(
+    null,
+  );
+  const draftSeries =
+    !!series &&
+    series.occurrences.every((e) => e.state === "draft" && !e.participated);
+  const convertibleSeries =
+    draftSeries && series!.occurrences.some((e) => !e.skipped);
   const action = useAction();
   const roster = useAPI(
     "Page_SignupPrivate_",
@@ -160,7 +173,7 @@ function Editor({
       weekdays_b: recurrence === "alternating" ? weekB : [],
       excluded: excluded.split(/[\s,]+/).filter(Boolean),
       effective_from: series ? effective : null,
-      expected_revision: series?.revision,
+      expected_revision: series?.revision ?? initial?.revision,
       request_id: definition?.request_id || requestId,
     };
   }
@@ -179,7 +192,11 @@ function Editor({
       setLocalError(error as Error);
     }
   }
-  async function save(publish: boolean) {
+  async function save(publish: boolean, confirmedSingle = false) {
+    if (series && recurrence === "none" && !confirmedSingle) {
+      setSingleConfirmation(publish);
+      return;
+    }
     setLocalError(null);
     action.reset();
     setSaving(true);
@@ -187,7 +204,11 @@ function Editor({
       const values = form.getValues();
       if (recurrence !== "none") {
         const result = await request<Schema<"SeriesView">>(
-          `/api/admin/series${series ? `/${series.id}` : ""}`,
+          series
+            ? `/api/admin/series/${series.id}`
+            : initial
+              ? `/api/admin/events/${initial.id}/series`
+              : "/api/admin/series",
           series ? "PUT" : "POST",
           seriesBody(values),
         );
@@ -202,9 +223,16 @@ function Editor({
         navigate(`/admin/series/${result.id}`);
       } else {
         const result = await request<AdminEvent>(
-          `/api/admin/events${initial ? `/${initial.id}` : ""}`,
+          series
+            ? `/api/admin/series/${series.id}/single`
+            : `/api/admin/events${initial ? `/${initial.id}` : ""}`,
           initial ? "PUT" : "POST",
-          eventBody(values),
+          series
+            ? ({
+                event: eventBody(values),
+                expected_revision: series.revision,
+              } satisfies Schema<"SeriesSingleWrite">)
+            : eventBody(values),
         );
         if (publish && result.state === "draft")
           await request(`/api/admin/events/${result.id}/state`, "POST", {
@@ -282,7 +310,25 @@ function Editor({
               : "New event"
         }
         subtitle={`${selectedQuarter.name} · All times are America/Los_Angeles.`}
-      />
+      >
+        {initial?.state === "draft" && (
+          <DeleteDraftButton
+            url={`/api/admin/events/${initial.id}`}
+            revision={initial.revision}
+            name={initial.name}
+            quarterId={initial.quarter_id}
+          />
+        )}
+        {draftSeries && (
+          <DeleteDraftButton
+            url={`/api/admin/series/${series!.id}`}
+            revision={series!.revision}
+            name={series!.definition.event.name}
+            quarterId={series!.definition.event.quarter_id}
+            count={series!.occurrences.length}
+          />
+        )}
+      </PageHeading>
       <div className="tabs" role="tablist" aria-label="Event editor sections">
         <button
           role="tab"
@@ -579,16 +625,37 @@ function Editor({
                 Schedule
                 <select
                   value={recurrence}
-                  disabled={!!initial && !!initial.series_id}
+                  disabled={
+                    !!initial &&
+                    (!!initial.series_id || initial.state !== "draft")
+                  }
                   onChange={(e) => setRecurrence(e.target.value as Recurrence)}
                 >
-                  <option value="none">
+                  <option
+                    value="none"
+                    disabled={!!series && !convertibleSeries}
+                  >
                     One event · can span multiple days
                   </option>
                   <option value="weekly">Every week</option>
                   <option value="alternating">Alternating A / B weeks</option>
                 </select>
               </label>
+              {initial?.series_id && (
+                <p>
+                  Changes apply only to this date.{" "}
+                  <Link to={`/admin/series/${initial.series_id}/edit`}>
+                    Edit the recurring schedule
+                  </Link>{" "}
+                  to change repeats.
+                </p>
+              )}
+              {series && !convertibleSeries && (
+                <p className="muted">
+                  Published or participating dates keep their history. Only an
+                  unused draft series can become one event.
+                </p>
+              )}
               {recurrence !== "none" && (
                 <div className="stack section">
                   <Field
@@ -687,6 +754,36 @@ function Editor({
           </aside>
         </div>
       </form>
+      {singleConfirmation !== null && (
+        <Dialog
+          title="Make this a single event?"
+          onClose={() => setSingleConfirmation(null)}
+        >
+          <p>
+            Keep the first active draft as one event and permanently delete the
+            other draft dates in this series.
+          </p>
+          <Message error={localError} />
+          <div className="form-actions">
+            <Button
+              type="button"
+              variant="quiet"
+              onClick={() => setSingleConfirmation(null)}
+            >
+              Keep Recurring
+            </Button>
+            <Button
+              type="button"
+              disabled={saving}
+              onClick={() => {
+                void save(singleConfirmation, true);
+              }}
+            >
+              Make Single Event
+            </Button>
+          </div>
+        </Dialog>
+      )}
     </>
   );
 }
@@ -713,8 +810,16 @@ export function SeriesEditor() {
 export function SeriesDetail() {
   const { id } = useParams();
   const query = useAPI("SeriesView", `/api/admin/series/${id}`);
+  const { quarters } = useQuarter();
   if (query.isPending) return <Loading />;
   if (query.error) return <Failure error={query.error} retry={query.refetch} />;
+  const series = query.data;
+  const quarter = quarters.find(
+    (q) => q.id === series.definition.event.quarter_id,
+  );
+  const deletable =
+    quarter?.state === "open" &&
+    series.occurrences.every((e) => e.state === "draft" && !e.participated);
   return (
     <>
       <Link className="text-link" to="/admin/events">
@@ -728,6 +833,15 @@ export function SeriesDetail() {
         <Link className="button secondary" to={`/admin/series/${id}/edit`}>
           Edit This & Future Dates
         </Link>
+        {deletable && (
+          <DeleteDraftButton
+            url={`/api/admin/series/${id}`}
+            revision={series.revision}
+            name={series.definition.event.name}
+            quarterId={series.definition.event.quarter_id}
+            count={series.occurrences.length}
+          />
+        )}
       </PageHeading>
       <div className="stack">
         {query.data.occurrences.map((e) => (

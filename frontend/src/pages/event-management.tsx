@@ -16,6 +16,7 @@ import {
   Plus,
   Upload,
 } from "lucide-react";
+import { DeleteDraftButton } from "../components/officer-forms";
 import {
   attendanceLabel,
   clock,
@@ -118,6 +119,14 @@ export function EventManagement() {
         >
           {event.state}
         </Pill>
+        {editable && event.state === "draft" && (
+          <DeleteDraftButton
+            url={`/api/admin/events/${event.id}`}
+            revision={event.revision}
+            name={event.name}
+            quarterId={event.quarter_id}
+          />
+        )}
         {editable && (
           <Link className="button secondary" to={`${base}/edit`}>
             <Pencil size={16} />

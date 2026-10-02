@@ -28,6 +28,7 @@ import {
 } from "../components/ui";
 import {
   ImportDialog,
+  DeleteDraftButton,
   PersonDialog,
   SetupQuarter,
 } from "../components/officer-forms";
@@ -300,6 +301,16 @@ export function AdminEvents() {
                         Publish
                       </Button>
                     )}
+                    {quarter.state === "open" &&
+                      e.state === "draft" &&
+                      !e.series_id && (
+                        <DeleteDraftButton
+                          url={`/api/admin/events/${e.id}`}
+                          revision={e.revision}
+                          name={e.name}
+                          quarterId={e.quarter_id}
+                        />
+                      )}
                   </div>
                 </Panel>
               ))}

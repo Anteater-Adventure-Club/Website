@@ -1,8 +1,88 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router";
 import { request, useAction, useAPI } from "../lib/api";
 import type { Person, Schema } from "../lib/api";
 import { Button, Dialog, Field, Message, Pill } from "./ui";
+import { quarterURL } from "../lib/context";
+
+export function DeleteDraftButton({
+  url,
+  revision,
+  name,
+  quarterId,
+  count,
+}: {
+  url: string;
+  revision: number;
+  name: string;
+  quarterId: number;
+  count?: number;
+}) {
+  const [confirm, setConfirm] = useState(false);
+  const action = useAction();
+  const navigate = useNavigate();
+  const label = count === undefined ? "Delete Draft" : "Delete Draft Series";
+  return (
+    <>
+      <Button
+        type="button"
+        variant="danger"
+        onClick={() => {
+          action.reset();
+          setConfirm(true);
+        }}
+      >
+        {label}
+      </Button>
+      {confirm && (
+        <Dialog
+          title={
+            count === undefined
+              ? "Delete this draft?"
+              : "Delete this draft series?"
+          }
+          onClose={() => setConfirm(false)}
+        >
+          <p>
+            Permanently delete {name}
+            {count === undefined ? "?" : ` and all ${count} draft dates?`}
+          </p>
+          <Message error={action.error} />
+          <div className="form-actions">
+            <Button
+              type="button"
+              variant="quiet"
+              onClick={() => setConfirm(false)}
+            >
+              Keep Draft
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              disabled={action.isPending}
+              onClick={() => {
+                void action
+                  .mutateAsync({
+                    url,
+                    method: "DELETE",
+                    body: { expected_revision: revision },
+                  })
+                  .then(() => {
+                    setConfirm(false);
+                    navigate(quarterURL("/admin/events", quarterId));
+                  })
+                  .catch(() => {});
+              }}
+            >
+              {label}
+            </Button>
+          </div>
+        </Dialog>
+      )}
+    </>
+  );
+}
 
 export function PersonDialog({
   onClose,
