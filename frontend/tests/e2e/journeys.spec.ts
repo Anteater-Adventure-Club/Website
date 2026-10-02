@@ -55,6 +55,22 @@ test("J01 visitor links, event return path, board, and draft privacy", async ({
     page.getByRole("heading", { name: /Anteater Adventure Club/i }).first(),
   ).toBeVisible();
   await page.goto("/events");
+  await page.getByRole("button", { name: /Fixture Tide Pools/ }).click();
+  await expect(
+    dialog(page).getByRole("heading", {
+      name: "Fixture Tide Pools",
+      exact: true,
+    }),
+  ).toBeVisible();
+  const galleryPhoto = dialog(page).getByRole("img");
+  await expect(galleryPhoto).toBeVisible();
+  await expect
+    .poll(() =>
+      galleryPhoto.evaluate((img: HTMLImageElement) => img.naturalWidth),
+    )
+    .toBeGreaterThan(0);
+  await dialog(page).getByRole("button", { name: "Close dialog" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   const date = new Date(fixture.events.Adventure.starts_at).toLocaleDateString(
     "en-US",
     { timeZone: "America/Los_Angeles", month: "long", day: "numeric" },
@@ -73,6 +89,15 @@ test("J01 visitor links, event return path, board, and draft privacy", async ({
   await expect(page).toHaveURL(/sign-in.*return_to=/);
   await page.goto("/board");
   await expect(page.getByText("Fixture Officer One").first()).toBeVisible();
+  await page.locator(".board-grid .polaroid").first().click();
+  await expect(
+    dialog(page).getByRole("heading", {
+      name: "Fixture Officer One",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await dialog(page).getByRole("button", { name: "Close dialog" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.goto("/membership");
   await expect(page.getByText("Our live reimbursement budget")).toBeVisible();
   const draft = await page.request.get(

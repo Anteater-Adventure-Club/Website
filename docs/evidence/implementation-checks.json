@@ -77,5 +77,28 @@
     "cause": "The test polled database state before the browser closed its revoke dialog and refreshed the list, causing an ambiguous button lookup.",
     "fix": "Await dialog closure and one remaining visible revoke control.",
     "local_cross_engine_recheck_passes": 9
+  },
+  "public_popup_rechecks": {
+    "cases": 18,
+    "engines": [
+      "Chromium",
+      "Firefox",
+      "WebKit"
+    ],
+    "viewports": [
+      "phone",
+      "tablet",
+      "desktop"
+    ],
+    "covers": [
+      "public gallery photo decoded",
+      "board profile popup",
+      "explicit revocation and last-officer protection"
+    ]
+  },
+  "public_delivery": {
+    "before_main_js_gzip_bytes": 150510,
+    "after_main_js_gzip_bytes": 107600,
+    "change": "Member forms and event signup code load when their routes open; Membership content remains eager to avoid layout shift."
   }
 }

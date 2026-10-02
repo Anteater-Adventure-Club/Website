@@ -5,15 +5,24 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Providers } from "./lib/context";
 import { Guard, Layout, Workspace } from "./components/layout";
 import { Board, Events, Home, NotFound, SignIn } from "./pages/public";
-import {
-  Membership,
-  MyOverview,
-  MyReimbursements,
-  MySignups,
-  Profile,
-} from "./pages/members";
-import { EventDetail } from "./pages/event-detail";
+import { Membership } from "./pages/membership";
 import { Loading } from "./components/ui";
+
+const MyOverview = lazy(() =>
+  import("./pages/members").then((m) => ({ default: m.MyOverview })),
+);
+const MyReimbursements = lazy(() =>
+  import("./pages/members").then((m) => ({ default: m.MyReimbursements })),
+);
+const MySignups = lazy(() =>
+  import("./pages/members").then((m) => ({ default: m.MySignups })),
+);
+const Profile = lazy(() =>
+  import("./pages/members").then((m) => ({ default: m.Profile })),
+);
+const EventDetail = lazy(() =>
+  import("./pages/event-detail").then((m) => ({ default: m.EventDetail })),
+);
 
 const AdminOverview = lazy(() =>
   import("./pages/admin-base").then((m) => ({ default: m.AdminOverview })),

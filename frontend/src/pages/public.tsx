@@ -581,7 +581,7 @@ export function Board() {
       <BoardTerm />
       {previous[0] && (
         <details className="panel previous-board" open>
-          <summary>{previous[0].label} Board</summary>
+          <summary>{previous[0].label}</summary>
           <BoardTerm id={previous[0].id} compact />
         </details>
       )}
