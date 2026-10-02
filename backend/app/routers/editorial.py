@@ -62,7 +62,7 @@ async def upload(
     focal_x: Annotated[float, Form(ge=0, le=1)] = 0.5,
     focal_y: Annotated[float, Form(ge=0, le=1)] = 0.5,
     user=Depends(officer),
-    db=Depends(get_db),
+    db=Depends(get_db, scope="function"),
 ):
     limited(request, db, "upload", 15)
     if purpose not in {"board", "event"}:
@@ -102,7 +102,7 @@ async def upload(
 
 @router.get("/api/admin/media/{mid}")
 def preview_image(
-    mid: str, request: Request, variant: str = "medium", user=Depends(officer), db=Depends(get_db)
+    mid: str, request: Request, variant: str = "medium", user=Depends(officer), db=Depends(get_db, scope="function")
 ):
     media = require(db, Media, mid)
     return FileResponse(
@@ -113,7 +113,7 @@ def preview_image(
 
 
 @router.get("/media/{mid}/{variant}")
-def public_image(mid: str, variant: str, request: Request, db=Depends(get_db)):
+def public_image(mid: str, variant: str, request: Request, db=Depends(get_db, scope="function")):
     media = require(db, Media, mid)
     if not image_visible(db, mid):
         fail(404, "not_found", "This image could not be found.")
@@ -126,7 +126,7 @@ def public_image(mid: str, variant: str, request: Request, db=Depends(get_db)):
 
 
 @router.delete("/api/admin/media/{mid}")
-def delete_image(mid: str, request: Request, user=Depends(officer), db=Depends(get_db)):
+def delete_image(mid: str, request: Request, user=Depends(officer), db=Depends(get_db, scope="function")):
     media = require(db, Media, mid, True)
     referenced = (
         image_visible(db, mid)
@@ -143,7 +143,7 @@ def delete_image(mid: str, request: Request, user=Depends(officer), db=Depends(g
 
 
 @router.get("/api/admin/events/{eid}/recap", response_model=RecapView)
-def get_recap(eid: int, user=Depends(officer), db=Depends(get_db)):
+def get_recap(eid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
     e = require(db, Event, eid)
     recap = db.get(Recap, eid)
     return {
@@ -156,7 +156,7 @@ def get_recap(eid: int, user=Depends(officer), db=Depends(get_db)):
 
 
 @router.put("/api/admin/events/{eid}/recap", response_model=RecapView)
-def save_recap(eid: int, value: RecapWrite, user=Depends(officer), db=Depends(get_db)):
+def save_recap(eid: int, value: RecapWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     require(db, Event, eid, True)
     recap = db.get(Recap, eid)
     if recap:
@@ -177,7 +177,7 @@ def save_recap(eid: int, value: RecapWrite, user=Depends(officer), db=Depends(ge
 
 
 @router.post("/api/admin/events/{eid}/recap/publication", response_model=RecapView)
-def publish_recap(eid: int, value: Revision, user=Depends(officer), db=Depends(get_db)):
+def publish_recap(eid: int, value: Revision, user=Depends(officer), db=Depends(get_db, scope="function")):
     e = require(db, Event, eid, True)
     recap = db.get(Recap, eid)
     if not recap:
@@ -194,7 +194,7 @@ def publish_recap(eid: int, value: Revision, user=Depends(officer), db=Depends(g
 
 
 @router.delete("/api/admin/events/{eid}/recap/publication")
-def unpublish_recap(eid: int, user=Depends(officer), db=Depends(get_db)):
+def unpublish_recap(eid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
     require(db, Event, eid, True)
     recap = db.get(Recap, eid)
     if recap and recap.published:
@@ -223,14 +223,14 @@ def gallery_items(db, homepage=False):
 def gallery(
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
-    db=Depends(get_db),
+    db=Depends(get_db, scope="function"),
 ):
     rows = gallery_items(db)
     return {"items": rows[offset : offset + limit], "total": len(rows)}
 
 
 @router.get("/api/gallery/{eid}", response_model=GalleryRow)
-def gallery_detail(eid: int, db=Depends(get_db)):
+def gallery_detail(eid: int, db=Depends(get_db, scope="function")):
     row = next((r for r in gallery_items(db) if r["event_id"] == eid), None)
     if row is None:
         fail(404, "not_found", "This polaroid could not be found.")
@@ -238,7 +238,7 @@ def gallery_detail(eid: int, db=Depends(get_db)):
 
 
 @router.get("/api/home", response_model=HomeView)
-def home(db=Depends(get_db)):
+def home(db=Depends(get_db, scope="function")):
     n = utcnow()
     events = list(
         db.scalars(
@@ -287,14 +287,14 @@ def entry_view(db, entry, private=False):
 
 
 @router.get("/api/board/terms", response_model=Items[BoardTermView])
-def public_terms(db=Depends(get_db)):
+def public_terms(db=Depends(get_db, scope="function")):
     return {
         "items": [term_view(t) for t in db.scalars(select(BoardTerm).order_by(BoardTerm.start_year.desc()))]
     }
 
 
 @router.get("/api/board", response_model=BoardView)
-def public_board(term_id: int | None = None, db=Depends(get_db)):
+def public_board(term_id: int | None = None, db=Depends(get_db, scope="function")):
     term = (
         require(db, BoardTerm, term_id)
         if term_id
@@ -311,12 +311,12 @@ def public_board(term_id: int | None = None, db=Depends(get_db)):
 
 
 @router.get("/api/admin/board/terms", response_model=Items[BoardTermView])
-def admin_terms(user=Depends(officer), db=Depends(get_db)):
+def admin_terms(user=Depends(officer), db=Depends(get_db, scope="function")):
     return public_terms(db)
 
 
 @router.post("/api/admin/board/terms", status_code=201, response_model=BoardTermView)
-def add_term(value: TermWrite, user=Depends(officer), db=Depends(get_db)):
+def add_term(value: TermWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     advisory(db, 703)
     db.execute(update(BoardTerm).values(current=False))
     term = BoardTerm(**value.model_dump())
@@ -327,7 +327,7 @@ def add_term(value: TermWrite, user=Depends(officer), db=Depends(get_db)):
 
 
 @router.get("/api/admin/board/terms/{tid}", response_model=BoardPrivateView)
-def manage_term(tid: int, user=Depends(officer), db=Depends(get_db)):
+def manage_term(tid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
     term = require(db, BoardTerm, tid)
     return {
         "term": term_view(term),
@@ -356,7 +356,7 @@ def apply_entry(db, entry, value, user):
 
 
 @router.post("/api/admin/board/terms/{tid}/entries", status_code=201, response_model=BoardEntryPrivate)
-def add_entry(tid: int, value: BoardEntryWrite, user=Depends(officer), db=Depends(get_db)):
+def add_entry(tid: int, value: BoardEntryWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     require(db, BoardTerm, tid, True)
     entry = BoardEntry(term_id=tid)
     apply_entry(db, entry, value, user)
@@ -367,7 +367,7 @@ def add_entry(tid: int, value: BoardEntryWrite, user=Depends(officer), db=Depend
 
 
 @router.put("/api/admin/board/entries/{eid}", response_model=BoardEntryPrivate)
-def edit_entry(eid: int, value: BoardEntryWrite, user=Depends(officer), db=Depends(get_db)):
+def edit_entry(eid: int, value: BoardEntryWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     entry = require(db, BoardEntry, eid, True)
     revision(entry, value.expected_revision)
     apply_entry(db, entry, value, user)
@@ -377,7 +377,7 @@ def edit_entry(eid: int, value: BoardEntryWrite, user=Depends(officer), db=Depen
 
 
 @router.delete("/api/admin/board/entries/{eid}")
-def delete_entry(eid: int, user=Depends(officer), db=Depends(get_db)):
+def delete_entry(eid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
     entry = require(db, BoardEntry, eid, True)
     db.delete(entry)
     audit(db, user, "board.entry.remove", eid)
@@ -385,7 +385,7 @@ def delete_entry(eid: int, user=Depends(officer), db=Depends(get_db)):
 
 
 @router.put("/api/admin/board/terms/{tid}/order")
-def order_entries(tid: int, value: OrderWrite, user=Depends(officer), db=Depends(get_db)):
+def order_entries(tid: int, value: OrderWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     term = require(db, BoardTerm, tid, True)
     revision(term, value.expected_revision)
     entries = list(db.scalars(select(BoardEntry).where(BoardEntry.term_id == tid)))

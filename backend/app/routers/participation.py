@@ -41,7 +41,7 @@ router = APIRouter(prefix="/api")
 
 
 @router.put("/events/{eid}/signup", response_model=SignupOwn)
-def self_signup(eid: int, value: SignupWrite, user=Depends(member), db=Depends(get_db)):
+def self_signup(eid: int, value: SignupWrite, user=Depends(member), db=Depends(get_db, scope="function")):
     e = operational_event(db, eid)
     s = save_signup(db, e, user, value)
     audit(db, user, "signup.save", s.id)
@@ -49,7 +49,7 @@ def self_signup(eid: int, value: SignupWrite, user=Depends(member), db=Depends(g
 
 
 @router.delete("/events/{eid}/signup")
-def self_cancel(eid: int, user=Depends(member), db=Depends(get_db)):
+def self_cancel(eid: int, user=Depends(member), db=Depends(get_db, scope="function")):
     e = operational_event(db, eid)
     s = db.scalar(select(Signup).where(Signup.event_id == eid, Signup.member_id == user.id))
     if s:
@@ -64,7 +64,7 @@ def own_signups(
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
     user=Depends(member),
-    db=Depends(get_db),
+    db=Depends(get_db, scope="function"),
 ):
     query = select(Signup).join(Event).where(Signup.member_id == user.id)
     if event_id is not None:
@@ -85,7 +85,7 @@ def roster(
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
     user=Depends(officer),
-    db=Depends(get_db),
+    db=Depends(get_db, scope="function"),
 ):
     e = require(db, Event, eid)
     if not e.signups_enabled:
@@ -101,7 +101,7 @@ def roster(
 
 
 @router.post("/admin/events/{eid}/signups", response_model=SignupPrivate)
-def add_signup(eid: int, value: OfficerSignup, user=Depends(officer), db=Depends(get_db)):
+def add_signup(eid: int, value: OfficerSignup, user=Depends(officer), db=Depends(get_db, scope="function")):
     e = operational_event(db, eid)
     target = require(db, Member, value.member_id)
     s = save_signup(db, e, target, value, True, "officer")
@@ -110,7 +110,7 @@ def add_signup(eid: int, value: OfficerSignup, user=Depends(officer), db=Depends
 
 
 @router.delete("/admin/signups/{sid}")
-def remove_signup(sid: int, user=Depends(officer), db=Depends(get_db)):
+def remove_signup(sid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
     s = require(db, Signup, sid)
     e = operational_event(db, s.event_id)
     db.refresh(s)
@@ -119,7 +119,7 @@ def remove_signup(sid: int, user=Depends(officer), db=Depends(get_db)):
 
 
 @router.get("/admin/events/{eid}/check-in", response_model=CheckInView)
-def check_in_state(eid: int, user=Depends(officer), db=Depends(get_db)):
+def check_in_state(eid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
     e = require(db, Event, eid)
     if not e.signups_enabled:
         fail(409, "signups_disabled", "This event does not use attendance.")
@@ -154,7 +154,7 @@ def check_in_state(eid: int, user=Depends(officer), db=Depends(get_db)):
 
 
 @router.post("/admin/signups/{sid}/check-in", response_model=SignupPrivate)
-def check_in(sid: int, user=Depends(officer), db=Depends(get_db)):
+def check_in(sid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
     s = require(db, Signup, sid)
     e = operational_event(db, s.event_id)
     db.refresh(s)
@@ -162,7 +162,7 @@ def check_in(sid: int, user=Depends(officer), db=Depends(get_db)):
 
 
 @router.delete("/admin/signups/{sid}/check-in")
-def undo_check_in(sid: int, user=Depends(officer), db=Depends(get_db)):
+def undo_check_in(sid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
     s = require(db, Signup, sid)
     e = operational_event(db, s.event_id)
     db.refresh(s)
@@ -171,7 +171,7 @@ def undo_check_in(sid: int, user=Depends(officer), db=Depends(get_db)):
 
 
 @router.post("/admin/signups/{sid}/extension", response_model=SignupPrivate)
-def extend(sid: int, value: ExtensionWrite, user=Depends(officer), db=Depends(get_db)):
+def extend(sid: int, value: ExtensionWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     s = require(db, Signup, sid)
     e = operational_event(db, s.event_id)
     db.refresh(s)
@@ -187,7 +187,7 @@ def extend(sid: int, value: ExtensionWrite, user=Depends(officer), db=Depends(ge
 
 
 @router.put("/admin/events/{eid}/cards")
-def inventory(eid: int, value: CardsWrite, user=Depends(officer), db=Depends(get_db)):
+def inventory(eid: int, value: CardsWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     e = operational_event(db, eid, value.expected_revision)
     for role, count in (("general", value.general_cards), ("paid", value.paid_cards)):
         maximum = (
@@ -202,7 +202,7 @@ def inventory(eid: int, value: CardsWrite, user=Depends(officer), db=Depends(get
 
 
 @router.post("/admin/events/{eid}/cards/void")
-def void_card(eid: int, value: CardVoid, user=Depends(officer), db=Depends(get_db)):
+def void_card(eid: int, value: CardVoid, user=Depends(officer), db=Depends(get_db, scope="function")):
     e = operational_event(db, eid, value.expected_revision)
     maximum = e.paid_cards if value.category == "paid" else e.general_cards
     if value.number > maximum:
@@ -220,7 +220,7 @@ def void_card(eid: int, value: CardVoid, user=Depends(officer), db=Depends(get_d
 
 
 @router.put("/admin/events/{eid}/carpools/{rider_id}")
-def seat_rider(eid: int, rider_id: int, value: AssignmentWrite, user=Depends(officer), db=Depends(get_db)):
+def seat_rider(eid: int, rider_id: int, value: AssignmentWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     e = operational_event(db, eid, value.expected_revision)
     s = require(db, Signup, rider_id)
     driver = require(db, Signup, value.driver_signup_id) if value.driver_signup_id else None
@@ -230,7 +230,7 @@ def seat_rider(eid: int, rider_id: int, value: AssignmentWrite, user=Depends(off
 
 
 @router.post("/admin/events/{eid}/carpools/fill")
-def fill(eid: int, value: Revision, user=Depends(officer), db=Depends(get_db)):
+def fill(eid: int, value: Revision, user=Depends(officer), db=Depends(get_db, scope="function")):
     e = operational_event(db, eid, value.expected_revision)
     count = fill_remaining(db, e)
     audit(db, user, "carpool.fill", eid, {"new_assignments": count})
@@ -238,7 +238,7 @@ def fill(eid: int, value: Revision, user=Depends(officer), db=Depends(get_db)):
 
 
 @router.post("/admin/events/{eid}/walk-ins", response_model=SignupPrivate)
-def walk_in(eid: int, value: WalkInWrite, user=Depends(officer), db=Depends(get_db)):
+def walk_in(eid: int, value: WalkInWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     e = operational_event(db, eid)
     key = hashlib.sha256(f"{eid}:{user.id}:{value.request_id}".encode()).hexdigest()
     previous = db.scalar(select(Audit).where(Audit.action == "attendance.walk-in", Audit.entity == key))
@@ -270,7 +270,7 @@ def attendance_log(
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
     user=Depends(officer),
-    db=Depends(get_db),
+    db=Depends(get_db, scope="function"),
 ):
     require(db, Event, eid)
     result = page(
@@ -306,7 +306,7 @@ def attendance_log(
 
 
 @router.get("/admin/events/{eid}/questions", response_model=QuestionAnswers)
-def answers(eid: int, user=Depends(officer), db=Depends(get_db)):
+def answers(eid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
     e = require(db, Event, eid)
     rows = list(
         db.execute(
@@ -332,7 +332,7 @@ def safe_cell(value):
 
 
 @router.get("/admin/events/{eid}/signups.csv")
-def export(eid: int, user=Depends(officer), db=Depends(get_db)):
+def export(eid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
     e = require(db, Event, eid)
     output = io.StringIO()
     writer = csv.writer(output)

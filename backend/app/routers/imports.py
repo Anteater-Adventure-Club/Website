@@ -37,7 +37,7 @@ def scope(db, value):
 
 
 @router.post("/preview", response_model=ImportView)
-def preview(value: ImportWrite, request: Request, user=Depends(officer), db=Depends(get_db)):
+def preview(value: ImportWrite, request: Request, user=Depends(officer), db=Depends(get_db, scope="function")):
     limited(request, db, "import", 10)
     event = scope(db, value)
     if len(value.text.encode()) > 1048576:
@@ -99,7 +99,7 @@ def preview(value: ImportWrite, request: Request, user=Depends(officer), db=Depe
 
 
 @router.post("/{pid}/apply", response_model=ImportOutcome)
-def apply(pid: str, value: ImportApply, user=Depends(officer), db=Depends(get_db)):
+def apply(pid: str, value: ImportApply, user=Depends(officer), db=Depends(get_db, scope="function")):
     original = require(db, ImportPreview, pid)
     spec = ImportWrite(text="", **original.specification)
     event = scope(db, spec)

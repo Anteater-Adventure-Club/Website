@@ -13,7 +13,7 @@ router = APIRouter(prefix="/api/admin")
 
 
 @router.get("/overview", response_model=AdminOverview)
-def overview(quarter_id: int | None = None, user=Depends(officer), db=Depends(get_db)):
+def overview(quarter_id: int | None = None, user=Depends(officer), db=Depends(get_db, scope="function")):
     q = default_quarter(db, quarter_id)
     if q is None:
         return {"quarter_id": None, "statistics": {}, "events": [], "attention": []}

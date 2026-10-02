@@ -1,7 +1,39 @@
+import asyncio
 from concurrent.futures import ThreadPoolExecutor
+import httpx
+from sqlalchemy import text
 from datetime import datetime, time, timedelta
 from app.domain import PACIFIC, today
 from conftest import cookie, event, person, quarter, signup
+
+
+def test_write_is_committed_before_response_headers(api):
+    """A separate connection must see a new member when HTTP headers are sent."""
+    committed_at_headers = []
+
+    async def boundary(scope, receive, send):
+        async def observe(message):
+            if message["type"] == "http.response.start":
+                with api.app.state.sessions() as db:
+                    committed_at_headers.append(
+                        db.execute(text("SELECT count(*) FROM members WHERE email='response-boundary@uci.edu'"))
+                        .scalar_one()
+                    )
+            await send(message)
+
+        await api.app(scope, receive, observe)
+
+    async def request():
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=boundary), base_url="http://testserver") as client:
+            return await client.post(
+                "/api/admin/members",
+                headers={"Origin": "http://testserver", "Cookie": f"aac_session={cookie(1)}"},
+                json={"name": "Response boundary", "email": "response-boundary@uci.edu"},
+            )
+
+    response = asyncio.run(request())
+    assert response.status_code == 201
+    assert committed_at_headers == [1]
 
 
 def test_multi_day_and_multiple_same_day_calendar(api):

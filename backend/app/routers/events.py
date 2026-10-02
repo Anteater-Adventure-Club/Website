@@ -83,7 +83,7 @@ def public_events(
     to_date: date = Query(alias="to"),
     limit: Limit = 50,
     offset: Offset = 0,
-    db=Depends(get_db),
+    db=Depends(get_db, scope="function"),
 ):
     if to_date < from_date or (to_date - from_date).days > 370:
         fail(422, "date_range", "Choose a date range of at most 370 days.")
@@ -104,7 +104,7 @@ def public_events(
 
 
 @router.get("/events/{eid}", response_model=EventPublic)
-def public_event(eid: int, db=Depends(get_db)):
+def public_event(eid: int, db=Depends(get_db, scope="function")):
     e = require(db, Event, eid)
     if e.state == "draft" or e.skipped:
         fail(404, "not_found", "This event could not be found.")
@@ -119,7 +119,7 @@ def admin_events(
     limit: Limit = 50,
     offset: Offset = 0,
     user=Depends(officer),
-    db=Depends(get_db),
+    db=Depends(get_db, scope="function"),
 ):
     default_quarter(db, quarter_id)
     query = select(Event).where(Event.quarter_id == quarter_id, Event.skipped.is_(False))
@@ -133,7 +133,7 @@ def admin_events(
 
 
 @router.post("/admin/events", response_model=EventPrivate, status_code=201)
-def create_event(value: EventWrite, user=Depends(officer), db=Depends(get_db)):
+def create_event(value: EventWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     validate_event(db, value)
     e = Event()
     apply_event(e, value)
@@ -144,12 +144,12 @@ def create_event(value: EventWrite, user=Depends(officer), db=Depends(get_db)):
 
 
 @router.get("/admin/events/{eid}", response_model=EventPrivate)
-def manage_event(eid: int, user=Depends(officer), db=Depends(get_db)):
+def manage_event(eid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
     return event_projection(db, require(db, Event, eid), True)
 
 
 @router.put("/admin/events/{eid}", response_model=EventPrivate)
-def edit_event(eid: int, value: EventWrite, user=Depends(officer), db=Depends(get_db)):
+def edit_event(eid: int, value: EventWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     open_quarter(db, value.quarter_id)
     e = require(db, Event, eid, True)
     revision(e, value.expected_revision)
@@ -163,7 +163,7 @@ def edit_event(eid: int, value: EventWrite, user=Depends(officer), db=Depends(ge
 
 
 @router.post("/admin/events/{eid}/state", response_model=EventPrivate)
-def event_state(eid: int, value: StateChange, user=Depends(officer), db=Depends(get_db)):
+def event_state(eid: int, value: StateChange, user=Depends(officer), db=Depends(get_db, scope="function")):
     initial = require(db, Event, eid)
     open_quarter(db, initial.quarter_id)
     e = require(db, Event, eid, True)
@@ -206,7 +206,7 @@ def event_state(eid: int, value: StateChange, user=Depends(officer), db=Depends(
 
 
 @router.post("/admin/events/{eid}/duplicate", response_model=EventPrivate)
-def duplicate(eid: int, value: DuplicateWrite, user=Depends(officer), db=Depends(get_db)):
+def duplicate(eid: int, value: DuplicateWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     old = require(db, Event, eid)
     fields = {k: getattr(old, k) for k in EventWrite.model_fields if hasattr(old, k)}
     fields.update(quarter_id=value.quarter_id, starts_at=value.starts_at, ends_at=value.ends_at)
@@ -217,7 +217,7 @@ def duplicate(eid: int, value: DuplicateWrite, user=Depends(officer), db=Depends
 
 
 @router.post("/admin/events/{eid}/skip")
-def skip(eid: int, value: Revision, user=Depends(officer), db=Depends(get_db)):
+def skip(eid: int, value: Revision, user=Depends(officer), db=Depends(get_db, scope="function")):
     e = require(db, Event, eid)
     open_quarter(db, e.quarter_id)
     e = require(db, Event, eid, True)
@@ -257,12 +257,12 @@ def occurrence_input(value, row):
 
 
 @router.post("/admin/series/preview")
-def preview_series(value: SeriesWrite, user=Depends(officer), db=Depends(get_db)):
+def preview_series(value: SeriesWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     return {"items": series_dates(db, value)}
 
 
 @router.post("/admin/series", status_code=201, response_model=SeriesView)
-def create_series(value: SeriesWrite, user=Depends(officer), db=Depends(get_db)):
+def create_series(value: SeriesWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     rows = series_dates(db, value)
     existing = db.scalar(select(Series).where(Series.request_id == value.request_id))
     if existing:
@@ -286,7 +286,7 @@ def create_series(value: SeriesWrite, user=Depends(officer), db=Depends(get_db))
 
 
 @router.get("/admin/series/{sid}", response_model=SeriesView)
-def series_detail(sid: int, user=Depends(officer), db=Depends(get_db)):
+def series_detail(sid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
     series = require(db, Series, sid)
     events = list(db.scalars(select(Event).where(Event.series_id == sid).order_by(Event.starts_at)))
     participated = set(
@@ -304,7 +304,7 @@ def series_detail(sid: int, user=Depends(officer), db=Depends(get_db)):
 
 
 @router.put("/admin/series/{sid}", response_model=SeriesView)
-def edit_series(sid: int, value: SeriesWrite, user=Depends(officer), db=Depends(get_db)):
+def edit_series(sid: int, value: SeriesWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     rows = series_dates(db, value)
     series = require(db, Series, sid, True)
     revision(series, value.expected_revision)
@@ -354,7 +354,7 @@ def edit_series(sid: int, value: SeriesWrite, user=Depends(officer), db=Depends(
 
 
 @router.post("/admin/series/{sid}/publish", response_model=SeriesView)
-def publish_series(sid: int, value: Revision, user=Depends(officer), db=Depends(get_db)):
+def publish_series(sid: int, value: Revision, user=Depends(officer), db=Depends(get_db, scope="function")):
     """Publish the remaining active drafts as one transaction."""
     initial = require(db, Series, sid)
     open_quarter(db, initial.quarter_id)

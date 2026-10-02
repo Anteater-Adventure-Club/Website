@@ -43,13 +43,13 @@ router = APIRouter(prefix="/api")
 def quarters(
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
-    db=Depends(get_db),
+    db=Depends(get_db, scope="function"),
 ):
     return page(db, select(Quarter).order_by(Quarter.starts_on.desc()), limit, offset)
 
 
 @router.get("/admin/quarters", response_model=Page[QuarterPrivate])
-def admin_quarters(user=Depends(officer), db=Depends(get_db)):
+def admin_quarters(user=Depends(officer), db=Depends(get_db, scope="function")):
     return page(db, select(Quarter).order_by(Quarter.starts_on.desc()), 200, 0)
 
 
@@ -71,7 +71,7 @@ def validate_quarter(db, value, existing=None):
 
 
 @router.post("/admin/quarters", response_model=QuarterPrivate, status_code=201)
-def create_quarter(value: QuarterWrite, user=Depends(officer), db=Depends(get_db)):
+def create_quarter(value: QuarterWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     validate_quarter(db, value)
     quarter = Quarter(**value.model_dump(exclude={"expected_revision"}))
     db.add(quarter)
@@ -81,7 +81,7 @@ def create_quarter(value: QuarterWrite, user=Depends(officer), db=Depends(get_db
 
 
 @router.put("/admin/quarters/{qid}", response_model=QuarterPrivate)
-def edit_quarter(qid: int, value: QuarterWrite, user=Depends(officer), db=Depends(get_db)):
+def edit_quarter(qid: int, value: QuarterWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     advisory(db, 702)
     q = open_quarter(db, qid)
     revision(q, value.expected_revision)
@@ -94,7 +94,7 @@ def edit_quarter(qid: int, value: QuarterWrite, user=Depends(officer), db=Depend
 
 
 @router.get("/membership-benefits", response_model=MembershipBenefitView)
-def benefits(quarter_id: int | None = None, db=Depends(get_db)):
+def benefits(quarter_id: int | None = None, db=Depends(get_db, scope="function")):
     q = default_quarter(db, quarter_id)
     if not q:
         return {"quarter": None, "budget": "0.00", "coverage": "1.0000"}
@@ -103,12 +103,12 @@ def benefits(quarter_id: int | None = None, db=Depends(get_db)):
 
 
 @router.get("/admin/quarters/{qid}/reimbursements", response_model=QuarterReport)
-def quarter_report(qid: int, user=Depends(officer), db=Depends(get_db)):
+def quarter_report(qid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
     return report(db, require(db, Quarter, qid))
 
 
 @router.get("/me/reimbursements", response_model=MyReimbursements)
-def personal_report(quarter_id: int | None = None, user=Depends(member), db=Depends(get_db)):
+def personal_report(quarter_id: int | None = None, user=Depends(member), db=Depends(get_db, scope="function")):
     q = default_quarter(db, quarter_id)
     if q is None:
         return {"quarter": None, "driver": None}
@@ -124,7 +124,7 @@ def personal_report(quarter_id: int | None = None, user=Depends(member), db=Depe
 
 
 @router.post("/admin/quarters/{qid}/drivers")
-def register_driver(qid: int, value: OfficerGrant, user=Depends(officer), db=Depends(get_db)):
+def register_driver(qid: int, value: OfficerGrant, user=Depends(officer), db=Depends(get_db, scope="function")):
     open_quarter(db, qid)
     require(db, Member, value.member_id)
     r = db.scalar(
@@ -140,7 +140,7 @@ def register_driver(qid: int, value: OfficerGrant, user=Depends(officer), db=Dep
 
 
 @router.put("/admin/quarters/{qid}/drivers/{mid}/eligibility")
-def eligibility(qid: int, mid: int, value: EligibilityWrite, user=Depends(officer), db=Depends(get_db)):
+def eligibility(qid: int, mid: int, value: EligibilityWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     register_driver(qid, OfficerGrant(member_id=mid), user, db)
     r = db.scalar(
         select(DriverRegistration).where(
@@ -168,7 +168,7 @@ def financial_event(db, eid):
 
 
 @router.put("/admin/events/{eid}/mileage")
-def mileage(eid: int, value: MileageWrite, user=Depends(officer), db=Depends(get_db)):
+def mileage(eid: int, value: MileageWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     e, q = financial_event(db, eid)
     revision(e, value.expected_revision)
     e.miles, e.gas_price, e.rate_override = value.miles, value.gas_price, value.rate_override
@@ -178,7 +178,7 @@ def mileage(eid: int, value: MileageWrite, user=Depends(officer), db=Depends(get
 
 
 @router.get("/admin/events/{eid}/trips", response_model=Items[TripRow])
-def event_trips(eid: int, user=Depends(officer), db=Depends(get_db)):
+def event_trips(eid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
     e = require(db, Event, eid)
     if not e.signups_enabled:
         fail(409, "signups_disabled", "This event does not use trips.")
@@ -201,7 +201,7 @@ def event_trips(eid: int, user=Depends(officer), db=Depends(get_db)):
 
 
 @router.post("/admin/events/{eid}/trips")
-def add_trip(eid: int, value: TripCreate, user=Depends(officer), db=Depends(get_db)):
+def add_trip(eid: int, value: TripCreate, user=Depends(officer), db=Depends(get_db, scope="function")):
     e, q = financial_event(db, eid)
     register_driver(q.id, OfficerGrant(member_id=value.member_id), user, db)
     t = db.scalar(select(Trip).where(Trip.event_id == eid, Trip.member_id == value.member_id))
@@ -215,7 +215,7 @@ def add_trip(eid: int, value: TripCreate, user=Depends(officer), db=Depends(get_
 
 
 @router.put("/admin/trips/{tid}")
-def edit_trip(tid: int, value: TripWrite, user=Depends(officer), db=Depends(get_db)):
+def edit_trip(tid: int, value: TripWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     t = require(db, Trip, tid)
     financial_event(db, t.event_id)
     t = require(db, Trip, tid, True)
@@ -227,7 +227,7 @@ def edit_trip(tid: int, value: TripWrite, user=Depends(officer), db=Depends(get_
 
 
 @router.delete("/admin/trips/{tid}")
-def remove_trip(tid: int, user=Depends(officer), db=Depends(get_db)):
+def remove_trip(tid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
     t = require(db, Trip, tid)
     financial_event(db, t.event_id)
     db.delete(t)
@@ -236,7 +236,7 @@ def remove_trip(tid: int, user=Depends(officer), db=Depends(get_db)):
 
 
 @router.post("/admin/quarters/{qid}/finalize", response_model=QuarterReport)
-def finalize(qid: int, user=Depends(officer), db=Depends(get_db)):
+def finalize(qid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
     q = require(db, Quarter, qid, True)
     if q.state != "open":
         return report(db, q)
@@ -259,7 +259,7 @@ def finalize(qid: int, user=Depends(officer), db=Depends(get_db)):
 
 
 @router.put("/admin/payouts/{pid}/payment")
-def payment(pid: int, value: PaymentWrite, user=Depends(officer), db=Depends(get_db)):
+def payment(pid: int, value: PaymentWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     p = require(db, Payout, pid)
     q = require(db, Quarter, p.quarter_id, True)
     p = require(db, Payout, pid, True)
@@ -277,7 +277,7 @@ def payment(pid: int, value: PaymentWrite, user=Depends(officer), db=Depends(get
 
 
 @router.post("/admin/quarters/{qid}/archive")
-def archive(qid: int, user=Depends(officer), db=Depends(get_db)):
+def archive(qid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
     q = require(db, Quarter, qid, True)
     if q.state == "archived":
         return {"ok": True}

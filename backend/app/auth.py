@@ -31,7 +31,7 @@ def safe_return(value):
     return value if not urlsplit(value).netloc else "/my-aac"
 
 
-def member(request: Request, db=Depends(get_db)):
+def member(request: Request, db=Depends(get_db, scope="function")):
     mid = request.session.get("member_id")
     if request.session.get("login_at", 0) < int(utcnow().timestamp()) - 28800:
         request.session.clear()
@@ -42,7 +42,7 @@ def member(request: Request, db=Depends(get_db)):
     return value
 
 
-def officer(user=Depends(member), db=Depends(get_db)):
+def officer(user=Depends(member), db=Depends(get_db, scope="function")):
     if db.get(Officer, user.id) is None:
         fail(403, "officer_required", "This page is for AAC officers.")
     return user
@@ -110,7 +110,7 @@ def make_oauth(settings):
 
 
 @router.get("/session", response_model=SessionView)
-def session(request: Request, db=Depends(get_db)):
+def session(request: Request, db=Depends(get_db, scope="function")):
     mid = request.session.get("member_id")
     if request.session.get("login_at", 0) < int(utcnow().timestamp()) - 28800:
         request.session.clear()
@@ -125,7 +125,7 @@ def session(request: Request, db=Depends(get_db)):
 
 
 @router.get("/auth/login")
-async def login(request: Request, return_to: str = "/my-aac", db=Depends(get_db)):
+async def login(request: Request, return_to: str = "/my-aac", db=Depends(get_db, scope="function")):
     limited(request, db, "login", 20)
     google = request.app.state.oauth.create_client("google")
     if google is None:
@@ -135,7 +135,7 @@ async def login(request: Request, return_to: str = "/my-aac", db=Depends(get_db)
 
 
 @router.get("/auth/callback")
-async def callback(request: Request, db=Depends(get_db)):
+async def callback(request: Request, db=Depends(get_db, scope="function")):
     google = request.app.state.oauth.create_client("google")
     if google is None:
         return RedirectResponse("/sign-in?error=unconfigured", status_code=303)

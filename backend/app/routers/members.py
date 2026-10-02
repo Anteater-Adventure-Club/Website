@@ -46,7 +46,7 @@ def own_profile(user=Depends(member)):
 
 
 @router.put("/me/profile", response_model=MemberPrivate)
-def save_profile(value: ProfileWrite, user=Depends(member), db=Depends(get_db)):
+def save_profile(value: ProfileWrite, user=Depends(member), db=Depends(get_db, scope="function")):
     for key, v in value.model_dump().items():
         setattr(user, key, v)
     audit(db, user, "profile.edit", user.id)
@@ -54,7 +54,7 @@ def save_profile(value: ProfileWrite, user=Depends(member), db=Depends(get_db)):
 
 
 @router.put("/me/payout-details", response_model=MemberPrivate)
-def payout_details(value: PayoutDetailsWrite, user=Depends(member), db=Depends(get_db)):
+def payout_details(value: PayoutDetailsWrite, user=Depends(member), db=Depends(get_db, scope="function")):
     for key, v in value.model_dump().items():
         setattr(user, key, v)
     audit(db, user, "profile.payout", user.id)
@@ -62,7 +62,7 @@ def payout_details(value: PayoutDetailsWrite, user=Depends(member), db=Depends(g
 
 
 @router.get("/me/vehicles", response_model=Page[VehicleView])
-def own_vehicles(user=Depends(member), db=Depends(get_db)):
+def own_vehicles(user=Depends(member), db=Depends(get_db, scope="function")):
     return page(
         db,
         select(Vehicle).where(Vehicle.member_id == user.id, Vehicle.removed.is_(False)).order_by(Vehicle.id),
@@ -72,7 +72,7 @@ def own_vehicles(user=Depends(member), db=Depends(get_db)):
 
 
 @router.post("/me/vehicles", response_model=VehicleView, status_code=201)
-def add_vehicle(value: VehicleWrite, user=Depends(member), db=Depends(get_db)):
+def add_vehicle(value: VehicleWrite, user=Depends(member), db=Depends(get_db, scope="function")):
     v = Vehicle(member_id=user.id, **value.model_dump())
     db.add(v)
     db.flush()
@@ -80,7 +80,7 @@ def add_vehicle(value: VehicleWrite, user=Depends(member), db=Depends(get_db)):
 
 
 @router.put("/me/vehicles/{vid}", response_model=VehicleView)
-def edit_vehicle(vid: int, value: VehicleWrite, user=Depends(member), db=Depends(get_db)):
+def edit_vehicle(vid: int, value: VehicleWrite, user=Depends(member), db=Depends(get_db, scope="function")):
     v = require(db, Vehicle, vid, True)
     if v.member_id != user.id or v.removed:
         fail(404, "not_found", "This car could not be found.")
@@ -90,7 +90,7 @@ def edit_vehicle(vid: int, value: VehicleWrite, user=Depends(member), db=Depends
 
 
 @router.delete("/me/vehicles/{vid}")
-def remove_vehicle(vid: int, user=Depends(member), db=Depends(get_db)):
+def remove_vehicle(vid: int, user=Depends(member), db=Depends(get_db, scope="function")):
     v = require(db, Vehicle, vid, True)
     if v.member_id != user.id:
         fail(404, "not_found", "This car could not be found.")
@@ -99,7 +99,7 @@ def remove_vehicle(vid: int, user=Depends(member), db=Depends(get_db)):
 
 
 @router.get("/me/memberships/{qid}", response_model=MembershipView)
-def own_membership(qid: int, user=Depends(member), db=Depends(get_db)):
+def own_membership(qid: int, user=Depends(member), db=Depends(get_db, scope="function")):
     from ..models import Quarter
 
     require(db, Quarter, qid)
@@ -107,7 +107,7 @@ def own_membership(qid: int, user=Depends(member), db=Depends(get_db)):
 
 
 @router.post("/me/memberships/{qid}", response_model=MembershipView)
-def submit_dues(qid: int, value: MembershipSubmit, user=Depends(member), db=Depends(get_db)):
+def submit_dues(qid: int, value: MembershipSubmit, user=Depends(member), db=Depends(get_db, scope="function")):
     open_quarter(db, qid)
     if not user.phone:
         fail(422, "phone_required", "Add your phone number in My AAC before submitting dues.")
@@ -122,7 +122,7 @@ def submit_dues(qid: int, value: MembershipSubmit, user=Depends(member), db=Depe
 
 
 @router.post("/admin/members/{mid}/memberships/{qid}/decision", response_model=MembershipView)
-def decide_dues(mid: int, qid: int, value: MembershipDecision, user=Depends(officer), db=Depends(get_db)):
+def decide_dues(mid: int, qid: int, value: MembershipDecision, user=Depends(officer), db=Depends(get_db, scope="function")):
     open_quarter(db, qid)
     require(db, Member, mid)
     m = ensure_membership(db, mid, qid)
@@ -175,7 +175,7 @@ def decide_dues(mid: int, qid: int, value: MembershipDecision, user=Depends(offi
 
 
 @router.post("/admin/members", response_model=MemberPrivate, status_code=201)
-def add_member(value: MemberInput, user=Depends(officer), db=Depends(get_db)):
+def add_member(value: MemberInput, user=Depends(officer), db=Depends(get_db, scope="function")):
     m = ensure_member(db, value)
     audit(db, user, "member.add", m.id)
     return m
@@ -189,7 +189,7 @@ def member_list(
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
     user=Depends(officer),
-    db=Depends(get_db),
+    db=Depends(get_db, scope="function"),
 ):
     q = default_quarter(db, quarter_id)
     query = select(Member)
@@ -222,7 +222,7 @@ def member_list(
 
 
 @router.get("/admin/members/{mid}", response_model=MemberDetail)
-def member_detail(mid: int, quarter_id: int | None = None, user=Depends(officer), db=Depends(get_db)):
+def member_detail(mid: int, quarter_id: int | None = None, user=Depends(officer), db=Depends(get_db, scope="function")):
     m = require(db, Member, mid)
     q = default_quarter(db, quarter_id)
     history = list(
@@ -247,7 +247,7 @@ def member_detail(mid: int, quarter_id: int | None = None, user=Depends(officer)
 
 
 @router.get("/admin/members/{mid}/vehicles", response_model=Page[VehicleView])
-def member_vehicles(mid: int, user=Depends(officer), db=Depends(get_db)):
+def member_vehicles(mid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
     require(db, Member, mid)
     return page(
         db,
@@ -258,7 +258,7 @@ def member_vehicles(mid: int, user=Depends(officer), db=Depends(get_db)):
 
 
 @router.post("/admin/members/{mid}/vehicles", response_model=VehicleView)
-def officer_vehicle(mid: int, value: VehicleWrite, user=Depends(officer), db=Depends(get_db)):
+def officer_vehicle(mid: int, value: VehicleWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
     require(db, Member, mid)
     v = Vehicle(member_id=mid, source="officer", **value.model_dump())
     db.add(v)
@@ -290,7 +290,7 @@ def revoke(db, mid, actor):
 
 
 @router.get("/admin/officers", response_model=Items[OfficerView])
-def officers(user=Depends(officer), db=Depends(get_db)):
+def officers(user=Depends(officer), db=Depends(get_db, scope="function")):
     return {
         "items": [
             {"member_id": m.id, "name": m.name, "email": m.email, "granted_at": o.granted_at}
@@ -300,19 +300,19 @@ def officers(user=Depends(officer), db=Depends(get_db)):
 
 
 @router.post("/admin/officers")
-def grant_officer(value: OfficerGrant, user=Depends(officer), db=Depends(get_db)):
+def grant_officer(value: OfficerGrant, user=Depends(officer), db=Depends(get_db, scope="function")):
     grant(db, value.member_id, user)
     return {"ok": True}
 
 
 @router.delete("/admin/officers/{mid}")
-def revoke_officer(mid: int, user=Depends(officer), db=Depends(get_db)):
+def revoke_officer(mid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
     revoke(db, mid, user)
     return {"ok": True}
 
 
 @router.get("/admin/audit/recent")
-def audit_recent(user=Depends(officer), db=Depends(get_db)):
+def audit_recent(user=Depends(officer), db=Depends(get_db, scope="function")):
     return {
         "items": [
             {
@@ -329,7 +329,7 @@ def audit_recent(user=Depends(officer), db=Depends(get_db)):
 
 
 @router.get("/me/overview", response_model=MyOverview)
-def overview(quarter_id: int | None = None, user=Depends(member), db=Depends(get_db)):
+def overview(quarter_id: int | None = None, user=Depends(member), db=Depends(get_db, scope="function")):
     q = default_quarter(db, quarter_id)
     n = utcnow()
     events = list(
@@ -364,7 +364,7 @@ def overview(quarter_id: int | None = None, user=Depends(member), db=Depends(get
 
 
 @router.get("/admin/directory")
-async def directory(request: Request, email: str, user=Depends(officer), db=Depends(get_db)):
+async def directory(request: Request, email: str, user=Depends(officer), db=Depends(get_db, scope="function")):
     from ..services.directory import DirectoryUnavailable, lookup_name
 
     limited(request, db, "directory", 20)
