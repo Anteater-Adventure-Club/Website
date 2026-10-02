@@ -36,7 +36,7 @@
       1280,
       1440
     ],
-    "source": "Completed initial local matrix and successful branch CI run 37042378482"
+    "source": "Final local Node 24 matrix: 360 passed, with visible-image loading checks"
   },
   "corrected_fixture_checks": {
     "cases": 18,
@@ -64,5 +64,18 @@
     "pass": true,
     "includes_visible_image_loading": true,
     "source": "Final local targeted checks across six primary viewports"
+  },
+  "node_lts": "24.21.0",
+  "github_actions_runtime": "All four GitHub-maintained workflow actions updated to verified current v7 Node 24 releases; no Node 20 annotations in run 37050393976.",
+  "homepage_corrections": {
+    "six_primary_views": 6,
+    "layout_boundary_and_rotation_checks": 12,
+    "long_captions_and_dates": "Supplied 5a/5b About content restored",
+    "adventure_links": "Unfiltered calendar"
+  },
+  "board_journey_ci_correction": {
+    "cause": "The test polled database state before the browser closed its revoke dialog and refreshed the list, causing an ambiguous button lookup.",
+    "fix": "Await dialog closure and one remaining visible revoke control.",
+    "local_cross_engine_recheck_passes": 9
   }
 }

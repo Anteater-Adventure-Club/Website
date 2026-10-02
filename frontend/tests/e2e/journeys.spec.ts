@@ -476,6 +476,10 @@ test("J09 new board profile, reorder, next term and explicit access revocation",
   await expect
     .poll(async () => (await api(page, "/api/admin/officers")).items.length)
     .toBe(1);
+  await expect(dialog(page)).not.toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Revoke Access", exact: true }),
+  ).toHaveCount(1);
   await page.getByRole("button", { name: "Revoke Access" }).click();
   await dialog(page).getByRole("button", { name: "Revoke Access" }).click();
   await expect(

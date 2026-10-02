@@ -51,3 +51,7 @@ These defaults fill implementation detail rather than change the owner's scope d
 ## Infrastructure correction
 
 During discovery, public DNS returned private IP 192.168.4.78 for the internal domains. That alone did not establish webhook reachability. The owner confirmed existing routing makes GitHub delivery work and completed the organization integration during the session. Use that routing; do not add a runner or expose a new endpoint based on the earlier inference.
+
+## Homepage clarification during implementation
+
+The owner requested the exact supplied About section titles, copy, photos, and seasonal/week captions. These remain fixed editorial content for now. Restore Hikes, City Exploration, Potluck Picnics, and Quarterly Retreats from the combined homepage mockup. Every “Find your next adventure” link opens the full calendar with no activity/type filter. Hero cards read published homepage-selected recaps, with real titles and full dates, and cycle when more than two exist; supplied mockup examples are the empty-store fallback. Respect reduced motion and offer Pause/Resume. The verified Discord invite is `https://discord.gg/aWx6Apz74n` and is set as a runtime setting.

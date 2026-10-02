@@ -32,32 +32,35 @@ export function Home() {
   }, [polaroids.length, photosPaused]);
   const activities = [
     {
-      title: "Beaches",
-      text: "Catch a sunset, explore tide pools, or spend a day by the water. Orange County has plenty of coastline to discover together.",
-      images: ["about_tide_pools", "about_salt_creek"],
-      labels: ["Tide pools", "Coastal trails"],
-      search: "beach",
+      title: "Hikes",
+      text: "Explore weekly hikes across Orange County and Southern California — scenic trails, great company, and adventure starting right here at UCI",
+      images: ["about_salt_creek", "about_tide_pools"],
+      labels: ["Salt Creek Trail Hike @ Dana Point", "Laguna Tide Pools Hike"],
+      dates: ["Winter 2024", "Winter 2026"],
     },
     {
-      title: "City exploration",
-      text: "A change of scenery is closer than you think. Explore a new neighborhood, find a good bite, and make a day of it with friends.",
+      title: "City Exploration",
+      text: "Adventure isn't just limited to nature — join us on a city exploration, where we try new food, explore museums, and feel the rush of a new city",
       images: ["about_la_city", "about_san_diego"],
-      labels: ["Los Angeles", "San Diego"],
-      search: "city",
+      labels: ["LA Grand Central Market", "San Diego Exploration"],
+      dates: ["Winter 2025", "Spring 2025"],
     },
     {
-      title: "National parks",
-      text: "Big trees, wide skies, and a weekend away. Our quarterly retreats bring the club together for adventures a little farther from home.",
-      images: ["about_sequoia", "about_death_valley"],
-      labels: ["Sequoia", "Death Valley"],
-      search: "retreat",
+      title: "Potluck Picnics",
+      text: "Enjoy a nice day outside at our potluck picnics, featuring games, food, and sports, every week in Aldrich Park!",
+      images: ["gallery_picnic_f25w1", "about_picnic_w3"],
+      labels: ["Potluck Picnic", "Potluck Picnic"],
+      dates: ["Fall 2025 Week 1", "Fall 2025 Week 3"],
     },
     {
-      title: "Everyday adventures",
-      text: "Adventure starts with community. Join a weekly meeting, share food at a potluck picnic, and meet the people you’ll explore with.",
-      images: ["about_picnic_w3", "about_salt_creek"],
-      labels: ["Picnics with friends", "Fresh air, good company"],
-      search: "meeting",
+      title: "Quarterly Retreats",
+      text: "Every quarter, the club goes on a weekend retreat, often the highlight of the quarter for many of our members. Past retreat locations include national parks like Sequoia and Death Valley, lakes like Lake Arrowhead, and more!",
+      images: ["about_death_valley", "about_sequoia"],
+      labels: [
+        "Death Valley National Park",
+        "Sequoia & Kings Canyon National Parks",
+      ],
+      dates: ["Winter 2025 Retreat", "Fall 2024 Retreat"],
     },
   ];
   return (
@@ -88,7 +91,10 @@ export function Home() {
             </div>
           )}
         </div>
-        <div className="hero-polaroids">
+        <div
+          key={rotation}
+          className={`hero-polaroids${rotation > 0 && !photosPaused ? " photos-rotating" : ""}`}
+        >
           {polaroids.length ? (
             [
               polaroids[rotation % polaroids.length],
@@ -100,7 +106,11 @@ export function Home() {
                 key={p.event_id}
                 image={photoURL(p.image_id)}
                 title={p.title || p.event_name}
-                caption={dateLabel(p.starts_at)}
+                caption={dateLabel(p.starts_at, {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
                 rotation={i ? 5 : -5}
                 eager={i === 0}
               />
@@ -108,16 +118,16 @@ export function Home() {
           ) : (
             <>
               <Polaroid
-                image="/images/sequoia.webp"
-                title="Explore California"
-                caption="Adventures near and far"
+                image="/images/griffith_park.webp"
+                title="Griffith Park/Observatory Day Trip"
+                caption="November 2, 2025"
                 rotation={-5}
                 eager
               />
               <Polaroid
                 image="/images/balboa_pier.webp"
-                title="Find your people"
-                caption="A community at UCI"
+                title="Balboa Island"
+                caption="January 10, 2026"
                 rotation={5}
               />
             </>
@@ -156,7 +166,10 @@ export function Home() {
       <section className="section activities">
         <div className="center-heading">
           <h2>What we do!</h2>
-          <p>From a little fresh air to a weekend under the stars.</p>
+          <p>
+            Weekly activities are completely free! Membership is only necessary
+            for the quarterly retreat.
+          </p>
         </div>
         {activities.map((activity, index) => (
           <div
@@ -166,7 +179,7 @@ export function Home() {
             <div className="activity-copy">
               <h2>{activity.title}</h2>
               <p>{activity.text}</p>
-              <Link to={`/events?activity=${activity.search}`}>
+              <Link to="/events">
                 Find your next adventure <ArrowRight size={16} />
               </Link>
             </div>
@@ -176,6 +189,7 @@ export function Home() {
                   key={image}
                   image={`/images/${image}.webp`}
                   title={activity.labels[i]}
+                  caption={activity.dates[i]}
                   rotation={i ? 3 : -3}
                 />
               ))}
@@ -185,7 +199,10 @@ export function Home() {
       </section>
       <section className="section center-heading">
         <h2>Join the adventure!</h2>
-        <p>Find us online and stay in the loop.</p>
+        <p>
+          Our primary form of communication is our club Discord server, but we
+          also promote all of our events on our club Instagram.
+        </p>
         <div className="actions centered">
           {settings.data?.discord && (
             <a

@@ -655,6 +655,24 @@ form {
   width: 46%;
   max-width: 260px;
 }
+.photos-rotating {
+  animation: photo-enter 400ms ease-out;
+}
+@keyframes photo-enter {
+  from {
+    opacity: 0.3;
+    translate: 0 10px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .photos-rotating {
+    animation: none;
+  }
+}
 .polaroid {
   display: flex;
   flex-direction: column;
@@ -1677,6 +1695,13 @@ dialog::backdrop {
     max-width: 520px;
     margin: auto;
     width: 100%;
+  }
+  .activity-polaroids .polaroid {
+    width: 270px;
+    max-width: 100%;
+  }
+  .activity-polaroids .polaroid:nth-child(2) {
+    display: none;
   }
   .gallery-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

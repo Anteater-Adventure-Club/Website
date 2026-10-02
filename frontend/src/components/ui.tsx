@@ -271,9 +271,21 @@ export function Polaroid({
     <>
       <img
         src={image || photoURL(null)}
+        srcSet={
+          image?.startsWith("/images/") && image.endsWith(".webp")
+            ? [320, 640, 800]
+                .map(
+                  (width) =>
+                    `${image.replace("/images/", "/images/responsive/").replace(".webp", `-${width}.webp`)} ${width}w`,
+                )
+                .join(", ")
+            : undefined
+        }
+        sizes="(max-width: 767px) 240px, 260px"
         alt=""
         loading={eager ? "eager" : "lazy"}
-        fetchPriority={eager ? "high" : "auto"}
+        fetchPriority={eager ? "high" : "low"}
+        decoding="async"
         width={640}
         height={480}
       />
