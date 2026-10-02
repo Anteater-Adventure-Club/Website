@@ -7,6 +7,7 @@ import { Guard, Layout, Workspace } from "./components/layout";
 import { Board, Events, Home, NotFound, SignIn } from "./pages/public";
 import { Membership } from "./pages/membership";
 import { Loading } from "./components/ui";
+import { PageMetadata } from "./components/page-metadata";
 
 const MyOverview = lazy(() =>
   import("./pages/members").then((m) => ({ default: m.MyOverview })),
@@ -72,6 +73,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={client}>
       <BrowserRouter>
+        <PageMetadata />
         <Providers>
           <Suspense
             fallback={

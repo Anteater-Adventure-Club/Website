@@ -17,7 +17,7 @@ from .auth import bootstrap, make_oauth, router as auth_router
 from .config import Settings
 from .db import make_engine, session_factory
 from .schemas import SiteSettings
-from .routers import editorial, events, finance, imports, members, overview, participation
+from .routers import editorial, events, finance, imports, members, overview, participation, social
 
 logger = logging.getLogger("aac.http")
 if not logger.handlers:
@@ -133,6 +133,7 @@ def create_app(settings=None, engine=None):
         editorial.router,
         imports.router,
         overview.router,
+        social.router,
     ):
         app.include_router(router)
     return app
