@@ -82,14 +82,15 @@ test("B02 orientation changes preserve unsaved form values", async ({
   await expect(name).toHaveValue("Unsaved orientation acceptance event");
 });
 
-test("B05 homepage photo rotation can pause and resume", async ({
+test("B05 homepage photos rotate and respect reduced motion", async ({
   page,
 }, info) => {
   test.skip(
     info.project.name !== "chromium-1025",
-    "One rotation-control check is sufficient",
+    "One photo-rotation check is sufficient",
   );
   await page.clock.install();
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   let photoCount = 3;
   await page.route("**/api/home", async (route) => {
     const response = await route.fetch();
@@ -102,15 +103,12 @@ test("B05 homepage photo rotation can pause and resume", async ({
     await route.fulfill({ json: data });
   });
   await page.goto("/");
-  const pause = page.getByRole("button", { name: "Pause photos", exact: true });
-  await pause.click();
+  await expect(
+    page.getByRole("button", { name: /^(Pause|Resume) photos$/ }),
+  ).toHaveCount(0);
   const photos = page.locator(".hero-polaroids");
+  await expect(photos.locator("h3").first()).toHaveText("Rotation fixture 0");
   const initial = await photos.innerText();
-  await page.clock.fastForward(6500);
-  expect(await photos.innerText()).toBe(initial);
-  await page
-    .getByRole("button", { name: "Resume photos", exact: true })
-    .click();
   await page.clock.fastForward(6500);
   await expect(photos).not.toHaveText(initial);
 
@@ -118,15 +116,20 @@ test("B05 homepage photo rotation can pause and resume", async ({
   photoCount = 2;
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload();
-  await pause.click();
   const visibleTitle = page.locator(".hero-polaroids .polaroid:visible h3");
   await expect(visibleTitle).toHaveCount(1);
+  await expect(visibleTitle).toHaveText("Rotation fixture 0");
   const firstTitle = await visibleTitle.innerText();
   await page.clock.fastForward(6500);
-  await expect(visibleTitle).toHaveText(firstTitle);
-  await page.getByRole("button", { name: "Resume photos", exact: true }).click();
-  await page.clock.fastForward(6500);
   await expect(visibleTitle).not.toHaveText(firstTitle);
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.reload();
+  await expect(visibleTitle).toHaveCount(1);
+  await expect(visibleTitle).toHaveText("Rotation fixture 0");
+  const reducedMotionTitle = await visibleTitle.innerText();
+  await page.clock.fastForward(6500);
+  await expect(visibleTitle).toHaveText(reducedMotionTitle);
 });
 
 test("B03 keyboard menu dismissal and dialog focus restoration", async ({

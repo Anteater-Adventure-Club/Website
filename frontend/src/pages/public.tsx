@@ -26,16 +26,16 @@ export function Home() {
   const settings = useAPI("SiteSettings", "/api/site-settings");
   const polaroids = home.data?.polaroids || [];
   const [rotation, setRotation] = useState(0);
-  const [photosPaused, setPhotosPaused] = useState(
+  const [prefersReducedMotion] = useState(
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
   );
   useEffect(() => {
-    if (polaroids.length < 2 || photosPaused) return;
+    if (polaroids.length < 2 || prefersReducedMotion) return;
     const timer = window.setInterval(() => {
       if (!document.hidden) setRotation((i) => (i + 1) % polaroids.length);
     }, 6000);
     return () => window.clearInterval(timer);
-  }, [polaroids.length, photosPaused]);
+  }, [polaroids.length, prefersReducedMotion]);
   const activities = [
     {
       title: "Hikes",
@@ -85,21 +85,10 @@ export function Home() {
           <Link className="button primary heading-button" to="/events">
             Join the adventure! <ArrowRight size={18} />
           </Link>
-          {polaroids.length > 1 && (
-            <div className="actions">
-              <Button
-                variant="quiet"
-                aria-pressed={photosPaused}
-                onClick={() => setPhotosPaused((paused) => !paused)}
-              >
-                {photosPaused ? "Resume photos" : "Pause photos"}
-              </Button>
-            </div>
-          )}
         </div>
         <div
           key={rotation}
-          className={`hero-polaroids${rotation > 0 && !photosPaused ? " photos-rotating" : ""}`}
+          className={`hero-polaroids${rotation > 0 && !prefersReducedMotion ? " photos-rotating" : ""}`}
         >
           {polaroids.length ? (
             [
