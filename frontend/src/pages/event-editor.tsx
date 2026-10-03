@@ -27,7 +27,7 @@ import {
   Pill,
 } from "../components/ui";
 import {
-  DeleteDraftButton,
+  DeleteEventButton,
   ImageUpload,
   SetupQuarter,
 } from "../components/officer-forms";
@@ -312,7 +312,7 @@ function Editor({
         subtitle={`${selectedQuarter.name} · All times are America/Los_Angeles.`}
       >
         {initial?.state === "draft" && (
-          <DeleteDraftButton
+          <DeleteEventButton
             url={`/api/admin/events/${initial.id}`}
             revision={initial.revision}
             name={initial.name}
@@ -320,7 +320,7 @@ function Editor({
           />
         )}
         {draftSeries && (
-          <DeleteDraftButton
+          <DeleteEventButton
             url={`/api/admin/series/${series!.id}`}
             revision={series!.revision}
             name={series!.definition.event.name}
@@ -834,7 +834,7 @@ export function SeriesDetail() {
           Edit This & Future Dates
         </Link>
         {deletable && (
-          <DeleteDraftButton
+          <DeleteEventButton
             url={`/api/admin/series/${id}`}
             revision={series.revision}
             name={series.definition.event.name}

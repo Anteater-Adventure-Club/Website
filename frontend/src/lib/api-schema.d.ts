@@ -187,8 +187,8 @@ export interface paths {
     /** Edit Event */
     put: operations["edit_event_api_admin_events__eid__put"];
     post?: never;
-    /** Delete Draft */
-    delete: operations["delete_draft_api_admin_events__eid__delete"];
+    /** Delete Event */
+    delete: operations["delete_event_api_admin_events__eid__delete"];
     options?: never;
     head?: never;
     patch?: never;
@@ -3778,7 +3778,7 @@ export interface operations {
       };
     };
   };
-  delete_draft_api_admin_events__eid__delete: {
+  delete_event_api_admin_events__eid__delete: {
     parameters: {
       query?: never;
       header?: never;
