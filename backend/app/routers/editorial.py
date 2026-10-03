@@ -72,11 +72,17 @@ async def upload(
         fail(422, "image_size", "Choose an image smaller than 10 MiB.")
     try:
         with Image.open(io.BytesIO(data)) as source:
-            if source.format not in {"JPEG", "PNG", "WEBP"} or source.width * source.height > 40_000_000:
-                fail(422, "image_format", "Use a JPEG, PNG or WebP image under 40 megapixels.")
+            # Camera JPEGs with auxiliary pictures can be identified as MPO.
+            # Image.open starts on their primary photo; other pictures are not decoded.
+            if source.format not in {"JPEG", "MPO", "PNG", "WEBP"}:
+                fail(422, "image_format", "Use a JPEG, PNG or WebP image.")
+            if source.width * source.height > 40_000_000:
+                fail(422, "image_dimensions", "Choose an image with at most 40 megapixels.")
             source.load()
             image = ImageOps.exif_transpose(source).convert("RGB")
-    except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError):
+    except Image.DecompressionBombError:
+        fail(422, "image_dimensions", "Choose an image with at most 40 megapixels.")
+    except (UnidentifiedImageError, OSError, ValueError):
         fail(422, "image_invalid", "This image could not be decoded.")
     mid = uuid4().hex
     root = request.app.state.settings.media_root

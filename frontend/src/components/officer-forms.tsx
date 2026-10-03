@@ -478,7 +478,7 @@ export function ImageUpload({
         label={label || (purpose === "board" ? "Board photo" : "Event photo")}
         type="file"
         accept="image/jpeg,image/png,image/webp"
-        hint="JPEG, PNG or WebP · 10 MiB maximum"
+        hint="JPEG, PNG or WebP · 10 MiB and 40 megapixels maximum"
         onChange={(e) => {
           setFile(e.target.files?.[0] || null);
           action.reset();
