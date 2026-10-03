@@ -130,7 +130,9 @@ def image_response(request, card, photo):
     etag = f'"{card.version}"'
     headers = {"Cache-Control": "private, max-age=300", "ETag": etag}
     # The routes resolve current public content before this cache or conditional check.
-    if request.headers.get("if-none-match") == etag:
+    candidates = (value.strip() for value in request.headers.get("if-none-match", "").split(","))
+    # GET/HEAD use weak comparison; the public proxy may add the W/ prefix.
+    if any(value == "*" or value.removeprefix("W/") == etag for value in candidates):
         return Response(status_code=304, headers=headers)
     content = render_card(card, photo)
     headers["Content-Length"] = str(len(content))

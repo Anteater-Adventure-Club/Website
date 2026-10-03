@@ -203,6 +203,9 @@ def test_image_cache_rechecks_visibility_and_supports_head_and_etag(api):
     assert api.head(url).content == b""
     etag = image.headers["etag"]
     assert api.get(url, headers={"If-None-Match": etag}).status_code == 304
+    assert api.get(url, headers={"If-None-Match": f'"other", W/{etag}'}).status_code == 304
+    assert api.head(url, headers={"If-None-Match": f"W/{etag}"}).status_code == 304
+    assert api.get(url, headers={"If-None-Match": "*"}).status_code == 304
     with api.app.state.sessions() as db:
         db.get(Event, e["id"]).name = "An updated adventure"
         db.commit()
@@ -213,6 +216,7 @@ def test_image_cache_rechecks_visibility_and_supports_head_and_etag(api):
         db.commit()
     hidden = api.get(url, headers={"If-None-Match": updated.headers["etag"]})
     assert hidden.status_code == 404 and hidden.headers["Cache-Control"] == "no-store"
+    assert api.get(url, headers={"If-None-Match": "*"}).status_code == 404
 
 
 def test_missing_photo_file_has_a_usable_branded_fallback(api):
