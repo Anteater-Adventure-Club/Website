@@ -8,7 +8,8 @@ title and description.
 
 Public pages and events use designed 1200 × 630 JPEG cards, generated with
 Pillow from the existing transparent logo, Chivo/Lazydog fonts, and AAC's forest
-and cream colors. Home, Events and Membership use their existing activity
+and cream colors. A larger logo sits beside the full name, "Anteater Adventure
+Club", on one line. Home, Events and Membership use their existing activity
 photos; Board uses the outdoor illustration. Event cards show the event name,
 Pacific date/time and destination beside the assigned **Event photo**; completed
 events without one can use their published **Recap photo**. An event without

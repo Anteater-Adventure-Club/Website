@@ -14,7 +14,7 @@ SIZE = (1200, 630)
 FOREST = "#1f4d3b"
 CREAM = "#f8f5f0"
 SAGE = "#b6cbb5"
-TEMPLATE_VERSION = 1
+TEMPLATE_VERSION = 2
 
 
 def concise(value, limit):
@@ -132,12 +132,11 @@ def render_card(card, photo_path=""):
     with Image.open(ASSETS / "logos" / "aac.png") as logo:
         logo = logo.convert("RGBA")
         # Remove the original transparent padding without changing the artwork.
-        logo = logo.crop(logo.getchannel("A").getbbox()).resize((78, 78), Image.Resampling.LANCZOS)
+        logo = logo.crop(logo.getchannel("A").getbbox()).resize((112, 112), Image.Resampling.LANCZOS)
         image.paste(logo, (40, 36), logo)
-    draw.text((134, 46), "AAC", font=font(38, heading=True), fill=CREAM, anchor="lt")
-    draw.text((135, 92), "UC IRVINE", font=font(17), fill=SAGE, anchor="lt")
-    label = "CANCELLED" if card.cancelled else card.label.upper()
-    draw.text((42, 146), label, font=font(19, bold=True), fill="#f0bd9b" if card.cancelled else SAGE, anchor="lt")
+    draw.text((168, 82), "Anteater Adventure Club", font=font(27, bold=True), fill=CREAM, anchor="lt")
+    if card.cancelled:
+        draw.text((42, 160), "CANCELLED", font=font(19, bold=True), fill="#f0bd9b", anchor="lt")
     text_block(draw, card.title, (40, 191), 457, size=62, minimum=38, lines=3, bold=True)
     if card.date:
         text_block(draw, card.date, (42, 421), 456, size=27, minimum=21, lines=2, bold=True)
