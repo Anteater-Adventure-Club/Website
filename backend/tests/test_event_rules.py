@@ -38,7 +38,9 @@ def test_write_is_committed_before_response_headers(api):
 
 def test_multi_day_and_multiple_same_day_calendar(api):
     q = quarter(api)
-    first = event(api, q, name="First adventure")
+    start = datetime.combine(today() + timedelta(days=2), time(10), PACIFIC)
+    first = event(api, q, name="First adventure", starts_at=start.isoformat(),
+                  ends_at=(start + timedelta(hours=5)).isoformat())
     second = event(api, q, name="Second adventure", starts_at=first["starts_at"], ends_at=first["ends_at"])
     start = datetime.fromisoformat(first["starts_at"])
     overnight = event(

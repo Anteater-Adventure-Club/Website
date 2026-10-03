@@ -23,7 +23,7 @@ test("AAC logo and public page metadata follow navigation", async ({
     .toBe(true);
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
     "content",
-    /\/logos\/aac\.png$/,
+    /\/api\/share-images\/pages\/home\.jpg\?v=[a-f0-9]+$/,
   );
   await expect(
     page.locator('link[rel="icon"][type="image/svg+xml"]'),
@@ -52,7 +52,7 @@ test("AAC logo and public page metadata follow navigation", async ({
   ).toBe(true);
 });
 
-test("Event sharing copy includes its name and date without an unrelated image", async ({
+test("Event sharing uses a designed card with its name and date", async ({
   page,
 }) => {
   const event = fixtures.events.Adventure;
@@ -62,10 +62,17 @@ test("Event sharing copy includes its name and date without an unrelated image",
     "content",
     /\d{4}/,
   );
-  await expect(page.locator('meta[property="og:image"]')).toHaveCount(0);
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
+    "content",
+    event.name,
+  );
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+    "content",
+    new RegExp(`/api/share-images/events/${event.id}\\.jpg\\?v=[a-f0-9]+$`),
+  );
   await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute(
     "content",
-    "summary",
+    "summary_large_image",
   );
   await expect(
     page.getByRole("heading", { name: event.name, exact: true }),
@@ -100,18 +107,20 @@ test("A crawler receives event metadata in the initial HTML", async ({
   expect(response.ok()).toBe(true);
   const html = await response.text();
   expect(html).toContain(
-    `<meta property="og:title" content="${event.name} | AAC" />`,
+    `<meta property="og:title" content="${event.name}" />`,
   );
-  expect(html).toContain('name="twitter:card" content="summary"');
-  expect(html).not.toContain('property="og:image"');
+  expect(html).toContain('name="twitter:card" content="summary_large_image"');
+  expect(html).toContain(`api/share-images/events/${event.id}.jpg?v=`);
   expect(html).not.toContain("<!--#");
   expect(html.match(/<title>/g)).toHaveLength(1);
   const browserResponse = await request.get(
     `/events/${event.slug}/${event.id}`,
   );
   expect(await browserResponse.text()).toBe(html);
-  const imageResponse = await request.get("/logos/aac.png");
+  const imageResponse = await request.get(
+    `/api/share-images/events/${event.id}.jpg`,
+  );
   expect(imageResponse.ok()).toBe(true);
-  expect(imageResponse.headers()["content-type"]).toBe("image/png");
+  expect(imageResponse.headers()["content-type"]).toBe("image/jpeg");
   expect((await request.get("/_page-metadata")).status()).toBe(404);
 });

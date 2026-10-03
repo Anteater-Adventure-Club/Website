@@ -78,7 +78,9 @@ def create_app(settings=None, engine=None):
         response.headers["X-Request-ID"] = request_id
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        if request.url.path.startswith("/api/") and not request.url.path.startswith("/api/health/"):
+        sharing_image = (request.url.path.startswith("/api/share-images/")
+                         and request.method in {"GET", "HEAD"} and response.status_code in {200, 304})
+        if request.url.path.startswith("/api/") and not request.url.path.startswith("/api/health/") and not sharing_image:
             response.headers["Cache-Control"] = "no-store"
         logger.info(
             json.dumps({"request_id": request_id, "method": request.method,

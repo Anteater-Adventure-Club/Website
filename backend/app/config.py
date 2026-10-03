@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urlsplit
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -7,6 +8,7 @@ from pathlib import Path
 class Settings:
     environment: str = field(default_factory=lambda: os.getenv("APP_ENV", "development"))
     app_url: str = field(default_factory=lambda: os.getenv("APP_URL", "http://localhost:5173").rstrip("/"))
+    public_site_url: str = field(default_factory=lambda: os.getenv("PUBLIC_SITE_URL", "").rstrip("/"))
     database_url: str = field(
         default_factory=lambda: os.getenv("DATABASE_URL", "postgresql+psycopg://aac:aac@localhost:55432/aac")
     )
@@ -26,9 +28,19 @@ class Settings:
     discord: str = field(default_factory=lambda: os.getenv("DISCORD_URL", ""))
 
     def validate(self):
+        if self.public_site_url:
+            url = urlsplit(self.public_site_url)
+            if (url.scheme not in {"http", "https"} or not url.hostname or url.username or url.password
+                    or url.path or url.query or url.fragment
+                    or (self.environment == "production" and url.scheme != "https")):
+                raise RuntimeError("PUBLIC_SITE_URL must be an absolute origin, with HTTPS in production")
         if self.environment == "production":
             if len(self.session_secret) < 32 or not self.app_url.startswith("https://"):
                 raise RuntimeError("Production requires HTTPS APP_URL and a strong SESSION_SECRET")
         elif not self.session_secret:
             object.__setattr__(self, "session_secret", "local-development-only-do-not-deploy")
         return self
+
+    @property
+    def share_url(self):
+        return self.public_site_url or self.app_url

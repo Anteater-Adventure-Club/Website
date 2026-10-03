@@ -4,6 +4,9 @@ WORKDIR /app/backend
 COPY backend/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt && useradd --uid 10001 --create-home aac
 COPY backend/ ./
+COPY frontend/public/fonts/Chivo-Regular.ttf frontend/public/fonts/Lazydog.otf /app/frontend/public/fonts/
+COPY frontend/public/logos/aac.png /app/frontend/public/logos/aac.png
+COPY frontend/public/images/about_sequoia.webp frontend/public/images/about_tide_pools.webp frontend/public/images/about_picnic_w3.webp /app/frontend/public/images/
 COPY deploy/start-api.py /app/deploy/start-api.py
 COPY deploy/healthcheck.py /app/deploy/healthcheck.py
 RUN mkdir -p /app/media && chown aac:aac /app/media
