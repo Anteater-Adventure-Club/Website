@@ -142,7 +142,7 @@ export function Layout() {
       </a>
       <header className="site-header">
         <Link className="brand" to="/" aria-label="AAC Home">
-          <img src="/logos/aac.svg" alt="" width="44" height="44" />
+          <img src="/logos/aac.svg?v=transparent" alt="" width="44" height="44" />
           <span>AAC</span>
         </Link>
         <Button

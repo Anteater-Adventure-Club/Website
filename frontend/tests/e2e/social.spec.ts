@@ -27,7 +27,7 @@ test("AAC logo and public page metadata follow navigation", async ({
   );
   await expect(
     page.locator('link[rel="icon"][type="image/svg+xml"]'),
-  ).toHaveAttribute("href", "/logos/aac.svg");
+  ).toHaveAttribute("href", "/logos/aac.svg?v=transparent");
   const mobile = await page
     .getByRole("button", { name: "Open navigation" })
     .isVisible();
