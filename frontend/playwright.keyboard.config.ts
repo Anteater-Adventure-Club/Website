@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  testMatch: "keyboard.spec.ts",
+  testMatch: ["keyboard.spec.ts", "keyboard-board.spec.ts"],
   workers: 1,
   timeout: 60000,
   expect: { timeout: 10000 },
@@ -12,7 +12,7 @@ export default defineConfig({
   ],
   outputDir: "../artifacts/keyboard-traces",
   use: {
-    baseURL: "http://localhost:5173",
+    baseURL: process.env.E2E_BASE_URL || "http://localhost:5173",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },

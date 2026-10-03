@@ -5,9 +5,10 @@ import path from "node:path";
 
 type KeyboardMode = "visual" | "content";
 let fixture: any;
+const testURL = process.env.E2E_BASE_URL || "http://localhost:5173";
 
 test.beforeEach(async ({ page, context, baseURL }) => {
-  if (baseURL !== "http://localhost:5173")
+  if (baseURL !== testURL || new URL(testURL).hostname !== "localhost")
     throw new Error(
       "Keyboard mutations require the isolated local application",
     );

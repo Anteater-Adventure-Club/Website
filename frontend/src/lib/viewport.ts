@@ -7,13 +7,76 @@ export function useKeyboardViewport() {
     if (!viewport) return;
     const root = document.documentElement;
     let frame = 0;
-    let ensureFocus = false;
+    let focusTimer = 0;
+    let height = viewport.height;
+    let width = innerWidth;
+
+    function revealFocus() {
+      const active = document.activeElement;
+      const mobile =
+        innerWidth <= 767 || matchMedia("(pointer: coarse)").matches;
+      const editable =
+        active instanceof HTMLTextAreaElement ||
+        (active instanceof HTMLInputElement &&
+          ![
+            "checkbox",
+            "radio",
+            "file",
+            "range",
+            "color",
+            "button",
+            "submit",
+          ].includes(active.type));
+      if (!mobile || !editable || viewport!.scale !== 1) return;
+
+      const sheet = active.closest("dialog[open]");
+      const sheetBox = sheet?.getBoundingClientRect();
+      const top = Math.max(viewport!.offsetTop, sheetBox?.top ?? 0) + 12;
+      const bottom =
+        Math.min(
+          viewport!.offsetTop + viewport!.height,
+          sheetBox?.bottom ?? Infinity,
+        ) - 64;
+      const box = active.getBoundingClientRect();
+      // Safari keeps a multiline caret visible; moving an oversized textarea
+      // on every input fights that native scrolling.
+      if (box.height > bottom - top) return;
+      const delta =
+        box.top < top
+          ? box.top - top
+          : box.bottom > bottom
+            ? box.bottom - bottom
+            : 0;
+      if (!delta) return;
+      if (sheet) {
+        // scrollIntoView also scrolls ancestors, including the page behind a
+        // modal. Keep the adjustment inside the sheet to avoid viewport loops.
+        sheet.scrollBy({ top: delta, behavior: "instant" });
+      } else {
+        active.scrollIntoView({ block: "nearest", behavior: "instant" });
+        const revealed = active.getBoundingClientRect();
+        const remaining =
+          revealed.top < top
+            ? revealed.top - top
+            : revealed.bottom > bottom
+              ? revealed.bottom - bottom
+              : 0;
+        if (remaining) window.scrollBy({ top: remaining, behavior: "instant" });
+      }
+    }
+
     function update(event?: Event) {
-      ensureFocus ||= event?.type !== "scroll";
+      // iOS emits resize events while panning, even without a size change.
+      // Only a new focus or a changed viewport size needs a focus adjustment.
+      const resized = height !== viewport!.height || width !== innerWidth;
+      height = viewport!.height;
+      width = innerWidth;
+      if (resized || event?.type === "focusin") {
+        clearTimeout(focusTimer);
+        focusTimer = window.setTimeout(revealFocus, 120);
+      }
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        const maintainFocus = ensureFocus;
-        ensureFocus = false;
         // Preserve ordinary browser pinch zoom rather than resizing its layout.
         if (viewport!.scale !== 1) return;
         const height = viewport!.height;
@@ -30,29 +93,6 @@ export function useKeyboardViewport() {
           "keyboard-open",
           mobile && innerHeight - height > 150,
         );
-        const active = document.activeElement;
-        const editable =
-          active instanceof HTMLTextAreaElement ||
-          (active instanceof HTMLInputElement &&
-            ![
-              "checkbox",
-              "radio",
-              "file",
-              "range",
-              "color",
-              "button",
-              "submit",
-            ].includes(active.type));
-        if (!mobile || !editable || !maintainFocus) return;
-        const box = active.getBoundingClientRect();
-        if (box.top >= top + 12 && box.bottom <= top + height - 64) return;
-        active.scrollIntoView({ block: "center", behavior: "instant" });
-        const centered = active.getBoundingClientRect();
-        if (centered.top < top + 12 || centered.bottom > top + height - 64)
-          window.scrollBy({
-            top: centered.top + centered.height / 2 - top - height / 2,
-            behavior: "instant",
-          });
       });
     }
     viewport.addEventListener("resize", update);
@@ -60,16 +100,15 @@ export function useKeyboardViewport() {
     window.addEventListener("resize", update);
     window.addEventListener("scroll", update);
     document.addEventListener("focusin", update);
-    document.addEventListener("input", update);
     update();
     return () => {
       cancelAnimationFrame(frame);
+      clearTimeout(focusTimer);
       viewport.removeEventListener("resize", update);
       viewport.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
       window.removeEventListener("scroll", update);
       document.removeEventListener("focusin", update);
-      document.removeEventListener("input", update);
       root.classList.remove("keyboard-open");
       for (const name of [
         "--visible-height",
