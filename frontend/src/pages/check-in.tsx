@@ -202,7 +202,7 @@ export function FieldDesk({ seat = false }: { seat?: boolean }) {
           </div>
           <div className="desk-content">
             <div className="desk-toolbar">
-              <div className="tabs" aria-label="Ride groups">
+              <div className="tabs ride-role-texture" aria-label="Ride groups">
                 {Object.keys(data.counts).map((value) => (
                   <button
                     key={value}

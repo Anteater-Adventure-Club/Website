@@ -2593,6 +2593,43 @@ dialog::backdrop {
   white-space: nowrap;
   min-height: 44px;
 }
+.desk-toolbar .tabs.ride-role-texture {
+  border-bottom-color: transparent;
+}
+.ride-role-texture button {
+  border-radius: 0.5rem;
+  background: linear-gradient(180deg, #fff, #f1f3ed);
+  background-clip: padding-box;
+  box-shadow:
+    inset 0 0 0 1px #789483,
+    inset 0 2px 0 rgba(255, 255, 255, 0.9);
+}
+.ride-role-texture button[aria-pressed="true"] {
+  background-image: linear-gradient(180deg, #2f634e, var(--forest));
+  color: #fff;
+  box-shadow:
+    inset 0 0 0 1px rgba(16, 48, 36, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.16);
+}
+.ride-role-texture button:active {
+  box-shadow:
+    inset 0 0 0 1px #789483,
+    inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+.ride-role-texture button:focus-visible {
+  outline-offset: -3px;
+}
+.desk-toolbar .ride-role-texture button:focus-visible {
+  outline-offset: -5px;
+}
+.ride-role-texture button[aria-pressed="true"]:focus-visible {
+  outline-color: #c8dec8;
+}
+@media (hover: hover) {
+  .ride-role-texture button[aria-pressed="false"]:hover {
+    background-image: linear-gradient(180deg, #f7faf5, var(--tint));
+  }
+}
 .desk-search {
   width: 220px;
 }
