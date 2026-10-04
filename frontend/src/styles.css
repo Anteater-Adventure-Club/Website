@@ -2118,8 +2118,13 @@ dialog::backdrop {
     font-size: 1.6rem;
   }
   :root.keyboard-open dialog {
-    top: auto;
-    bottom: var(--keyboard-bottom, 0px);
+    /* Anchor to the visible viewport, rather than deriving a bottom inset
+       from innerHeight: Safari can pan that viewport while focusing a field. */
+    top: var(--visible-top, 0px);
+    bottom: auto;
+    height: var(--visible-height, 100dvh);
+    max-height: var(--visible-height, 100dvh);
+    padding-bottom: 1rem;
     transform: none;
   }
   .dialog-heading {

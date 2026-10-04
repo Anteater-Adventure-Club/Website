@@ -31,12 +31,20 @@ export function useKeyboardViewport() {
 
       const sheet = active.closest("dialog[open]");
       const sheetBox = sheet?.getBoundingClientRect();
+      const actions = sheet?.querySelector<HTMLElement>(".sticky-actions");
+      // The action row can wrap on narrow phones. Its real height, plus the
+      // sheet's bottom padding, must remain clear of the focused field.
+      const actionClearance = actions
+        ? actions.getBoundingClientRect().height +
+          (parseFloat(getComputedStyle(sheet!).paddingBottom) || 0) +
+          12
+        : 12;
       const top = Math.max(viewport!.offsetTop, sheetBox?.top ?? 0) + 12;
       const bottom =
         Math.min(
           viewport!.offsetTop + viewport!.height,
           sheetBox?.bottom ?? Infinity,
-        ) - 64;
+        ) - actionClearance;
       const box = active.getBoundingClientRect();
       // Safari keeps a multiline caret visible; moving an oversized textarea
       // on every input fights that native scrolling.
