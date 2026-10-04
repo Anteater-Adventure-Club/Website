@@ -2,7 +2,11 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  testMatch: ["keyboard.spec.ts", "keyboard-board.spec.ts"],
+  testMatch: [
+    "keyboard.spec.ts",
+    "keyboard-board.spec.ts",
+    "keyboard-dialog-layout.spec.ts",
+  ],
   workers: 1,
   timeout: 60000,
   expect: { timeout: 10000 },

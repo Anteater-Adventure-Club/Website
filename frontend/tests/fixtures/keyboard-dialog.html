@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Isolated keyboard dialog layout</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import React from "react";
+      import { createRoot } from "react-dom/client";
+      import { Dialog, Field, Button } from "/src/components/ui.tsx";
+      import { useKeyboardViewport } from "/src/lib/viewport.ts";
+      import "/src/styles.css";
+      const h = React.createElement;
+      function Fixture() {
+        useKeyboardViewport();
+        return h(
+          React.Fragment,
+          null,
+          h(
+            "main",
+            { className: "page" },
+            h("h1", null, "Check In"),
+            h("p", null, "Isolated synthetic dialog fixture"),
+          ),
+          h(
+            Dialog,
+            { title: "Add & Check In a Walk-in", onClose: () => {} },
+            h(
+              "form",
+              { onSubmit: (event) => event.preventDefault() },
+              h(Field, { label: "Name", defaultValue: "Synthetic walk-in" }),
+              h(Field, { label: "Email", type: "email" }),
+              h("p", null, "Ride situation"),
+              h(
+                "div",
+                { className: "segmented" },
+                ...["Rider", "Driver", "Own Ride"].map((name) =>
+                  h(
+                    "button",
+                    {
+                      key: name,
+                      type: "button",
+                      className: name === "Driver" ? "active" : "",
+                    },
+                    name,
+                  ),
+                ),
+              ),
+              h(Field, { label: "Vehicle", defaultValue: "Add car details" }),
+              h(
+                "div",
+                { className: "form-grid" },
+                ...[
+                  "Year",
+                  "Make",
+                  "Model",
+                  "Color",
+                  "License plate",
+                  "Passenger capacity",
+                ].map((label) =>
+                  h(Field, {
+                    key: label,
+                    label,
+                    defaultValue: label === "Year" ? "2026" : "",
+                  }),
+                ),
+              ),
+              h(Field, { label: "Seats offered", defaultValue: "3" }),
+              h("label", { className: "field" }, "Notes", h("textarea")),
+              h(
+                "p",
+                { className: "message" },
+                "Registration, ride details, and check-in save together.",
+              ),
+              h(
+                "div",
+                { className: "sticky-actions" },
+                h(Button, { type: "button", variant: "quiet" }, "Cancel"),
+                h(Button, { type: "submit" }, "Add & Check In"),
+              ),
+            ),
+          ),
+        );
+      }
+      createRoot(document.getElementById("root")).render(h(Fixture));
+    </script>
+  </body>
+</html>

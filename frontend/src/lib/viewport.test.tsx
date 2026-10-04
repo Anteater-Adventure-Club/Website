@@ -110,4 +110,25 @@ describe("phone keyboard focus", () => {
     settle();
     expect(sheet.scrollBy).toHaveBeenCalledTimes(1);
   });
+
+  it("reserves a wrapped sticky footer and sheet padding when revealing a field", () => {
+    renderHook(useKeyboardViewport);
+    const { sheet, input } = fieldInSheet();
+    sheet.style.paddingBottom = "24px";
+    const actions = document.createElement("div");
+    actions.className = "sticky-actions";
+    sheet.append(actions);
+    vi.spyOn(actions, "getBoundingClientRect").mockReturnValue({
+      height: 108,
+    } as DOMRect);
+    input.focus();
+    height = 480;
+    viewport.dispatchEvent(new Event("resize"));
+    settle();
+    expect(sheet.scrollBy).toHaveBeenCalledWith({
+      top: 158,
+      behavior: "instant",
+    });
+    expect(window.scrollBy).not.toHaveBeenCalled();
+  });
 });
