@@ -502,7 +502,7 @@ export function AddParticipantDialog({
             />
             <fieldset>
               <legend>Ride situation</legend>
-              <div className="segmented">
+              <div className="segmented ride-role-texture">
                 {(["ride", "driver", "own"] as const).map((value) => (
                   <button
                     type="button"
