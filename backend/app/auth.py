@@ -1,5 +1,5 @@
 import hashlib
-from urllib.parse import urlsplit
+from urllib.parse import urlencode, urlsplit
 from authlib.integrations.starlette_client import OAuth
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import RedirectResponse
@@ -126,12 +126,22 @@ def session(request: Request, db=Depends(get_db, scope="function")):
 
 @router.get("/auth/login")
 async def login(request: Request, return_to: str = "/my-aac", db=Depends(get_db, scope="function")):
+    # OAuth state is stored in a host-only session cookie. Start on the same
+    # origin as the callback before creating that state (public shares may
+    # bring a visitor to a different host).
+    app_url = request.app.state.settings.app_url
+    destination = safe_return(return_to)
+    if str(request.base_url).rstrip("/") != app_url:
+        return RedirectResponse(
+            app_url + "/api/auth/login?" + urlencode({"return_to": destination}),
+            status_code=303,
+        )
     limited(request, db, "login", 20)
     google = request.app.state.oauth.create_client("google")
     if google is None:
         return RedirectResponse("/sign-in?error=unconfigured", status_code=303)
-    request.session["return_to"] = safe_return(return_to)
-    return await google.authorize_redirect(request, request.app.state.settings.app_url + "/api/auth/callback")
+    request.session["return_to"] = destination
+    return await google.authorize_redirect(request, app_url + "/api/auth/callback")
 
 
 @router.get("/auth/callback")
