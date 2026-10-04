@@ -31,11 +31,17 @@ def safe_return(value):
     return value if not urlsplit(value).netloc else "/my-aac"
 
 
-def member(request: Request, db=Depends(get_db, scope="function")):
-    mid = request.session.get("member_id")
+def session_member_id(request: Request):
     if request.session.get("login_at", 0) < int(utcnow().timestamp()) - 28800:
-        request.session.clear()
-        mid = None
+        # Expire authentication without discarding an in-progress OAuth login.
+        # An anonymous tab can read /session while another tab is at Google.
+        request.session.pop("member_id", None)
+        request.session.pop("login_at", None)
+    return request.session.get("member_id")
+
+
+def member(request: Request, db=Depends(get_db, scope="function")):
+    mid = session_member_id(request)
     value = db.get(Member, mid) if isinstance(mid, int) else None
     if value is None:
         fail(401, "sign_in_required", "Sign in with your UCI account to continue.")
@@ -111,10 +117,7 @@ def make_oauth(settings):
 
 @router.get("/session", response_model=SessionView)
 def session(request: Request, db=Depends(get_db, scope="function")):
-    mid = request.session.get("member_id")
-    if request.session.get("login_at", 0) < int(utcnow().timestamp()) - 28800:
-        request.session.clear()
-        mid = None
+    mid = session_member_id(request)
     user = db.get(Member, mid) if isinstance(mid, int) else None
     return {
         "member": MemberPrivate.model_validate(user).model_dump(mode="json") if user else None,
