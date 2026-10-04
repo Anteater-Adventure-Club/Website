@@ -562,7 +562,7 @@ export function AddParticipantDialog({
                       {...form.register("plate")}
                     />
                     <Field
-                      label="Passenger capacity · excludes driver"
+                      label="Passenger capacity"
                       type="number"
                       min={1}
                       max={50}
