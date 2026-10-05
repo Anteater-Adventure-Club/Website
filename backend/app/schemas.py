@@ -761,6 +761,7 @@ class SeriesView(DTO):
 class SiteSettings(DTO):
     venmo: str
     zelle: str
+    zelle_name: str = ""
     cash: str
     discord: str
 

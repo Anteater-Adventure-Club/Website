@@ -34,7 +34,12 @@ for (const view of [
   { name: "home", route: "/" },
   { name: "calendar", route: "/events" },
   { name: "board", route: "/board" },
-  { name: "membership", route: "/membership", role: "Member" },
+  { name: "membership", route: "/my-aac/membership", role: "Member" },
+  {
+    name: "membership-signup",
+    route: "/my-aac/membership",
+    role: "General Rider",
+  },
   { name: "profile", route: "/my-aac/profile", role: "Driver" },
   { name: "members", route: "/admin/members", role: "officer" },
   { name: "editor", route: "/admin/events/new", role: "officer" },
@@ -107,7 +112,9 @@ test("B05 homepage photos rotate and respect reduced motion", async ({
     page.getByRole("button", { name: /^(Pause|Resume) photos$/ }),
   ).toHaveCount(0);
   const photos = page.locator(".hero-polaroids");
-  await expect(photos.locator("h3").first()).toHaveText("Rotation fixture 0");
+  await expect(photos.locator(".polaroid-title").first()).toHaveText(
+    "Rotation fixture 0",
+  );
   const initial = await photos.innerText();
   await page.clock.fastForward(6500);
   await expect(photos).not.toHaveText(initial);
@@ -116,7 +123,9 @@ test("B05 homepage photos rotate and respect reduced motion", async ({
   photoCount = 2;
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload();
-  const visibleTitle = page.locator(".hero-polaroids .polaroid:visible h3");
+  const visibleTitle = page.locator(
+    ".hero-polaroids .polaroid:visible .polaroid-title",
+  );
   await expect(visibleTitle).toHaveCount(1);
   await expect(visibleTitle).toHaveText("Rotation fixture 0");
   const firstTitle = await visibleTitle.innerText();

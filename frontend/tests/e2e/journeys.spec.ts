@@ -48,6 +48,229 @@ async function api(page: Page, url: string, method = "GET", body?: unknown) {
 }
 const dialog = (page: Page) => page.getByRole("dialog").last();
 
+test("J15 My AAC navigation stays selected and membership keeps the selected quarter", async ({
+  page,
+  context,
+}) => {
+  await identity(context, "General Rider");
+  for (const route of [
+    "/my-aac",
+    "/my-aac/signups",
+    "/my-aac/membership",
+    "/my-aac/profile",
+    "/my-aac/reimbursements",
+  ]) {
+    await page.goto(`${route}?quarter=${fixture.past.id}`);
+    await expect(
+      page.locator('.site-header nav a[href="/my-aac"]'),
+    ).toHaveAttribute("aria-current", "page");
+    await expect(
+      page.locator(
+        `.workspace-tabs a[href="${route}?quarter=${fixture.past.id}"]`,
+      ),
+    ).toHaveAttribute("aria-current", "page");
+    await expect(
+      page.locator('.workspace-tabs a[aria-current="page"]'),
+    ).toHaveCount(1);
+    await expect(
+      page.getByRole("combobox", { name: "Selected quarter" }),
+    ).toHaveValue(String(fixture.past.id));
+  }
+  await page.goto(`/my-aac/signups?quarter=${fixture.quarter.id}`);
+  await expect(page.locator(".workspace-bar")).toBeVisible();
+  if (await page.locator(".section-picker").isVisible()) {
+    await page.locator(".section-picker").click();
+    await expect(
+      dialog(page).getByRole("link", { name: "My Signups", exact: true }),
+    ).toHaveAttribute("aria-current", "page");
+    await dialog(page)
+      .getByRole("link", { name: "Membership", exact: true })
+      .click();
+  } else {
+    await page
+      .getByRole("navigation", { name: "My AAC sections" })
+      .getByRole("link", { name: "Membership", exact: true })
+      .click();
+  }
+  await expect(page).toHaveURL(
+    new RegExp(`/my-aac/membership\\?quarter=${fixture.quarter.id}$`),
+  );
+  await expect(page.locator(".personal-membership")).toBeVisible();
+  if (await page.getByRole("button", { name: "Open navigation" }).isVisible()) {
+    await page.getByRole("button", { name: "Open navigation" }).click();
+    await expect(
+      dialog(page).getByRole("link", { name: "My AAC", exact: true }),
+    ).toHaveAttribute("aria-current", "page");
+    await expect(
+      dialog(page).getByRole("link", { name: "Home", exact: true }),
+    ).not.toHaveAttribute("aria-current", "page");
+    await dialog(page).getByRole("button", { name: "Close dialog" }).click();
+  }
+  await page.getByRole("button", { name: "Open account menu" }).click();
+  await page
+    .locator(".account-menu")
+    .getByRole("link", { name: "Membership", exact: true })
+    .click();
+  await expect(page).toHaveURL(
+    new RegExp(`/my-aac/membership\\?quarter=${fixture.quarter.id}$`),
+  );
+  await page.reload();
+  await expect(
+    page.locator('.workspace-tabs a[aria-current="page"]'),
+  ).toHaveText("Membership");
+  await page.goBack();
+  await expect(
+    page.locator('.workspace-tabs a[aria-current="page"]'),
+  ).toHaveText("My Signups");
+  await page.goForward();
+  await expect(
+    page.locator('.workspace-tabs a[aria-current="page"]'),
+  ).toHaveText("Membership");
+  await page.goto(`/membership?quarter=${fixture.quarter.id}`);
+  await page.getByRole("link", { name: "View your membership" }).click();
+  await expect(page).toHaveURL(
+    new RegExp(`/my-aac/membership\\?quarter=${fixture.quarter.id}$`),
+  );
+  await expect(page.locator(".personal-membership")).not.toContainText(
+    "reimbursement budget",
+  );
+  await expect(page.locator(".personal-membership .polaroid")).toHaveCount(0);
+  await identity(context);
+  await page.goto(`/my-aac/membership?quarter=${fixture.quarter.id}`);
+  await expect(page).toHaveURL(/sign-in/);
+  expect(new URL(page.url()).searchParams.get("return_to")).toBe(
+    `/my-aac/membership?quarter=${fixture.quarter.id}`,
+  );
+});
+
+test("J16 runtime payment details, confirmation reset, and payment retry", async ({
+  page,
+  context,
+}) => {
+  await identity(context, "General Rider");
+  let recipient = "Runtime Recipient";
+  await page.route("**/api/site-settings", async (route) => {
+    const response = await route.fetch();
+    await route.fulfill({
+      json: { ...(await response.json()), zelle_name: recipient },
+    });
+  });
+  await page.goto("/my-aac/membership");
+  const instructions = page.locator(".membership-payment-notice");
+  await expect(instructions).toContainText("fixture@uci.edu");
+  await expect(instructions.locator(".zelle-recipient")).toHaveText(recipient);
+  const confirmation = page.getByLabel(
+    "I have sent my payment or paid an officer.",
+  );
+  await confirmation.check();
+  await page.getByRole("radio", { name: "Non-student" }).check();
+  await expect(confirmation).not.toBeChecked();
+  await expect(instructions).toContainText("$30");
+  await confirmation.check();
+  await page.getByRole("radio", { name: "Venmo", exact: true }).check();
+  await expect(confirmation).not.toBeChecked();
+  await expect(instructions).toContainText("@fixture-club");
+  await page.getByRole("radio", { name: "Cash at a meeting" }).check();
+  await expect(instructions).toContainText("Pay an officer at a club meeting.");
+  await page.getByRole("radio", { name: "Zelle", exact: true }).check();
+  recipient = "";
+  await page.reload();
+  await expect(instructions.locator(".zelle-recipient")).toHaveCount(0);
+  const submit = page.getByRole("button", { name: "Submit payment details" });
+  await page.getByLabel("Contact phone number").fill(" ");
+  await confirmation.check();
+  await expect(submit).toBeDisabled();
+  await page.getByLabel("Contact phone number").fill("9495550167");
+  await page.route(
+    `**/api/me/memberships/${fixture.quarter.id}`,
+    async (route) => {
+      if (route.request().method() === "POST") {
+        await route.fulfill({
+          status: 422,
+          json: { detail: "Payment could not be submitted. Try again." },
+        });
+      } else await route.continue();
+    },
+  );
+  await submit.click();
+  await expect(
+    page.getByText("Payment could not be submitted. Try again."),
+  ).toBeVisible();
+  await expect(confirmation).toBeChecked();
+  await page.unroute(`**/api/me/memberships/${fixture.quarter.id}`);
+  await submit.click();
+  await expect(
+    page.getByRole("heading", { name: "Payment awaiting confirmation" }),
+  ).toBeVisible();
+  await expect(page.locator(".membership-signup-form")).toHaveCount(0);
+  await expect(page.locator(".membership-details")).toContainText("Zelle");
+});
+
+test("J17 historical and imported membership, loading failure and retry", async ({
+  page,
+  context,
+}) => {
+  await identity(context, "Member");
+  let fail = true;
+  await page.route(
+    `**/api/me/memberships/${fixture.quarter.id}`,
+    async (route) => {
+      if (fail)
+        await route.fulfill({
+          status: 503,
+          json: { detail: "Membership status is unavailable." },
+        });
+      else {
+        const response = await route.fetch();
+        await route.fulfill({
+          json: {
+            ...(await response.json()),
+            source: "imported",
+            receipts: [],
+          },
+        });
+      }
+    },
+  );
+  await page.goto("/my-aac/membership");
+  await expect(
+    page.locator("main").getByText("Membership status is unavailable."),
+  ).toBeVisible();
+  await expect(page.locator(".membership-signup-form")).toHaveCount(0);
+  fail = false;
+  await page.locator("main").getByRole("button", { name: "Try again" }).click();
+  await expect(
+    page.getByText(
+      "Your approved membership was imported. Payment details weren’t provided.",
+    ),
+  ).toBeVisible();
+  await expect(page.locator(".membership-receipt")).toHaveCount(0);
+  await page
+    .getByRole("combobox", { name: "Selected quarter" })
+    .selectOption(String(fixture.past.id));
+  await expect(
+    page.getByText("Membership submissions for this quarter are closed."),
+  ).toBeVisible();
+  await expect(page.locator(".membership-signup-form")).toHaveCount(0);
+  await page.unroute(`**/api/me/memberships/${fixture.quarter.id}`);
+  await identity(context, "Exception");
+  await page.goto("/my-aac/membership");
+  await expect(
+    page.getByText(
+      "An officer approved your membership. No payment receipt is required.",
+    ),
+  ).toBeVisible();
+  await expect(page.locator(".membership-receipt")).toHaveCount(0);
+  await page.route("**/api/quarters?limit=200", (route) =>
+    route.fulfill({ json: { items: [], total: 0 } }),
+  );
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "No quarter available" }),
+  ).toBeVisible();
+  await expect(page.locator(".membership-signup-form")).toHaveCount(0);
+});
+
 test("J01 visitor links, event return path, board, and draft privacy", async ({
   page,
 }) => {
@@ -116,10 +339,10 @@ test("J02 profile, car, dues, approved membership, signup edit and cancellation"
   context,
 }, info) => {
   await identity(context, "General Rider");
-  await page.goto("/membership");
-  await expect(
-    page.getByLabel("What’s your contact phone number?"),
-  ).toHaveValue("9495550100");
+  await page.goto("/my-aac/membership");
+  await expect(page.getByLabel("Contact phone number")).toHaveValue(
+    "9495550100",
+  );
   await page.goto("/my-aac/profile");
   await page.getByLabel("Phone number", { exact: true }).fill("");
   await page.getByLabel("Discord handle").fill("fixture-browser-member");
@@ -134,16 +357,18 @@ test("J02 profile, car, dues, approved membership, signup edit and cancellation"
   await dialog(page).getByLabel("Model", { exact: true }).fill("Corolla");
   await dialog(page).getByRole("button", { name: "Save Car" }).click();
   await expect(page.getByText(/Toyota Corolla/).first()).toBeVisible();
-  await page.goto("/membership");
-  const contact = page.getByLabel("What’s your contact phone number?");
+  await page.goto("/my-aac/membership");
+  const contact = page.getByLabel("Contact phone number");
   await expect(contact).toHaveValue("");
-  await page.getByLabel("I’ve sent my payment or paid an officer.").check();
+  await page.getByLabel("I have sent my payment or paid an officer.").check();
   await expect(
-    page.getByRole("button", { name: /Submit for approval/ }),
+    page.getByRole("button", { name: /Submit payment details/ }),
   ).toBeDisabled();
   await contact.fill("9495550123");
-  await page.getByRole("button", { name: /Submit for approval/ }).click();
-  await expect(page.getByText("Pending confirmation")).toBeVisible();
+  await page.getByRole("button", { name: /Submit payment details/ }).click();
+  await expect(
+    page.locator(".membership-pass").getByText("Pending confirmation"),
+  ).toBeVisible();
   const profile = await api(page, "/api/me/profile");
   expect(profile.phone).toBe("9495550123");
   expect(profile.discord).toBe("fixture-browser-member");
@@ -157,8 +382,10 @@ test("J02 profile, car, dues, approved membership, signup edit and cancellation"
   await dialog(page).getByRole("button", { name: "Confirm Payment" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await identity(context, "General Rider");
-  await page.goto("/membership");
-  await expect(page.getByText("You’re part of the adventure!")).toBeVisible();
+  await page.goto("/my-aac/membership");
+  await expect(
+    page.getByRole("heading", { name: "Membership approved", exact: true }),
+  ).toBeVisible();
   const cars = (await api(page, "/api/me/vehicles")).items;
   const largerCar = await api(page, "/api/me/vehicles", "POST", {
     year: 2022,

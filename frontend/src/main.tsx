@@ -22,6 +22,9 @@ const SignIn = lazy(() =>
 const Membership = lazy(() =>
   import("./pages/membership").then((m) => ({ default: m.Membership })),
 );
+const MyMembership = lazy(() =>
+  import("./pages/membership").then((m) => ({ default: m.MyMembership })),
+);
 const PrivacyPolicy = lazy(() =>
   import("./pages/legal").then((m) => ({ default: m.PrivacyPolicy })),
 );
@@ -122,6 +125,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                     <Route path="my-aac" element={<MyOverview />} />
                     <Route path="my-aac/profile" element={<Profile />} />
                     <Route path="my-aac/signups" element={<MySignups />} />
+                    <Route
+                      path="my-aac/membership"
+                      element={<MyMembership />}
+                    />
                     <Route
                       path="my-aac/reimbursements"
                       element={<MyReimbursements />}

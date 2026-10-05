@@ -22,6 +22,7 @@ class Settings:
     release_sha: str = field(default_factory=lambda: os.getenv("RELEASE_SHA", "development"))
     venmo: str = field(default_factory=lambda: os.getenv("DUES_VENMO_HANDLE", ""))
     zelle: str = field(default_factory=lambda: os.getenv("DUES_ZELLE_CONTACT", ""))
+    zelle_name: str = field(default_factory=lambda: os.getenv("DUES_ZELLE_NAME", "").strip())
     cash: str = field(
         default_factory=lambda: os.getenv("DUES_CASH_INSTRUCTIONS", "Pay an officer at a club meeting.")
     )

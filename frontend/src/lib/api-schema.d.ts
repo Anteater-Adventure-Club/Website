@@ -3249,6 +3249,11 @@ export interface components {
       venmo: string;
       /** Zelle */
       zelle: string;
+      /**
+       * Zelle Name
+       * @default
+       */
+      zelle_name: string;
       /** Cash */
       cash: string;
       /** Discord */

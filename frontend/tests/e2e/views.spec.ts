@@ -20,10 +20,18 @@ const cases: Case[] = [
   { id: "3f-signin", route: "/sign-in" },
   { id: "8f-404", route: "/off-the-trail" },
   { id: "3b-8a-public-membership", route: "/membership" },
-  { id: "3b-general-membership", route: "/membership", role: "General Rider" },
-  { id: "3c-pending-membership", route: "/membership", role: "Pending" },
-  { id: "8a-paid-membership", route: "/membership", role: "Member" },
-  { id: "8a-exception-membership", route: "/membership", role: "Exception" },
+  {
+    id: "3b-general-membership",
+    route: "/my-aac/membership",
+    role: "General Rider",
+  },
+  { id: "3c-pending-membership", route: "/my-aac/membership", role: "Pending" },
+  { id: "8a-paid-membership", route: "/my-aac/membership", role: "Member" },
+  {
+    id: "8a-exception-membership",
+    route: "/my-aac/membership",
+    role: "Exception",
+  },
   {
     id: "1e-8b-event",
     route: event("Adventure"),
@@ -358,7 +366,12 @@ for (const c of cases)
           Array.from(document.images)
             .filter((img) => {
               const rect = img.getBoundingClientRect();
-              return rect.width > 0 && rect.height > 0 && rect.top < innerHeight && rect.bottom > 0;
+              return (
+                rect.width > 0 &&
+                rect.height > 0 &&
+                rect.top < innerHeight &&
+                rect.bottom > 0
+              );
             })
             .filter((img) => !img.complete || img.naturalWidth === 0)
             .map((img) => img.getAttribute("src")),
