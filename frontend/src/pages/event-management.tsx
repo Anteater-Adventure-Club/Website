@@ -31,6 +31,7 @@ import {
   useAPI,
 } from "../lib/api";
 import type { AdminEvent, Person, Schema } from "../lib/api";
+import { useSearchQuery } from "../lib/search-query";
 import {
   Button,
   Dialog,
@@ -392,6 +393,7 @@ function SignupRoster({
   locked: boolean;
 }) {
   const [search, setSearch] = useState("");
+  const { query: searchQuery, pending: searching } = useSearchQuery(search);
   const [role, setRole] = useState("");
   const [offset, setOffset] = useState(0);
   const [add, setAdd] = useState(false);
@@ -399,7 +401,8 @@ function SignupRoster({
   const [remove, setRemove] = useState<Schema<"SignupPrivate"> | null>(null);
   const query = useAPI(
     "Page_SignupPrivate_",
-    `/api/admin/events/${event.id}/signups?limit=50&offset=${offset}&search=${encodeURIComponent(search)}${role ? `&role=${role}` : ""}`,
+    `/api/admin/events/${event.id}/signups?limit=50&offset=${offset}&search=${encodeURIComponent(searchQuery)}${role ? `&role=${role}` : ""}`,
+    { enabled: !searching },
   );
   const action = useAction();
   return (
@@ -451,7 +454,7 @@ function SignupRoster({
           </Button>
         </div>
       </div>
-      {query.isPending ? (
+      {searching || query.isPending ? (
         <Loading />
       ) : query.error ? (
         <Failure error={query.error} retry={query.refetch} />

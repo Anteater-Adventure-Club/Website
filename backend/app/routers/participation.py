@@ -10,6 +10,7 @@ from ..db import get_db
 from ..domain import audit, default_quarter, ensure_member, fail, operational_event, page, require, utcnow
 from ..models import AttendanceAction, Audit, Card, Event, Member, Signup, Vehicle
 from ..projections import event_projection, signup_projection, signups_projection
+from ..person_search import ranked_page
 from ..schemas import (
     AttendanceLogRow,
     QuestionAnswers,
@@ -91,11 +92,9 @@ def roster(
     if not e.signups_enabled:
         fail(409, "signups_disabled", "This event does not use signups.")
     query = select(Signup).join(Member).where(Signup.event_id == eid)
-    if search:
-        query = query.where(Member.name.ilike("%" + search[:100] + "%"))
     if role:
         query = query.where(Signup.role == role)
-    result = page(db, query.order_by(Signup.joined_at, Signup.id), limit, offset)
+    result = ranked_page(db, query.order_by(Signup.joined_at, Signup.id), Signup, search, limit, offset)
     result["items"] = signups_projection(db, result["items"])
     return result
 

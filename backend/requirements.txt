@@ -16,6 +16,8 @@ idna==3.20
 itsdangerous==2.2.0
 Mako==1.4.3
 MarkupSafe==3.0.3
+Metaphone==0.6
+munkres==1.1.4
 packaging==26.3
 pillow==12.3.0
 psycopg-binary==3.3.3
@@ -24,6 +26,7 @@ pycparser==3.0
 pydantic==2.13.5
 pydantic_core==2.46.5
 python-multipart==0.0.32
+rapidfuzz==3.14.6
 SQLAlchemy==2.0.48
 starlette==1.7.0
 typing-inspection==0.4.4

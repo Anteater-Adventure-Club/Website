@@ -5,6 +5,7 @@ import { Car, Check, Plus, UserRound } from "lucide-react";
 import { clock, eventURL, request, useAction, useAPI } from "../lib/api";
 import type { Person, Schema } from "../lib/api";
 import { Button, Dialog, Empty, Field, Message, Panel, Pill } from "./ui";
+import { useSearchQuery } from "../lib/search-query";
 
 type ParticipantForm = {
   name: string;
@@ -297,12 +298,14 @@ export function AddParticipantDialog({
   const [selected, setSelected] = useState<Person | null>(null);
   const [search, setSearch] = useState("");
   const [manual, setManual] = useState(false);
+  const { query: searchQuery, pending: searching } = useSearchQuery(search);
+  const canSearch = searchQuery.length > 1 && !manual;
   const [lookup, setLookup] = useState("");
   const [requestId] = useState(crypto.randomUUID());
   const members = useAPI(
     "MemberList",
-    `/api/admin/members?limit=10&search=${encodeURIComponent(search)}`,
-    { enabled: search.length > 1 && !manual },
+    `/api/admin/members?limit=10&search=${encodeURIComponent(searchQuery)}`,
+    { enabled: canSearch && !searching },
   );
   const cars = useAPI(
     "Page_VehicleView_",
@@ -415,22 +418,48 @@ export function AddParticipantDialog({
               placeholder="Name or email"
               autoComplete="off"
             />
-            {members.data?.items.map(({ member }) => (
-              <button
-                type="button"
-                className="member-option"
-                key={member.id}
-                onClick={() => {
-                  setSelected(member);
-                  form.setValue("phone", member.phone);
-                  form.setValue("name", member.name);
-                  form.setValue("email", member.email || "");
-                }}
-              >
-                <strong>{member.name}</strong>
-                <small>{member.email || "No email saved"}</small>
-              </button>
-            ))}
+            {(searching || (canSearch && members.isPending)) && (
+              <small role="status">Searching…</small>
+            )}
+            {!searching && canSearch && members.error && (
+              <>
+                <Message error={members.error} />
+                <Button
+                  type="button"
+                  variant="quiet"
+                  onClick={() => members.refetch()}
+                >
+                  Retry
+                </Button>
+              </>
+            )}
+            {!searching &&
+              canSearch &&
+              members.isSuccess &&
+              !members.data.items.length && (
+                <small role="status">
+                  No close matches. Try another name or email.
+                </small>
+              )}
+            {!searching &&
+              canSearch &&
+              members.isSuccess &&
+              members.data.items.map(({ member }) => (
+                <button
+                  type="button"
+                  className="member-option"
+                  key={member.id}
+                  onClick={() => {
+                    setSelected(member);
+                    form.setValue("phone", member.phone);
+                    form.setValue("name", member.name);
+                    form.setValue("email", member.email || "");
+                  }}
+                >
+                  <strong>{member.name}</strong>
+                  <small>{member.email || "No email saved"}</small>
+                </button>
+              ))}
             <Button
               type="button"
               variant="secondary"

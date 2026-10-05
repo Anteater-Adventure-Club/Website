@@ -31,6 +31,7 @@ import {
   roleName,
 } from "../components/operations";
 import { SetupQuarter } from "../components/officer-forms";
+import { rankPeople } from "../lib/person-search";
 
 export function CheckInPicker() {
   const { quarter } = useQuarter();
@@ -128,12 +129,10 @@ export function FieldDesk({ seat = false }: { seat?: boolean }) {
     data.event.state !== "published" || q?.state !== "open" || stale;
   const base = eventURL(data.event, true);
   const selected = data.signups.find((s) => s.id === person);
-  const rows = data.signups.filter(
-    (s) =>
-      s.role === role &&
-      `${s.name} ${s.email || ""} ${s.phone}`
-        .toLowerCase()
-        .includes(search.toLowerCase()),
+  const rows = rankPeople(
+    data.signups.filter((s) => s.role === role),
+    search,
+    (s) => s.id,
   );
   return (
     <div className="field-desk">
@@ -293,7 +292,11 @@ export function FieldDesk({ seat = false }: { seat?: boolean }) {
               ))}
             </div>
             {!rows.length && (
-              <Empty title={search ? "No match" : "No people in this group"}>
+              <Empty
+                title={
+                  search.trim() ? "No close matches" : "No people in this group"
+                }
+              >
                 Try another name or add a walk-in.
               </Empty>
             )}
