@@ -32,6 +32,8 @@ test("initial HTML discovers the rendered hero once without waiting for home API
   const response = await page.goto("/");
   const html = await response!.text();
   expect(html).toContain('id="aac-home-data"');
+  expect(html).toContain("<style data-aac-styles>");
+  expect(await page.locator('link[rel="stylesheet"]').count()).toBe(0);
   const hero = page.locator(".hero-polaroids img").first();
   await expect(hero).toBeVisible();
   await expect
