@@ -27,7 +27,7 @@ export function Membership() {
   const settings = useAPI("SiteSettings", "/api/site-settings");
   const action = useAction();
   const [student, setStudent] = useState(true);
-  const [method, setMethod] = useState<"cash" | "venmo" | "zelle">("cash");
+  const [method, setMethod] = useState<"cash" | "venmo" | "zelle">("zelle");
   const [paid, setPaid] = useState(false);
   const [phone, setPhone] = useState<string>();
   const contactPhone = phone ?? session?.member?.phone ?? "";
@@ -255,7 +255,7 @@ export function Membership() {
                     <fieldset>
                       <legend>Paid by</legend>
                       <div className="stack">
-                        {(["cash", "venmo", "zelle"] as const).map((value) => (
+                        {(["zelle", "venmo", "cash"] as const).map((value) => (
                           <label className="check-field" key={value}>
                             <input
                               type="radio"
