@@ -40,6 +40,18 @@ def photo(api):
     return response.json()["id"]
 
 
+@pytest.mark.parametrize("path,title", [("/privacy", "Privacy Policy"), ("/terms", "Terms of Service")])
+def test_legal_pages_have_public_metadata_without_a_share_card(api, path, title):
+    api.cookies.clear()
+    response, head = preview(api, path + "/?return_to=private-secret")
+    assert f"<title>{title} | Anteater Adventure Club</title>" in response.text
+    assert head.meta["og:url"] == "http://testserver" + path
+    assert f'rel="canonical" href="http://testserver{path}"' in response.text
+    assert head.meta["twitter:card"] == "summary"
+    assert "robots" not in head.meta and "og:image" not in head.meta
+    assert "private-secret" not in response.text and "untrusted.example" not in response.text
+
+
 @pytest.mark.parametrize(
     "path,title",
     [

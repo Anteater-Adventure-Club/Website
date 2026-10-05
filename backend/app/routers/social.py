@@ -41,6 +41,14 @@ PAGES = {
         f"Sign In | {SITE}",
         "Sign in with your UCI account to join adventures and manage your AAC membership.",
     ),
+    "/privacy": (
+        f"Privacy Policy | {SITE}",
+        "How Anteater Adventure Club collects, uses and protects information for membership, events and carpools.",
+    ),
+    "/terms": (
+        f"Terms of Service | {SITE}",
+        "Terms for using the Anteater Adventure Club website, accounts, event signups and membership tools.",
+    ),
 }
 
 
@@ -169,8 +177,8 @@ def page_metadata(
     if path in PAGES:
         title, description = PAGES[path]
         canonical, indexable = path, path != "/sign-in"
-        if indexable:
-            key = next(key for key, value in PAGE_CARDS.items() if value[0] == path)
+        key = next((key for key, value in PAGE_CARDS.items() if value[0] == path), None)
+        if indexable and key:
             card, _ = page_card(key, settings)
             share_title = card.title
             image = card_metadata(card, f"/api/share-images/pages/{key}.jpg")

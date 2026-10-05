@@ -206,6 +206,8 @@ export function Layout() {
       </main>
       <footer className="footer">
         <span>© {new Date().getFullYear()} Anteater Adventure Club</span>
+        <Link to="/privacy">Privacy Policy</Link>
+        <Link to="/terms">Terms of Service</Link>
         {settings.data?.discord && (
           <a href={settings.data.discord} target="_blank" rel="noreferrer">
             Discord

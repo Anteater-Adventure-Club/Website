@@ -6,6 +6,7 @@ import { Providers } from "./lib/context";
 import { Guard, Layout, Workspace } from "./components/layout";
 import { Board, Events, Home, NotFound, SignIn } from "./pages/public";
 import { Membership } from "./pages/membership";
+import { PrivacyPolicy, TermsOfService } from "./pages/legal";
 import { Loading } from "./components/ui";
 import { PageMetadata } from "./components/page-metadata";
 
@@ -89,6 +90,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 <Route path="events/:slug/:id" element={<EventDetail />} />
                 <Route path="board" element={<Board />} />
                 <Route path="membership" element={<Membership />} />
+                <Route path="privacy" element={<PrivacyPolicy />} />
+                <Route path="terms" element={<TermsOfService />} />
                 <Route path="sign-in" element={<SignIn />} />
                 <Route element={<Guard />}>
                   <Route element={<Workspace />}>
