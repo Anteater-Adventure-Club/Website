@@ -39,7 +39,6 @@ test("Sign-in prefers UCI and only the explicit exception selects non-UCI", asyn
   await expect(page.getByRole("alert")).toContainText(
     "Use your verified UCI Google account",
   );
-  await expect(page.getByText(/Use the same email each time/)).toBeVisible();
   expect((await uci.boundingBox())!.y).toBeLessThan(
     (await other.boundingBox())!.y,
   );

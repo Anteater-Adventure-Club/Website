@@ -649,10 +649,6 @@ export function SignIn() {
               </span>
               Continue with UCI Google
             </a>
-            <small className="muted">
-              Use your UCI email if you have one. Use the same email each time
-              to keep your membership and event history in one account.
-            </small>
             <a
               className="button quiet"
               href={`/api/auth/login?mode=non_uci&return_to=${returnTo}`}
@@ -661,9 +657,6 @@ export function SignIn() {
             </a>
           </>
         )}
-        <small className="muted">
-          Google provides your name and email. We don’t read your inbox.
-        </small>
         <Link className="text-link" to="/events">
           Browse events without signing in <ArrowRight size={16} />
         </Link>
