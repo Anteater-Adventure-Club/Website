@@ -18,6 +18,8 @@ Load the configuration into your process environment. From `backend/`, run `../.
 
 ## Checks
 
+Static asset preparation, content versions, homepage bootstrapping and production speed checks are documented in [docs/page-speed.md](docs/page-speed.md).
+
 From `backend/`: `../.venv/bin/pytest -q` and `../.venv/bin/ruff check .`. Tests use the disposable `TEST_DATABASE_URL` (default local `aac`). From `frontend/`: `npm run build` and `npm test`. Run `npm run api:types` after regenerating `backend/openapi.json` when API contracts change.
 
 Browser checks use a separate `aac_browser` database on local port 55432. Run `.venv/bin/python scripts/seed-browser-fixtures.py`, start the API with its documented synthetic session configuration, then run `npm run test:e2e` from `frontend/`. The guarded seeder refuses non-local database URLs, records fixture cookies only in ignored `artifacts/`, and provides no authentication bypass in the deployed application.

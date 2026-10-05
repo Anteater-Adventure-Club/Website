@@ -1,0 +1,274 @@
+{
+  "date": "2026-10-05",
+  "baseline_commit": "1ce3443aeb6985d2e74a2122f10049492780f358",
+  "candidate_runtime_commit": "e8e2725",
+  "merged_upstream_commit": "1e00a03",
+  "lighthouse": "13.0.3",
+  "chrome": "153.0.8010.12",
+  "runs": 5,
+  "methods": {
+    "simulated": {
+      "mobile": {
+        "baseline": {
+          "scores": {
+            "performance": 81,
+            "accessibility": 98,
+            "best-practices": 100,
+            "seo": 92
+          },
+          "fcp_ms": 1502.2539,
+          "lcp_ms": 5027.5836,
+          "lcp_range_ms": [
+            3603.96825,
+            5029.0533
+          ],
+          "tbt_ms": 10,
+          "cls": 0.004749815082478382
+        },
+        "candidate": {
+          "scores": {
+            "performance": 92,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 100
+          },
+          "fcp_ms": 1351.9029,
+          "lcp_ms": 3377.7525,
+          "lcp_range_ms": [
+            2782.05285,
+            3377.86905
+          ],
+          "tbt_ms": 8,
+          "cls": 0
+        },
+        "settings": {
+          "throttling": {
+            "rttMs": 150,
+            "throughputKbps": 1638.4,
+            "requestLatencyMs": 562.5,
+            "downloadThroughputKbps": 1474.5600000000002,
+            "uploadThroughputKbps": 675,
+            "cpuSlowdownMultiplier": 4
+          },
+          "throttlingMethod": "simulate",
+          "screenEmulation": {
+            "mobile": true,
+            "width": 412,
+            "height": 823,
+            "deviceScaleFactor": 1.75,
+            "disabled": false
+          }
+        }
+      },
+      "desktop": {
+        "baseline": {
+          "scores": {
+            "performance": 98,
+            "accessibility": 98,
+            "best-practices": 100,
+            "seo": 92
+          },
+          "fcp_ms": 362.0004,
+          "lcp_ms": 702.5803,
+          "lcp_range_ms": [
+            701.6990499999999,
+            723.0006
+          ],
+          "tbt_ms": 0,
+          "cls": 0.07988815222604542
+        },
+        "candidate": {
+          "scores": {
+            "performance": 100,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 100
+          },
+          "fcp_ms": 321.6628,
+          "lcp_ms": 801.9737000000001,
+          "lcp_range_ms": [
+            662.1819,
+            802.4942000000001
+          ],
+          "tbt_ms": 0,
+          "cls": 0
+        },
+        "settings": {
+          "throttling": {
+            "rttMs": 40,
+            "throughputKbps": 10240,
+            "requestLatencyMs": 0,
+            "downloadThroughputKbps": 0,
+            "uploadThroughputKbps": 0,
+            "cpuSlowdownMultiplier": 1
+          },
+          "throttlingMethod": "simulate",
+          "screenEmulation": {
+            "mobile": false,
+            "width": 1350,
+            "height": 940,
+            "deviceScaleFactor": 1,
+            "disabled": false
+          }
+        }
+      }
+    },
+    "applied": {
+      "mobile": {
+        "baseline": {
+          "scores": {
+            "performance": 85,
+            "accessibility": 98,
+            "best-practices": 100,
+            "seo": 92
+          },
+          "fcp_ms": 2512.039,
+          "lcp_ms": 3880.721,
+          "lcp_range_ms": [
+            3873.874,
+            3888.227
+          ],
+          "tbt_ms": 0,
+          "cls": 0.004749815082478382
+        },
+        "candidate": {
+          "scores": {
+            "performance": 94,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 100
+          },
+          "fcp_ms": 2530.02,
+          "lcp_ms": 2530.02,
+          "lcp_range_ms": [
+            2526.986,
+            2543.364
+          ],
+          "tbt_ms": 0,
+          "cls": 0
+        },
+        "settings": {
+          "throttling": {
+            "rttMs": 150,
+            "throughputKbps": 1638.4,
+            "requestLatencyMs": 562.5,
+            "downloadThroughputKbps": 1474.5600000000002,
+            "uploadThroughputKbps": 675,
+            "cpuSlowdownMultiplier": 4
+          },
+          "throttlingMethod": "devtools",
+          "screenEmulation": {
+            "mobile": true,
+            "width": 412,
+            "height": 823,
+            "deviceScaleFactor": 1.75,
+            "disabled": false
+          }
+        }
+      },
+      "desktop": {
+        "baseline": {
+          "scores": {
+            "performance": 99,
+            "accessibility": 98,
+            "best-practices": 100,
+            "seo": 92
+          },
+          "fcp_ms": 80.514,
+          "lcp_ms": 80.514,
+          "lcp_range_ms": [
+            72.237,
+            85.341
+          ],
+          "tbt_ms": 0,
+          "cls": 0.07988815222604542
+        },
+        "candidate": {
+          "scores": {
+            "performance": 100,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 100
+          },
+          "fcp_ms": 87.193,
+          "lcp_ms": 87.193,
+          "lcp_range_ms": [
+            84.338,
+            90.011
+          ],
+          "tbt_ms": 0,
+          "cls": 0
+        },
+        "settings": {
+          "throttling": {
+            "rttMs": 40,
+            "throughputKbps": 10240,
+            "requestLatencyMs": 0,
+            "downloadThroughputKbps": 0,
+            "uploadThroughputKbps": 0,
+            "cpuSlowdownMultiplier": 1
+          },
+          "throttlingMethod": "devtools",
+          "screenEmulation": {
+            "mobile": false,
+            "width": 1350,
+            "height": 940,
+            "deviceScaleFactor": 1,
+            "disabled": false
+          }
+        }
+      }
+    }
+  },
+  "checks": {
+    "backend_tests": 205,
+    "frontend_tests": 47,
+    "speed_browser_tests": 36,
+    "social_browser_tests": 48,
+    "keyboard_tests_before_merge": 54,
+    "affected_keyboard_tests_after_merge": 6,
+    "font_outline_or_width_changes": 0,
+    "console_errors_real_cloudflare_beacon": 0,
+    "devtools_issues_real_cloudflare_beacon": 0,
+    "nginx_config": "passed",
+    "production_images": "both built",
+    "openapi_and_generated_types": "matched",
+    "alembic_check": "no new operations"
+  },
+  "insights": {
+    "cache-insight": {
+      "baseline_score": 0,
+      "candidate_score": 1,
+      "baseline_display": "Est savings of 116\u00a0KiB",
+      "candidate_display": null
+    },
+    "lcp-discovery-insight": {
+      "baseline_score": 0,
+      "candidate_score": 1,
+      "baseline_display": null,
+      "candidate_display": null
+    },
+    "render-blocking-insight": {
+      "baseline_score": 0,
+      "candidate_score": 1,
+      "baseline_display": "Est savings of 150\u00a0ms",
+      "candidate_display": null
+    },
+    "forced-reflow-insight": {
+      "baseline_score": 1,
+      "candidate_score": 1,
+      "baseline_display": null,
+      "candidate_display": null
+    },
+    "image-delivery-insight": {
+      "baseline_score": 0,
+      "candidate_score": 0,
+      "baseline_display": "Est savings of 66\u00a0KiB",
+      "candidate_display": "Est savings of 179\u00a0KiB"
+    }
+  },
+  "initial_transfer_bytes": {
+    "baseline": 789332,
+    "candidate": 715351
+  }
+}
