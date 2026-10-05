@@ -282,7 +282,18 @@ function SignupForm({
             Signup saved. See you there!
           </Message>
         )}
-        <div className="sticky-actions">
+        <div className="sticky-actions form-actions">
+          {signup && !signup.cancelled && (
+            <Button
+              type="button"
+              variant="secondary"
+              className="heading-button"
+              disabled={action.isPending}
+              onClick={() => setCancel(true)}
+            >
+              Cancel Signup
+            </Button>
+          )}
           <Button
             className="heading-button"
             disabled={
@@ -300,11 +311,6 @@ function SignupForm({
                   : "Sign me up!"}
           </Button>
         </div>
-        {signup && !signup.cancelled && (
-          <Button type="button" variant="quiet" onClick={() => setCancel(true)}>
-            Cancel Signup
-          </Button>
-        )}
       </form>
       {addCar && <VehicleDialog onClose={() => setAddCar(false)} />}
       {cancel && (
