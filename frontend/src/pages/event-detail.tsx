@@ -37,11 +37,11 @@ import { VehicleDialog } from "./members";
 function SignupForm({
   event,
   signup,
-  hasPrioritySeating,
+  hasMembershipBenefits,
 }: {
   event: Event;
   signup?: Schema<"SignupOwn">;
-  hasPrioritySeating: boolean;
+  hasMembershipBenefits: boolean;
 }) {
   const { session } = useIdentity();
   const cars = useAPI("Page_VehicleView_", "/api/me/vehicles");
@@ -173,29 +173,40 @@ function SignupForm({
             ))}
           </div>
         </fieldset>
-        <div
-          className={`signup-membership-note${hasPrioritySeating ? " priority" : ""}`}
-        >
-          {hasPrioritySeating ? (
-            <>
-              <span className="signup-priority-icon" aria-hidden="true">
-                <Crown size={21} strokeWidth={1.7} />
-              </span>
-              <div>
-                <strong>Thanks for supporting AAC!</strong>
-                <p>You have priority seating for this event.</p>
-              </div>
-            </>
-          ) : (
-            <p>
-              Paid members receive priority seating. Interested?{" "}
-              <Link to={`/membership?quarter=${event.quarter_id}`}>
-                Become a member
-              </Link>
-              .
-            </p>
-          )}
-        </div>
+        {(hasMembershipBenefits || role !== "own") && (
+          <div
+            className={`signup-membership-note${hasMembershipBenefits ? " priority" : ""}`}
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            {hasMembershipBenefits ? (
+              <>
+                <span className="signup-priority-icon" aria-hidden="true">
+                  <Crown size={21} strokeWidth={1.7} />
+                </span>
+                <div>
+                  <strong>Thanks for supporting AAC!</strong>
+                  {role === "ride" && (
+                    <p>You have priority seating for this event.</p>
+                  )}
+                  {role === "driver" && (
+                    <p>You’re eligible for gas reimbursements.</p>
+                  )}
+                </div>
+              </>
+            ) : (
+              <p>
+                {role === "driver"
+                  ? "Paid members can receive gas reimbursements. Interested?"
+                  : "Paid members receive priority seating. Interested?"}{" "}
+                <Link to={`/membership?quarter=${event.quarter_id}`}>
+                  Become a member
+                </Link>
+                .
+              </p>
+            )}
+          </div>
+        )}
         {role === "driver" && (
           <>
             <label className="field">
@@ -639,7 +650,7 @@ export function EventDetail() {
               key={`${e.id}-${signup?.id || "new"}-${signup?.revision || 0}`}
               event={e}
               signup={signup}
-              hasPrioritySeating={membership.data?.status === "approved"}
+              hasMembershipBenefits={membership.data?.status === "approved"}
             />
           )}
         </aside>
