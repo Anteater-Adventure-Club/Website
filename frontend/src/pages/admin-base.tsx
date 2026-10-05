@@ -13,6 +13,7 @@ import {
 } from "../lib/api";
 import type { AdminEvent, Person, Schema } from "../lib/api";
 import { quarterURL, useQuarter } from "../lib/context";
+import { useSearchQuery } from "../lib/search-query";
 import {
   Button,
   Dialog,
@@ -847,11 +848,13 @@ export function Members() {
   const { quarter } = useQuarter();
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState("");
+  const { query: searchQuery, pending: searching } = useSearchQuery(search);
   const status = params.get("status") || "all";
   const [offset, setOffset] = useState(0);
   const query = useAPI(
     "MemberList",
-    `/api/admin/members?limit=50&offset=${offset}&status=${status}&search=${encodeURIComponent(search)}${quarter ? `&quarter_id=${quarter.id}` : ""}`,
+    `/api/admin/members?limit=50&offset=${offset}&status=${status}&search=${encodeURIComponent(searchQuery)}${quarter ? `&quarter_id=${quarter.id}` : ""}`,
+    { enabled: !searching },
   );
   const [add, setAdd] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -910,7 +913,7 @@ export function Members() {
           </Button>
         ))}
       </div>
-      {query.isPending ? (
+      {searching || query.isPending ? (
         <Loading />
       ) : query.error ? (
         <Failure error={query.error} retry={query.refetch} />

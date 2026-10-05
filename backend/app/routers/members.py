@@ -18,6 +18,7 @@ from ..domain import (
 )
 from ..models import Audit, Event, Member, Membership, Officer, Receipt, Signup, Vehicle
 from ..projections import event_projection, membership_view, signups_projection
+from ..person_search import ranked_page
 from ..schemas import (
     Items,
     OfficerView,
@@ -197,10 +198,6 @@ def member_list(
 ):
     q = default_quarter(db, quarter_id)
     query = select(Member)
-    if search:
-        query = query.where(
-            Member.name.ilike("%" + search[:100] + "%") | Member.email.ilike("%" + search[:100] + "%")
-        )
     if q and status != "all":
         query = query.outerjoin(
             Membership, (Membership.member_id == Member.id) & (Membership.quarter_id == q.id)
@@ -213,7 +210,7 @@ def member_list(
             query = query.where(Membership.status == "approved", Membership.source != "exception")
         else:
             query = query.where(Membership.status == status)
-    result = page(db, query.order_by(Member.name, Member.id), limit, offset)
+    result = ranked_page(db, query.order_by(Member.name, Member.id), Member, search, limit, offset)
     result["items"] = [
         {
             "member": MemberPrivate.model_validate(m),

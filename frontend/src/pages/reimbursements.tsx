@@ -18,6 +18,7 @@ import {
   Pill,
 } from "../components/ui";
 import { PersonDialog, SetupQuarter } from "../components/officer-forms";
+import { rankPeople } from "../lib/person-search";
 
 type Driver = Schema<"DriverRow">;
 export function Reimbursements() {
@@ -58,16 +59,17 @@ export function Reimbursements() {
   const totals = data.totals;
   const frozen = data.state !== "open";
   const activeStep = frozen ? 5 : step;
-  const drivers = data.drivers.filter(
-    (d) =>
-      `${d.name} ${d.email || ""}`
-        .toLowerCase()
-        .includes(search.toLowerCase()) &&
-      (filter === "all" ||
+  const drivers = rankPeople(
+    data.drivers.filter(
+      (d) =>
+        filter === "all" ||
         (filter === "eligible" && d.eligible) ||
         (filter === "ineligible" && !d.eligible) ||
         (filter === "pending" && !d.paid_on && Number(d.allocated) > 0) ||
-        (filter === "paid" && d.paid_on)),
+        (filter === "paid" && d.paid_on),
+    ),
+    search,
+    (d) => d.member_id,
   );
   const pending = data.drivers.filter(
     (d) => Number(d.allocated) > 0 && !d.paid_on,
