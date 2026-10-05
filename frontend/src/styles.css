@@ -1415,6 +1415,10 @@ dialog::backdrop {
   font-size: 1.35rem;
   color: var(--forest);
 }
+.passenger-count {
+  align-items: center;
+  text-align: center;
+}
 .counter {
   display: flex;
   align-items: center;
