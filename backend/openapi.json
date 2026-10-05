@@ -7137,6 +7137,19 @@
               "zelle"
             ],
             "title": "Method"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
           }
         },
         "additionalProperties": false,
