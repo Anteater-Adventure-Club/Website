@@ -14,7 +14,10 @@ from fastapi.responses import HTMLResponse, Response
 from ..db import get_db
 from ..domain import PACIFIC, fail, slug
 from ..models import Event, Media, Recap
+from ..schemas import HomeView
 from ..services.share_cards import ASSETS, SIZE, ShareCard, concise, render_card
+from ..services.web_assets import HERO_IMAGE_SIZES, hero_sources
+from .editorial import home as home_data
 
 router = APIRouter()
 SITE = "Anteater Adventure Club"
@@ -210,6 +213,7 @@ def page_metadata(
         return f'<meta {attribute}="{key}" content="{escape(str(value), quote=True)}" />'
 
     tags = [
+        meta("aac-page-path", path if indexable else canonical, "name"),
         f"<title>{escape(title)}</title>",
         meta("description", description, "name"),
         f'<link rel="canonical" href="{escape(base + canonical, quote=True)}" />',
@@ -240,4 +244,16 @@ def page_metadata(
         )
     if not indexable:
         tags.append(meta("robots", "noindex, nofollow", "name"))
+    if path == "/":
+        home = HomeView.model_validate(home_data(db))
+        src, srcset = hero_sources(home)
+        tags.append(
+            '<link rel="preload" as="image" fetchpriority="high" '
+            f'href="{escape(src, quote=True)}" imagesrcset="{escape(srcset, quote=True)}" '
+            f'imagesizes="{escape(HERO_IMAGE_SIZES, quote=True)}" />'
+        )
+        # This is inert JSON, not executable code. Escaping '<' prevents a
+        # published title/description from closing the script element.
+        payload = home.model_dump_json().replace("<", "\\u003c").replace("&", "\\u0026")
+        tags.append(f'<script id="aac-home-data" type="application/json">{payload}</script>')
     return HTMLResponse("\n".join(tags), headers={"Cache-Control": "no-store"})

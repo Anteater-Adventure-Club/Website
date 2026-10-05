@@ -10,7 +10,14 @@
   src: url("/fonts/Chivo-Regular-latin.woff2") format("woff2");
   font-weight: 100 900;
   font-display: swap;
-  unicode-range: U+0-24F, U+2000-206F, U+20A0-20CF, U+2190-21FF;
+  unicode-range: U+80-9F, U+C0-D6, U+D8-24F;
+}
+@font-face {
+  font-family: Chivo;
+  src: url("/fonts/Chivo-Regular-basic.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+0-7F, U+A0-BF, U+D7, U+2000-206F, U+20A0-20CF, U+2190-21FF;
 }
 @font-face {
   font-family: Chivo;
@@ -24,7 +31,14 @@
   src: url("/fonts/Chivo-Italic-latin.woff2") format("woff2");
   font-style: italic;
   font-display: swap;
-  unicode-range: U+0-24F, U+2000-206F, U+20A0-20CF, U+2190-21FF;
+  unicode-range: U+80-9F, U+C0-D6, U+D8-24F;
+}
+@font-face {
+  font-family: Chivo;
+  src: url("/fonts/Chivo-Italic-basic.woff2") format("woff2");
+  font-style: italic;
+  font-display: swap;
+  unicode-range: U+0-7F, U+A0-BF, U+D7, U+2000-206F, U+20A0-20CF, U+2190-21FF;
 }
 @font-face {
   font-family: Lazydog;
@@ -36,7 +50,13 @@
   font-family: Lazydog;
   src: url("/fonts/Lazydog-latin.woff2") format("woff2");
   font-display: swap;
-  unicode-range: U+0-24F, U+2000-206F, U+20A0-20CF, U+2190-21FF;
+  unicode-range: U+80-9F, U+C0-D6, U+D8-24F;
+}
+@font-face {
+  font-family: Lazydog;
+  src: url("/fonts/Lazydog-basic.woff2") format("woff2");
+  font-display: swap;
+  unicode-range: U+0-7F, U+A0-BF, U+D7, U+2000-206F, U+20A0-20CF, U+2190-21FF;
 }
 :root {
   font-family: Chivo, Arial, sans-serif;
@@ -727,7 +747,11 @@ form {
   object-fit: cover;
   background: #e8ece5;
 }
-.polaroid h3 {
+.polaroid .polaroid-title {
+  font-family: Lazydog, Chivo, sans-serif;
+  font-weight: 400;
+  line-height: 1.18;
+  letter-spacing: 0.03em;
   margin: 0.9rem 0 0.2rem;
   font-size: 1.2rem;
   overflow-wrap: anywhere;
@@ -749,6 +773,9 @@ form {
 }
 .activity-row.reverse .activity-copy {
   order: 2;
+}
+.activity-title {
+  font-size: 1.8rem;
 }
 .activity-copy p {
   color: var(--muted);
@@ -1834,7 +1861,7 @@ dialog::backdrop {
   .board-grid .polaroid {
     padding: 0.55rem 0.55rem 0.8rem;
   }
-  .board-grid .polaroid h3 {
+  .board-grid .polaroid .polaroid-title {
     font-size: 1.15rem;
   }
   .board-grid .polaroid p {
@@ -2067,7 +2094,7 @@ dialog::backdrop {
     width: 78%;
     max-width: 280px;
   }
-  .activity-polaroids .polaroid h3 {
+  .activity-polaroids .polaroid .polaroid-title {
     font-size: 1rem;
   }
   .activity-polaroids {
@@ -2264,7 +2291,7 @@ dialog::backdrop {
   .quarter-picker select {
     max-width: 144px;
   }
-  .board-grid .polaroid h3 {
+  .board-grid .polaroid .polaroid-title {
     font-size: 1rem;
   }
   .form-grid {

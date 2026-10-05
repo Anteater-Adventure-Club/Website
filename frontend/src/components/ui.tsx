@@ -8,6 +8,7 @@ import { Link } from "react-router";
 import { ArrowRight, CalendarDays, X } from "lucide-react";
 import { ApiError, dateLabel, eventURL, photoURL } from "../lib/api";
 import type { Event } from "../lib/api";
+import { imageSources, polaroidImageSizes } from "../lib/images";
 
 export function Button({
   children,
@@ -259,6 +260,8 @@ export function Polaroid({
   onClick,
   rotation = 0,
   eager = false,
+  sizes = polaroidImageSizes,
+  titleElement: Title = "h3",
 }: {
   image?: string;
   title: string;
@@ -266,22 +269,14 @@ export function Polaroid({
   onClick?: () => void;
   rotation?: number;
   eager?: boolean;
+  sizes?: string;
+  titleElement?: "span" | "h2" | "h3";
 }) {
   const content = (
     <>
       <img
-        src={image || photoURL(null)}
-        srcSet={
-          image?.startsWith("/images/") && image.endsWith(".webp")
-            ? [320, 640, 800]
-                .map(
-                  (width) =>
-                    `${image.replace("/images/", "/images/responsive/").replace(".webp", `-${width}.webp`)} ${width}w`,
-                )
-                .join(", ")
-            : undefined
-        }
-        sizes="(max-width: 767px) 240px, 260px"
+        {...imageSources(image || photoURL(null))}
+        sizes={sizes}
         alt=""
         loading={eager ? "eager" : "lazy"}
         fetchPriority={eager ? "high" : "low"}
@@ -289,7 +284,7 @@ export function Polaroid({
         width={640}
         height={480}
       />
-      <h3>{title}</h3>
+      <Title className="polaroid-title">{title}</Title>
       {caption && <p>{caption}</p>}
     </>
   );

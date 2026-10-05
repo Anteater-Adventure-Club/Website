@@ -3,6 +3,8 @@ WORKDIR /build/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY frontend/ ./
+COPY assets/static-asset-versions.json /build/assets/static-asset-versions.json
+COPY scripts/prepare-static-assets.mjs /build/scripts/prepare-static-assets.mjs
 ARG SOURCE_COMMIT=development
 RUN npm run build && node -e "require('fs').writeFileSync('dist/version.json',JSON.stringify({release_sha:process.argv[1]}))" "$SOURCE_COMMIT"
 FROM docker.io/nginxinc/nginx-unprivileged:1.28.0-alpine@sha256:a6bd0e0995ab4723fb65068665f8016decb67dc6a6a32eddc415c7d1229cada6

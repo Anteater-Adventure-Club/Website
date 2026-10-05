@@ -1,13 +1,18 @@
 import io
+import json
+import re
 from dataclasses import replace
+from datetime import timedelta
 from html.parser import HTMLParser
 
 import pytest
 from PIL import Image
 
 from app.models import Event
+from app.domain import utcnow
 from app.config import Settings
 from app.services.share_cards import render_card
+from app.services.web_assets import HERO_IMAGE_SIZES, static_asset_url
 from conftest import event, quarter
 
 
@@ -38,6 +43,61 @@ def photo(api):
     response = api.post("/api/admin/media", files={"file": ("photo.jpg", output.getvalue(), "image/jpeg")})
     assert response.status_code == 201, response.text
     return response.json()["id"]
+
+
+def home_payload(response):
+    return json.loads(re.search(r'<script id="aac-home-data" type="application/json">(.*?)</script>',
+                                response.text, re.S).group(1))
+
+
+def test_home_bootstrap_matches_public_api_and_escapes_published_text(api):
+    q = quarter(api)
+    event(api, q, name="Public upcoming")
+    event(api, q, name="Private draft", description="Private description", publish=False)
+    e = event(api, q, publish=False, signups_enabled=False,
+              starts_at=(utcnow() - timedelta(days=3)).isoformat(),
+              ends_at=(utcnow() - timedelta(days=2)).isoformat(),
+              departure_at=(utcnow() - timedelta(days=3, hours=1)).isoformat())
+    assert api.post(f"/api/admin/events/{e['id']}/state", json={"state": "published"}).status_code == 200
+    assert api.post(f"/api/admin/events/{e['id']}/state", json={"state": "completed"}).status_code == 200
+    mid = photo(api)
+    url = f"/api/admin/events/{e['id']}/recap"
+    title = '</script><img src=x onerror="alert(1)"> & trail'
+    assert api.put(url, json={"image_id": mid, "title": title, "caption": "Trail",
+                             "text": "Public recap", "homepage": True}).status_code == 200
+    assert api.post(url + "/publication", json={}).status_code == 200
+    # A newer unpublished revision must stay out of HTML, including for officers.
+    assert api.put(url, json={"image_id": mid, "title": "Secret revision", "caption": "Trail",
+                             "text": "Private recap text", "homepage": True}).status_code == 200
+    response, head = preview(api, "/")
+    data = home_payload(response)
+    assert data == api.get("/api/home").json()
+    assert data["polaroids"][0]["title"] == title
+    assert "img" not in head.tags and response.text.count("</script>") == 1
+    assert "\\u003c/script>" in response.text and "\\u0026" in response.text
+    for secret in ["Private draft", "Private description", "Secret revision", "Private recap text", "officer@uci.edu"]:
+        assert secret not in response.text
+    assert f'href="/media/{mid}/medium"' in response.text
+    assert f'/media/{mid}/small 320w, /media/{mid}/medium 640w, /media/{mid}/large 1280w' in response.text
+    assert f'imagesizes="{HERO_IMAGE_SIZES}"' in response.text
+    assert 'fetchpriority="high"' in response.text
+    assert api.delete(url + "/publication").status_code == 200
+    assert home_payload(preview(api, "/")[0])["polaroids"] == []
+    assert api.get(f"/media/{mid}/medium").status_code == 404
+
+
+def test_home_preload_uses_versioned_static_fallback_when_no_published_photo(api):
+    response, _ = preview(api, "/")
+    assert home_payload(response) == {"upcoming": [], "polaroids": []}
+    assert f'href="{static_asset_url("/images/griffith_park.webp")}"' in response.text
+    for width in [320, 640, 800]:
+        assert f'{static_asset_url(f"/images/responsive/griffith_park-{width}.webp")} {width}w' in response.text
+
+
+@pytest.mark.parametrize("path", ["/events", "/board", "/admin/events", "/my-aac"])
+def test_other_page_metadata_does_not_include_home_data_or_preload(api, path):
+    response, _ = preview(api, path)
+    assert "aac-home-data" not in response.text and 'as="image"' not in response.text
 
 
 @pytest.mark.parametrize("path,title", [("/privacy", "Privacy Policy"), ("/terms", "Terms of Service")])

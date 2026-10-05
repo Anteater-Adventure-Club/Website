@@ -10,6 +10,10 @@ export function useKeyboardViewport() {
     let focusTimer = 0;
     let height = viewport.height;
     let width = innerWidth;
+    let appliedHeight = "";
+    let appliedTop = "";
+    let appliedBottom = "";
+    let appliedOpen: boolean | undefined;
 
     function revealFocus() {
       const active = document.activeElement;
@@ -89,18 +93,30 @@ export function useKeyboardViewport() {
         if (viewport!.scale !== 1) return;
         const height = viewport!.height;
         const top = viewport!.offsetTop;
-        root.style.setProperty("--visible-height", `${height}px`);
-        root.style.setProperty("--visible-top", `${top}px`);
-        root.style.setProperty(
-          "--keyboard-bottom",
-          `${Math.max(0, innerHeight - height - top)}px`,
-        );
+        const layoutHeight = innerHeight;
+        const layoutWidth = innerWidth;
         const mobile =
-          innerWidth <= 767 || matchMedia("(pointer: coarse)").matches;
-        root.classList.toggle(
-          "keyboard-open",
-          mobile && innerHeight - height > 150,
-        );
+          layoutWidth <= 767 || matchMedia("(pointer: coarse)").matches;
+        const nextHeight = `${height}px`;
+        const nextTop = `${top}px`;
+        const nextBottom = `${Math.max(0, layoutHeight - height - top)}px`;
+        const nextOpen = mobile && layoutHeight - height > 150;
+        // Read viewport geometry before changing styles. Scroll and resize
+        // often repeat the same values, so avoid invalidating layout again.
+        if (nextHeight !== appliedHeight)
+          root.style.setProperty(
+            "--visible-height",
+            (appliedHeight = nextHeight),
+          );
+        if (nextTop !== appliedTop)
+          root.style.setProperty("--visible-top", (appliedTop = nextTop));
+        if (nextBottom !== appliedBottom)
+          root.style.setProperty(
+            "--keyboard-bottom",
+            (appliedBottom = nextBottom),
+          );
+        if (nextOpen !== appliedOpen)
+          root.classList.toggle("keyboard-open", (appliedOpen = nextOpen));
       });
     }
     viewport.addEventListener("resize", update);

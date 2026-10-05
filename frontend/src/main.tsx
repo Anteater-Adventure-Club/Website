@@ -4,9 +4,30 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Providers } from "./lib/context";
 import { Guard, Layout, Workspace } from "./components/layout";
-import { Board, Events, Home, NotFound, SignIn } from "./pages/public";
-import { Membership } from "./pages/membership";
-import { PrivacyPolicy, TermsOfService } from "./pages/legal";
+import { Home } from "./pages/home";
+import { readHomeBootstrap } from "./lib/home-bootstrap";
+
+const Board = lazy(() =>
+  import("./pages/public").then((m) => ({ default: m.Board })),
+);
+const Events = lazy(() =>
+  import("./pages/public").then((m) => ({ default: m.Events })),
+);
+const NotFound = lazy(() =>
+  import("./pages/public").then((m) => ({ default: m.NotFound })),
+);
+const SignIn = lazy(() =>
+  import("./pages/public").then((m) => ({ default: m.SignIn })),
+);
+const Membership = lazy(() =>
+  import("./pages/membership").then((m) => ({ default: m.Membership })),
+);
+const PrivacyPolicy = lazy(() =>
+  import("./pages/legal").then((m) => ({ default: m.PrivacyPolicy })),
+);
+const TermsOfService = lazy(() =>
+  import("./pages/legal").then((m) => ({ default: m.TermsOfService })),
+);
 import { Loading } from "./components/ui";
 import { PageMetadata } from "./components/page-metadata";
 
@@ -69,6 +90,9 @@ import "./styles.css";
 const client = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: true } },
 });
+
+const home = readHomeBootstrap(document);
+if (home) client.setQueryData(["HomeView", "/api/home"], home);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

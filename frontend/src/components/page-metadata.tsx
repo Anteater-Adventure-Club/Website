@@ -2,12 +2,18 @@ import { useEffect } from "react";
 import { useLocation } from "react-router";
 
 const selector =
-  'title, meta[name="description"], meta[property^="og:"], meta[name^="twitter:"], meta[name="robots"], link[rel="canonical"]';
+  'title, meta[name="description"], meta[property^="og:"], meta[name^="twitter:"], meta[name="robots"], meta[name="aac-page-path"], link[rel="canonical"]';
 
 /** Keep browser navigation consistent with the metadata served to crawlers. */
 export function PageMetadata() {
   const { pathname } = useLocation();
   useEffect(() => {
+    if (
+      document.head
+        .querySelector('meta[name="aac-page-path"]')
+        ?.getAttribute("content") === pathname
+    )
+      return;
     const controller = new AbortController();
     async function update() {
       try {

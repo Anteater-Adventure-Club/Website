@@ -61,6 +61,23 @@ describe("phone keyboard focus", () => {
     act(() => vi.runAllTimers());
   }
 
+  it("skips repeated style writes when viewport geometry is unchanged", () => {
+    const writes = vi.spyOn(document.documentElement.style, "setProperty");
+    renderHook(useKeyboardViewport);
+    settle();
+    expect(writes).toHaveBeenCalledTimes(3);
+    writes.mockClear();
+    viewport.dispatchEvent(new Event("resize"));
+    viewport.dispatchEvent(new Event("scroll"));
+    settle();
+    expect(writes).not.toHaveBeenCalled();
+    offset = 40;
+    viewport.dispatchEvent(new Event("scroll"));
+    settle();
+    expect(writes).toHaveBeenCalledTimes(1);
+    expect(writes).toHaveBeenCalledWith("--visible-top", "40px");
+  });
+
   it("reveals an obscured field by scrolling its sheet without moving the page", () => {
     renderHook(useKeyboardViewport);
     const { sheet, input } = fieldInSheet();

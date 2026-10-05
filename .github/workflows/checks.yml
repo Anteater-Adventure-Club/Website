@@ -144,6 +144,7 @@ jobs:
             -v "$PWD/../deploy/security-headers.conf:/etc/nginx/aac-security-headers.conf:ro" \
             nginxinc/nginx-unprivileged:1.28.0-alpine@sha256:a6bd0e0995ab4723fb65068665f8016decb67dc6a6a32eddc415c7d1229cada6
           E2E_URL=http://localhost:8080 E2E_SERVES_METADATA=1 npm run test:e2e:social
+          E2E_BASE_URL=http://localhost:8080 npm run test:e2e:speed
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
@@ -159,6 +160,7 @@ jobs:
             artifacts/keyboard-traces
             artifacts/social-results.json
             artifacts/social-traces
+            artifacts/page-speed
             artifacts/api.log
             artifacts/web.log
           retention-days: 7

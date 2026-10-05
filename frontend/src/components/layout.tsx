@@ -9,6 +9,7 @@ import {
 } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Menu, LogOut } from "lucide-react";
+import { staticAssetURL } from "../lib/images";
 import { request, useAPI } from "../lib/api";
 import { quarterURL, useIdentity, useQuarter } from "../lib/context";
 import { Button, Dialog, Empty, Failure, Loading, Pill } from "./ui";
@@ -142,7 +143,12 @@ export function Layout() {
       </a>
       <header className="site-header">
         <Link className="brand" to="/" aria-label="AAC Home">
-          <img src="/logos/aac.svg?v=transparent" alt="" width="44" height="44" />
+          <img
+            src={staticAssetURL("/logos/aac.svg")}
+            alt=""
+            width="44"
+            height="44"
+          />
           <span>AAC</span>
         </Link>
         <Button
