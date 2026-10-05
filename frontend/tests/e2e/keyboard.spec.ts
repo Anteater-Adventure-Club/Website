@@ -134,6 +134,36 @@ const eventPath = (name: string) =>
   `/admin/events/${fixture.events[name].slug}/${fixture.events[name].id}`;
 
 for (const mode of ["visual", "content"] as const) {
+  test(`K07 ${mode} membership contact and submit remain usable with the phone keyboard`, async ({
+    page,
+    context,
+  }) => {
+    await context.clearCookies();
+    await context.addCookies([
+      {
+        name: "aac_session",
+        value: fixture.cookies["General Rider"],
+        domain: "localhost",
+        path: "/",
+      },
+    ]);
+    await page.goto("/my-aac/membership");
+    const phone = page.getByLabel("Contact phone number");
+    const dismiss = await keyboard(page, mode, phone);
+    await phone.fill("9495550180");
+    await inputReadable(phone);
+    await page.getByLabel("I have sent my payment or paid an officer.").check();
+    await submit(
+      page,
+      page.getByRole("button", { name: "Submit payment details" }),
+    );
+    await expect(
+      page.getByRole("heading", { name: "Payment awaiting confirmation" }),
+    ).toBeVisible();
+    await dismiss();
+    await expect(page.locator(".membership-signup-form")).toHaveCount(0);
+  });
+
   test(`K01 ${mode} profile typing, multiline Enter, submit and repeated dismissal`, async ({
     page,
   }) => {

@@ -122,6 +122,7 @@ def create_app(settings=None, engine=None):
         return {
             "venmo": settings.venmo,
             "zelle": settings.zelle,
+            "zelle_name": settings.zelle_name,
             "cash": settings.cash,
             "discord": settings.discord,
         }

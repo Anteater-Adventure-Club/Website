@@ -485,7 +485,7 @@ export function MyOverview() {
           </p>
           <Link
             className="button primary"
-            to={quarterURL("/membership", quarter?.id)}
+            to={quarterURL("/my-aac/membership", quarter?.id)}
           >
             {query.data.membership?.status === "approved"
               ? "View Membership"

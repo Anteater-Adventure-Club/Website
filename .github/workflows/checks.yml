@@ -84,6 +84,7 @@ jobs:
       MEDIA_ROOT: /tmp/aac-browser-media
       DUES_VENMO_HANDLE: "@fixture-club"
       DUES_ZELLE_CONTACT: fixture@uci.edu
+      DUES_ZELLE_NAME: Fixture Recipient
       E2E_PYTHON: python
     steps:
       - uses: actions/checkout@v7

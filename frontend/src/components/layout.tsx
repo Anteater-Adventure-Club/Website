@@ -23,7 +23,7 @@ const publicLinks = [
 const memberLinks = [
   ["/my-aac", "Overview"],
   ["/my-aac/signups", "My Signups"],
-  ["/membership", "Membership"],
+  ["/my-aac/membership", "Membership"],
   ["/my-aac/profile", "Profile & Cars"],
   ["/my-aac/reimbursements", "Reimbursements"],
 ];
@@ -161,7 +161,7 @@ export function Layout() {
         </Button>
         <nav aria-label="Main navigation" className="desktop-navigation">
           {nav.map(([url, label]) => (
-            <NavLink end={url === "/" || url === "/my-aac"} key={url} to={url}>
+            <NavLink end={url === "/"} key={url} to={url}>
               {label}
             </NavLink>
           ))}
@@ -199,7 +199,12 @@ export function Layout() {
         <Dialog title="Explore AAC" onClose={() => setMenu(false)}>
           <nav className="drawer-navigation" aria-label="Mobile navigation">
             {nav.map(([url, label]) => (
-              <NavLink key={url} to={url} onClick={() => setMenu(false)}>
+              <NavLink
+                end={url === "/"}
+                key={url}
+                to={url}
+                onClick={() => setMenu(false)}
+              >
                 {label}
               </NavLink>
             ))}
@@ -334,13 +339,14 @@ export function Workspace({ admin = false }: { admin?: boolean }) {
         >
           <nav className="drawer-navigation">
             {links.map(([url, label]) => (
-              <Link
+              <NavLink
+                end
                 key={url}
                 to={quarterURL(url, quarter?.id)}
                 onClick={() => setSections(false)}
               >
                 {label}
-              </Link>
+              </NavLink>
             ))}
           </nav>
         </Dialog>

@@ -53,7 +53,7 @@ No application files are copied over SSH/SCP, no tarballs/base64 source are inje
 | Resource | Configuration |
 |---|---|
 | API | `APP_URL=https://aac.internal.gdodge.dev`, private `DATABASE_URL`, generated `SESSION_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `INITIAL_OFFICER_EMAILS`, `MEDIA_ROOT=/app/media`, environment flag `production`, release SHA. |
-| Club presentation | `DUES_VENMO_HANDLE`, `DUES_ZELLE_CONTACT`, cash instructions, Discord/Instagram/GitHub URLs. Enter verified club destinations; mockup values are not authoritative credentials/payment settings. |
+| Club presentation | `DUES_VENMO_HANDLE`, `DUES_ZELLE_CONTACT`, `DUES_ZELLE_NAME`, cash instructions, Discord/Instagram/GitHub URLs. Enter verified club destinations; mockup values are not authoritative credentials/payment settings. |
 | Web | Internal API origin/alias, release SHA; no OAuth, session, database, or Coolify secrets. |
 | Database | Unique database/user credentials. Use a scoped runtime application role; use an owner/migration role only for initialization/schema changes. |
 
@@ -62,6 +62,8 @@ Google's callback for this working domain is `https://aac.internal.gdodge.dev/ap
 Run the repository's Alembic baseline once before starting the first API. For deployment-time schema changes, run the committed migration command once under a PostgreSQL advisory lock, not independently in every worker. No old migration script, data copy, legacy backfill, or hard-coded financial quarter is run. Apply the initial officer bootstrap once and create the first real quarter through the UI. Verify blank-database public and officer setup states before adding any operational content.
 
 Use Coolify runtime secrets, not frontend Vite variables or Docker build args. Record resource UUIDs, configured paths, and non-secret operational settings in the runbook; store tokens/passwords only in the existing private credential location or Coolify.
+
+`DUES_ZELLE_NAME` is the API runtime setting for the recipient name displayed beneath Zelle instructions. Its configured website value is `Gabe Dodge`; the existing `DUES_ZELLE_CONTACT` remains unchanged. The public `/api/site-settings` response exposes the name as `zelle_name`. An unset or blank name omits the recipient line. Changing the name requires restarting/redeploying the API and refetching browser settings, without rebuilding the frontend. The current public website is `https://anteateradventureclub.com`; the original internal domain redirects there.
 
 ## First deployment and push acceptance
 

@@ -199,7 +199,7 @@ function SignupForm({
                 {role === "driver"
                   ? "Paid members can receive gas reimbursements. Interested?"
                   : "Paid members receive priority seating. Interested?"}{" "}
-                <Link to={`/membership?quarter=${event.quarter_id}`}>
+                <Link to={`/my-aac/membership?quarter=${event.quarter_id}`}>
                   Become a member
                 </Link>
                 .
@@ -636,7 +636,7 @@ export function EventDetail() {
               action={
                 <Link
                   className="button primary"
-                  to={`/membership?quarter=${e.quarter_id}`}
+                  to={`/my-aac/membership?quarter=${e.quarter_id}`}
                 >
                   Become a Member
                 </Link>

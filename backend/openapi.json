@@ -9676,6 +9676,11 @@
             "type": "string",
             "title": "Zelle"
           },
+          "zelle_name": {
+            "type": "string",
+            "title": "Zelle Name",
+            "default": ""
+          },
           "cash": {
             "type": "string",
             "title": "Cash"
