@@ -177,15 +177,42 @@ def require_unused_drafts(db, events):
 
 def require_unused_events(db, events):
     ids = [e.id for e in events]
-    if any(
-        db.scalar(select(model.event_id).where(model.event_id.in_(ids)).limit(1))
-        for model in (Signup, Trip, Card, AttendanceAction)
-    ) or db.scalar(select(Recap.event_id).where(Recap.event_id.in_(ids), Recap.published.is_not(None)).limit(1)):
-        fail(409, "participation_exists", "Events with participation or published recaps must be kept for history.")
+    if db.scalar(select(Signup.event_id).where(Signup.event_id.in_(ids)).limit(1)):
+        fail(
+            409,
+            "participation_exists",
+            "Events with signups cannot be deleted or converted as unused drafts.",
+        )
+    require_no_attendance(db, events)
+
+
+def require_no_attendance(db, events):
+    ids = [e.id for e in events]
+    if (
+        db.scalar(
+            select(Signup.event_id)
+            .where(Signup.event_id.in_(ids), Signup.checked_in_at.is_not(None))
+            .limit(1)
+        )
+        or any(
+            db.scalar(select(model.event_id).where(model.event_id.in_(ids)).limit(1))
+            for model in (Trip, Card, AttendanceAction)
+        )
+        or db.scalar(
+            select(Recap.event_id).where(Recap.event_id.in_(ids), Recap.published.is_not(None)).limit(1)
+        )
+    ):
+        fail(
+            409,
+            "participation_exists",
+            "Events with check-in history, trips, or published recaps must be kept for history.",
+        )
 
 
 def remove_events(db, events):
-    db.execute(delete(Recap).where(Recap.event_id.in_([e.id for e in events])))
+    ids = [e.id for e in events]
+    db.execute(delete(Recap).where(Recap.event_id.in_(ids)))
+    db.execute(delete(Signup).where(Signup.event_id.in_(ids)))
     for e in events:
         db.delete(e)
     db.flush()
@@ -200,7 +227,7 @@ def delete_event(eid: int, value: Revision, user=Depends(officer), db=Depends(ge
     revision(e, value.expected_revision)
     if e.state not in {"draft", "cancelled"}:
         fail(409, "cannot_delete", "Only unused drafts or cancelled events can be deleted.")
-    require_unused_events(db, [e])
+    require_no_attendance(db, [e])
     if series:
         # A later series edit must not recreate a deleted date from its stored schedule.
         definition = dict(series.definition)

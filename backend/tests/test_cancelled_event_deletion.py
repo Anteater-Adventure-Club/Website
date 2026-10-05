@@ -1,7 +1,8 @@
 import pytest
 from sqlalchemy import select
 
-from app.models import AttendanceAction, Audit, Card, Event, Recap, Signup, Trip
+from app.domain import utcnow
+from app.models import AttendanceAction, Audit, Card, Event, Member, Recap, Signup, Trip, Vehicle
 from conftest import cookie, event, person, quarter, signup
 from test_draft_lifecycle import create_series, remove
 
@@ -56,15 +57,48 @@ def test_cancelled_deletion_obeys_officer_access_and_quarter_lock(api, state):
         assert remove(api, url, e["revision"]).status_code == 200
 
 
-@pytest.mark.parametrize("history", ["signup", "cancelled_signup", "trip", "card", "attendance", "published_recap"])
+@pytest.mark.parametrize("role", ["ride", "driver", "own"])
+@pytest.mark.parametrize("cancelled_signup", [False, True])
+def test_delete_cancelled_event_removes_unattended_signups(api, role, cancelled_signup):
+    q = quarter(api)
+    e = event(api, q)
+    m = person(api)
+    s = signup(api, e, m, role)
+    other = event(api, q, name="Event to keep")
+    other_signup = signup(api, other, m, "own")
+    if cancelled_signup:
+        assert api.delete(f"/api/admin/signups/{s['id']}").status_code == 200
+    e = cancel(api, api.get(f"/api/admin/events/{e['id']}").json())
+    assert api.put(f"/api/admin/events/{e['id']}/recap", json={"title": "Private recap"}).status_code == 200
+    url = f"/api/admin/events/{e['id']}"
+    assert remove(api, url, e["revision"] - 1).status_code == 409
+    with api.app.state.sessions() as db:
+        assert db.get(Signup, s["id"]) is not None
+    assert remove(api, url, e["revision"]).status_code == 200
+    assert api.get(url).status_code == 404
+    assert api.get(f"/api/events/{e['id']}").status_code == 404
+    api.cookies.set("aac_session", cookie(m["id"]))
+    remaining = api.get(f"/api/me/signups?quarter_id={q['id']}").json()["items"]
+    assert [row["id"] for row in remaining] == [other_signup["id"]]
+    with api.app.state.sessions() as db:
+        assert db.get(Signup, s["id"]) is None
+        assert db.get(Signup, other_signup["id"]) is not None
+        assert db.get(Member, m["id"]) is not None
+        if role == "driver":
+            assert db.get(Vehicle, s["vehicle_id"]) is not None
+        assert db.get(Recap, e["id"]) is None
+        assert db.scalar(select(Audit.id).where(Audit.action == "event.delete")) is not None
+
+
+@pytest.mark.parametrize("history", ["checked_in_signup", "trip", "card", "attendance", "published_recap"])
 def test_cancelled_deletion_preserves_participation_and_published_history(api, history):
     q = quarter(api)
     e = event(api, q)
-    s = signup(api, e, person(api)) if history in {"signup", "cancelled_signup", "attendance"} else None
+    s = signup(api, e, person(api))
     e = cancel(api, api.get(f"/api/admin/events/{e['id']}").json())
     with api.app.state.sessions() as db:
-        if history == "cancelled_signup":
-            db.get(Signup, s["id"]).cancelled = True
+        if history == "checked_in_signup":
+            db.get(Signup, s["id"]).checked_in_at = utcnow()
         elif history == "trip":
             db.add(Trip(event_id=e["id"], member_id=1))
         elif history == "card":
@@ -89,10 +123,16 @@ def test_cancelled_deletion_preserves_participation_and_published_history(api, h
 def test_deleted_cancelled_series_date_does_not_reappear(api):
     q = quarter(api)
     series = create_series(api, q)
-    e = cancel(api, series["occurrences"][0])
+    occurrence = series["occurrences"][0]
+    assert (
+        api.post(f"/api/admin/events/{occurrence['id']}/state", json={"state": "published"}).status_code
+        == 200
+    )
+    s = signup(api, occurrence, person(api))
+    e = cancel(api, api.get(f"/api/admin/events/{occurrence['id']}").json())
     assert remove(api, f"/api/admin/events/{e['id']}", e["revision"]).status_code == 200
     current = api.get(f"/api/admin/series/{series['id']}").json()
-    assert current["revision"] == series["revision"] + 2
+    assert current["revision"] == series["revision"] + 3
     assert series["definition"]["starts_on"] in current["definition"]["excluded"]
     update = {**current["definition"], "expected_revision": current["revision"]}
     update["event"]["name"] = "Remaining weekly meetings"
@@ -100,6 +140,25 @@ def test_deleted_cancelled_series_date_does_not_reappear(api):
     assert response.status_code == 200, response.text
     assert len(response.json()["occurrences"]) == 2
     assert api.get(f"/api/admin/events/{e['id']}").status_code == 404
+    with api.app.state.sessions() as db:
+        assert db.get(Signup, s["id"]) is None
+
+
+def test_undone_check_in_still_preserves_event_history(api):
+    q = quarter(api)
+    e = event(api, q)
+    s = signup(api, e, person(api), "own")
+    assert api.post(f"/api/admin/signups/{s['id']}/check-in").status_code == 200
+    assert api.delete(f"/api/admin/signups/{s['id']}/check-in").status_code == 200
+    e = cancel(api, api.get(f"/api/admin/events/{e['id']}").json())
+    response = remove(api, f"/api/admin/events/{e['id']}", e["revision"])
+    assert response.status_code == 409
+    assert response.json()["detail"]["code"] == "participation_exists"
+    with api.app.state.sessions() as db:
+        assert db.get(Signup, s["id"]).checked_in_at is None
+        assert (
+            len(list(db.scalars(select(AttendanceAction).where(AttendanceAction.event_id == e["id"])))) == 2
+        )
 
 
 @pytest.mark.parametrize("state", ["published", "completed"])

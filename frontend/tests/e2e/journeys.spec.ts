@@ -988,7 +988,7 @@ test("J13 existing-profile picker handles empty years, retry and unlinked profil
   ).toEqual([source]);
 });
 
-test("J14 delete cancelled events and recurring dates while preserving participation", async ({
+test("J14 delete unattended cancelled events and recurring dates while preserving attendance", async ({
   page,
   context,
 }) => {
@@ -1071,22 +1071,58 @@ test("J14 delete cancelled events and recurring dates while preserving participa
 
   await page.goto(eventURL("Cancelled", true));
   await page.getByRole("button", { name: "Delete Event", exact: true }).click();
+  await expect(dialog(page)).toContainText(
+    "This removes the event and its signups",
+  );
+  await dialog(page)
+    .getByRole("button", { name: "Delete Event", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/admin\/events\?quarter=/);
+  expect(
+    (
+      await page.request.get(`/api/admin/events/${fixture.events.Cancelled.id}`)
+    ).status(),
+  ).toBe(404);
+  await identity(context, "Member");
+  expect(
+    (await api(page, `/api/me/signups?event_id=${fixture.events.Cancelled.id}`))
+      .items,
+  ).toHaveLength(0);
+
+  await identity(context, "officer");
+  const attended = await api(page, "/api/admin/events", "POST", {
+    ...fixture.series.definition.event,
+    name: "Browser Event With Check-in History",
+    signups_enabled: true,
+  });
+  await api(page, `/api/admin/events/${attended.id}/state`, "POST", {
+    state: "published",
+  });
+  const signup = await api(
+    page,
+    `/api/admin/events/${attended.id}/signups`,
+    "POST",
+    { member_id: fixture.people.Member.id, role: "own" },
+  );
+  await api(page, `/api/admin/signups/${signup.id}/check-in`, "POST");
+  await api(page, `/api/admin/signups/${signup.id}/check-in`, "DELETE");
+  await api(page, `/api/admin/events/${attended.id}/state`, "POST", {
+    state: "cancelled",
+    reason: "Test cancellation after undoing check-in",
+  });
+  await page.goto(`/admin/events/${attended.slug}/${attended.id}`);
+  await page.getByRole("button", { name: "Delete Event", exact: true }).click();
   await dialog(page)
     .getByRole("button", { name: "Delete Event", exact: true })
     .click();
   await expect(dialog(page)).toContainText(
-    "Events with participation or published recaps must be kept for history.",
+    "Events with check-in history, trips, or published recaps must be kept for history.",
+  );
+  expect((await api(page, `/api/admin/events/${attended.id}`)).state).toBe(
+    "cancelled",
   );
   expect(
-    (await api(page, `/api/admin/events/${fixture.events.Cancelled.id}`)).state,
-  ).toBe("cancelled");
-  expect(
-    (
-      await api(
-        page,
-        `/api/admin/events/${fixture.events.Cancelled.id}/signups`,
-      )
-    ).items,
+    (await api(page, `/api/admin/events/${attended.id}/signups`)).items,
   ).toHaveLength(1);
   await dialog(page).getByRole("button", { name: "Keep Event" }).click();
 });

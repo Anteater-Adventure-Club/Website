@@ -60,8 +60,9 @@ export function DeleteEventButton({
           </p>
           {state === "cancelled" && (
             <p>
-              This removes the event from the calendar and events list. Events
-              with participation or published recaps must be kept for history.
+              This removes the event and its signups from the calendar and
+              events list. Events with check-in history, trips, or published
+              recaps must be kept for history.
             </p>
           )}
           <Message error={action.error} />
