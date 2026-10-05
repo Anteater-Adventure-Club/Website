@@ -114,7 +114,7 @@ test("J01 visitor links, event return path, board, and draft privacy", async ({
 test("J02 profile, car, dues, approved membership, signup edit and cancellation", async ({
   page,
   context,
-}) => {
+}, info) => {
   await identity(context, "General Rider");
   await page.goto("/membership");
   await expect(
@@ -159,13 +159,35 @@ test("J02 profile, car, dues, approved membership, signup edit and cancellation"
   await identity(context, "General Rider");
   await page.goto("/membership");
   await expect(page.getByText("You’re part of the adventure!")).toBeVisible();
+  const cars = (await api(page, "/api/me/vehicles")).items;
+  const largerCar = await api(page, "/api/me/vehicles", "POST", {
+    year: 2022,
+    make: "Toyota",
+    model: "Sienna",
+    capacity: 6,
+  });
   await page.goto(eventURL("Adventure"));
   await page.getByRole("button", { name: "I can drive others!" }).click();
-  await page.getByLabel("Which car?").selectOption({ index: 1 });
+  await page.getByLabel("Which car?").selectOption(String(cars[0].id));
+  const offeredSeats = page.locator(".passenger-count output");
+  await expect(offeredSeats).toHaveText(String(cars[0].capacity));
+  await page.getByRole("button", { name: "Offer one fewer seat" }).click();
+  await expect(offeredSeats).toHaveText(String(cars[0].capacity - 1));
+  await page.getByLabel("Which car?").selectOption(String(largerCar.id));
+  await expect(offeredSeats).toHaveText("6");
+  await expect(
+    page.getByRole("button", { name: "Offer one more seat" }),
+  ).toBeDisabled();
+  await page
+    .locator(".signup-panel")
+    .screenshot({ path: info.outputPath("driver-signup.png") });
+  await page.getByRole("button", { name: "Offer one fewer seat" }).click();
   await page.getByRole("button", { name: "Sign up as a driver!" }).click();
   await expect(
     page.getByRole("heading", { name: "You’re signed up!", exact: true }),
   ).toBeVisible();
+  await page.reload();
+  await expect(offeredSeats).toHaveText("5");
   await page.getByRole("button", { name: "I have my own ride!" }).click();
   await page.getByRole("button", { name: "Save Signup", exact: true }).click();
   await expect

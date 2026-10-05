@@ -5,7 +5,6 @@ import { ArrowLeft, Check, Minus, Plus } from "lucide-react";
 import {
   clock,
   dateLabel,
-  money,
   eventURL,
   photoURL,
   useAction,
@@ -173,6 +172,12 @@ function SignupForm({
                 required
                 {...form.register("vehicle_id", {
                   setValueAs: (value) => (value ? Number(value) : null),
+                  onChange: (e) => {
+                    const car = cars.data?.items.find(
+                      (car) => car.id === Number(e.target.value),
+                    );
+                    if (car) form.setValue("seats", car.capacity);
+                  },
                 })}
               >
                 <option value="">Choose a saved car</option>
@@ -193,7 +198,7 @@ function SignupForm({
             >
               + Add another car
             </Button>
-            <div className="field">
+            <div className="field passenger-count">
               <label>Passengers you can take</label>
               <small>
                 Excluding your seat · maximum{" "}
@@ -221,13 +226,6 @@ function SignupForm({
                 </Button>
               </div>
             </div>
-            <p className="notice">
-              {signup?.estimated_trip
-                ? `Estimated trip reimbursement: ${money(signup.estimated_trip)} before eligibility, quarter cap, and budget proration.`
-                : "Your estimate appears here after saving your driver signup."}{" "}
-              Approved membership or an officer eligibility exception is
-              required.
-            </p>
           </>
         )}
         {event.questions.map((question) => (
