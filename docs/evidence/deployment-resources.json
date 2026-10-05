@@ -7,6 +7,13 @@
   "postgres_uuid": "r5iqf5ngzoj4bynmxbioztcp",
   "api_uuid": "ac5yeo27nkbyi9jef9kzjaaa",
   "web_uuid": "arrfou0ztdvn7rsjlxkadsho",
+  "frontend_assets": {
+    "storage_uuid": "heqwebc4qq4qmkxx3uvmypwy",
+    "volume_name": "arrfou0ztdvn7rsjlxkadsho-frontend-assets",
+    "mount_path": "/var/lib/aac/assets",
+    "uid": 101,
+    "gid": 101
+  },
   "repository": "Anteater-Adventure-Club/Website",
   "branch": "aac-rebuild",
   "branch_base_sha": "8fd1fd7ed937ddc02c6cfc26b49a57754ac90b20",

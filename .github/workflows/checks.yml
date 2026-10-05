@@ -62,6 +62,10 @@ jobs:
       - run: npm run api:types && npm run build && npm test
         working-directory: frontend
       - run: git diff --exit-code -- frontend/src/lib/api-schema.d.ts
+      - name: Rolling frontend releases share immutable assets
+        run: |
+          docker build -f deploy/frontend.Dockerfile -t aac-web:rolling-assets .
+          AAC_ASSET_TEST_IMAGE=aac-web:rolling-assets python3 -m unittest discover -s deploy/tests -v
   views:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
@@ -144,6 +148,7 @@ jobs:
           PY
           docker run -d --name aac-social-nginx --network host \
             -v "$PWD/dist:/usr/share/nginx/html:ro" \
+            -v "$PWD/dist/assets:/var/lib/aac/assets:ro" \
             -v "$PWD/../artifacts/social-nginx.conf:/etc/nginx/conf.d/default.conf:ro" \
             -v "$PWD/../deploy/security-headers.conf:/etc/nginx/aac-security-headers.conf:ro" \
             nginxinc/nginx-unprivileged:1.28.0-alpine@sha256:a6bd0e0995ab4723fb65068665f8016decb67dc6a6a32eddc415c7d1229cada6
