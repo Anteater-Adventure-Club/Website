@@ -1830,6 +1830,8 @@ export interface components {
       cancellation_reason: string;
       /** Signup Status */
       signup_status: string;
+      /** Signup Count */
+      signup_count: number;
       /** Offered Seats */
       offered_seats: number;
       /** Paid Riders */
@@ -1912,6 +1914,8 @@ export interface components {
       cancellation_reason: string;
       /** Signup Status */
       signup_status: string;
+      /** Signup Count */
+      signup_count: number;
       /** Offered Seats */
       offered_seats: number;
       /** Paid Riders */
@@ -2930,6 +2934,8 @@ export interface components {
       cancellation_reason: string;
       /** Signup Status */
       signup_status: string;
+      /** Signup Count */
+      signup_count: number;
       /** Offered Seats */
       offered_seats: number;
       /** Paid Riders */

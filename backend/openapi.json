@@ -5548,6 +5548,10 @@
             "type": "string",
             "title": "Signup Status"
           },
+          "signup_count": {
+            "type": "integer",
+            "title": "Signup Count"
+          },
           "offered_seats": {
             "type": "integer",
             "title": "Offered Seats"
@@ -5644,6 +5648,7 @@
           "photo_id",
           "cancellation_reason",
           "signup_status",
+          "signup_count",
           "offered_seats",
           "paid_riders",
           "paid_ride_guaranteed",
@@ -5815,6 +5820,10 @@
             "type": "string",
             "title": "Signup Status"
           },
+          "signup_count": {
+            "type": "integer",
+            "title": "Signup Count"
+          },
           "offered_seats": {
             "type": "integer",
             "title": "Offered Seats"
@@ -5865,6 +5874,7 @@
           "photo_id",
           "cancellation_reason",
           "signup_status",
+          "signup_count",
           "offered_seats",
           "paid_riders",
           "paid_ride_guaranteed"
@@ -8683,6 +8693,10 @@
             "type": "string",
             "title": "Signup Status"
           },
+          "signup_count": {
+            "type": "integer",
+            "title": "Signup Count"
+          },
           "offered_seats": {
             "type": "integer",
             "title": "Offered Seats"
@@ -8783,6 +8797,7 @@
           "photo_id",
           "cancellation_reason",
           "signup_status",
+          "signup_count",
           "offered_seats",
           "paid_riders",
           "paid_ride_guaranteed",

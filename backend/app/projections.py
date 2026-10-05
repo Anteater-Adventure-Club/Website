@@ -53,11 +53,15 @@ def events_projection(db, events, private=False):
     if not events:
         return []
     ids = [e.id for e in events]
-    seats = dict(db.execute(
-        select(Signup.event_id, func.coalesce(func.sum(Signup.seats), 0))
-        .where(Signup.event_id.in_(ids), Signup.role == "driver", Signup.cancelled.is_(False))
+    totals = {row.event_id: row for row in db.execute(
+        select(
+            Signup.event_id,
+            func.count().label("signup_count"),
+            func.coalesce(func.sum(Signup.seats).filter(Signup.role == "driver"), 0).label("offered_seats"),
+        )
+        .where(Signup.event_id.in_(ids), Signup.cancelled.is_(False))
         .group_by(Signup.event_id)
-    ).all())
+    )}
     paid_counts = dict(db.execute(
         select(Signup.event_id, func.count())
         .join(Event, Event.id == Signup.event_id)
@@ -70,12 +74,15 @@ def events_projection(db, events, private=False):
     for e in events:
         data = {k: getattr(e, k) for k in EventPublic.model_fields if hasattr(e, k)}
         paid_riders = paid_counts.get(e.id, 0)
+        total = totals.get(e.id)
+        offered_seats = total.offered_seats if total else 0
         data.update(
             slug=slug(e.name),
             signup_status=signup_window(e),
-            offered_seats=seats.get(e.id, 0),
+            signup_count=total.signup_count if total else 0,
+            offered_seats=offered_seats,
             paid_riders=paid_riders,
-            paid_ride_guaranteed=seats.get(e.id, 0) >= paid_riders and paid_riders > 0,
+            paid_ride_guaranteed=offered_seats >= paid_riders and paid_riders > 0,
             published_recap=recaps.get(e.id),
         )
         if private:

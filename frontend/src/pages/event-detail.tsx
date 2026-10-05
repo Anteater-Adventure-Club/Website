@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useForm } from "react-hook-form";
-import { ArrowLeft, Check, Minus, Plus } from "lucide-react";
+import {
+  ArrowLeft,
+  CarFront,
+  Check,
+  Crown,
+  Minus,
+  Plus,
+  UsersRound,
+} from "lucide-react";
 import {
   clock,
   dateLabel,
@@ -29,9 +37,11 @@ import { VehicleDialog } from "./members";
 function SignupForm({
   event,
   signup,
+  hasPrioritySeating,
 }: {
   event: Event;
   signup?: Schema<"SignupOwn">;
+  hasPrioritySeating: boolean;
 }) {
   const { session } = useIdentity();
   const cars = useAPI("Page_VehicleView_", "/api/me/vehicles");
@@ -103,7 +113,6 @@ function SignupForm({
         <h2>
           {signup && !signup.cancelled ? "You’re signed up!" : "Sign up!"}
         </h2>
-        {signup?.paid && <Pill>Paid Member</Pill>}
       </div>
       <div className="details-grid">
         <p>
@@ -164,6 +173,29 @@ function SignupForm({
             ))}
           </div>
         </fieldset>
+        <div
+          className={`signup-membership-note${hasPrioritySeating ? " priority" : ""}`}
+        >
+          {hasPrioritySeating ? (
+            <>
+              <span className="signup-priority-icon" aria-hidden="true">
+                <Crown size={21} strokeWidth={1.7} />
+              </span>
+              <div>
+                <strong>Thanks for supporting AAC!</strong>
+                <p>You have priority seating for this event.</p>
+              </div>
+            </>
+          ) : (
+            <p>
+              Paid members receive priority seating. Interested?{" "}
+              <Link to={`/membership?quarter=${event.quarter_id}`}>
+                Become a member
+              </Link>
+              .
+            </p>
+          )}
+        </div>
         {role === "driver" && (
           <>
             <label className="field">
@@ -266,15 +298,6 @@ function SignupForm({
           Any questions, comments, or concerns?<small>Optional</small>
           <textarea maxLength={1000} {...form.register("notes")} />
         </label>
-        {role === "ride" && (
-          <div className="notice">
-            Paid members receive priority seats.{" "}
-            {event.paid_ride_guaranteed
-              ? "Current offered seats cover all paid riders."
-              : "A paid ride is guaranteed only when offered seats cover paid riders."}{" "}
-            Driver offers can change.
-          </div>
-        )}
         <Message error={action.error} />
         {saved && (
           <Message>
@@ -534,25 +557,34 @@ export function EventDetail() {
             </section>
           )}
           {e.signups_enabled && e.state === "published" && (
-            <Panel>
+            <section className="section event-travel">
               <h3>Getting there</h3>
-              <p>
-                {e.offered_seats} passenger seats offered for {e.paid_riders}{" "}
-                paid riders.
-              </p>
-              <p className="muted">
-                Paid members receive priority.{" "}
-                {e.paid_ride_guaranteed
-                  ? "Current offers cover paid riders."
-                  : "A paid ride is guaranteed only when offered seats cover paid riders."}{" "}
-                Day-of seating uses drivers who have arrived.
-              </p>
-              <p>
+              <dl className="event-signup-stats">
+                <div className="event-signup-stat">
+                  <dt>
+                    <UsersRound size={20} aria-hidden="true" /> Signups
+                  </dt>
+                  <dd>
+                    {e.signup_count.toLocaleString()}
+                    <small>People joining us</small>
+                  </dd>
+                </div>
+                <div className="event-signup-stat seats">
+                  <dt>
+                    <CarFront size={20} aria-hidden="true" /> Passenger seats
+                  </dt>
+                  <dd>
+                    {e.offered_seats.toLocaleString()}
+                    <small>Offered by drivers</small>
+                  </dd>
+                </div>
+              </dl>
+              <p className="event-arrival-note">
                 Meet at {clock(e.arrival_at || e.starts_at)}. Absent rider
                 reservations are released ten minutes before departure, unless
                 an officer grants an extension.
               </p>
-            </Panel>
+            </section>
           )}
         </article>
         <aside>
@@ -585,6 +617,8 @@ export function EventDetail() {
             <Loading />
           ) : own.error ? (
             <Failure error={own.error} retry={own.refetch} />
+          ) : membership.error ? (
+            <Failure error={membership.error} retry={membership.refetch} />
           ) : e.kind === "retreat" && membership.data?.status !== "approved" ? (
             <Empty
               title="A weekend for members"
@@ -605,6 +639,7 @@ export function EventDetail() {
               key={`${e.id}-${signup?.id || "new"}-${signup?.revision || 0}`}
               event={e}
               signup={signup}
+              hasPrioritySeating={membership.data?.status === "approved"}
             />
           )}
         </aside>

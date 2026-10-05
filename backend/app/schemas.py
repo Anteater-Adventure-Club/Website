@@ -267,6 +267,7 @@ class EventPublic(DTO):
     photo_id: str | None
     cancellation_reason: str
     signup_status: str
+    signup_count: int
     offered_seats: int
     paid_riders: int
     paid_ride_guaranteed: bool
