@@ -18,6 +18,7 @@ from ..domain import (
 )
 from ..models import Audit, Event, Member, Membership, Officer, Receipt, Signup, Vehicle
 from ..projections import event_projection, membership_view, signups_projection
+from ..person_search import ranked_page
 from ..schemas import (
     Items,
     OfficerView,
@@ -109,11 +110,15 @@ def own_membership(qid: int, user=Depends(member), db=Depends(get_db, scope="fun
 @router.post("/me/memberships/{qid}", response_model=MembershipView)
 def submit_dues(qid: int, value: MembershipSubmit, user=Depends(member), db=Depends(get_db, scope="function")):
     open_quarter(db, qid)
-    if not user.phone:
-        fail(422, "phone_required", "Add your phone number in My AAC before submitting dues.")
+    phone = value.phone if value.phone is not None else user.phone.strip()
+    if not phone:
+        fail(422, "phone_required", "Enter your contact phone number on the dues form.")
     m = ensure_membership(db, user.id, qid)
     if m.status == "approved":
         return membership_view(db, user.id, qid)
+    if value.phone is not None and user.phone != phone:
+        user.phone = phone
+        audit(db, user, "profile.edit", user.id)
     if m.status != "pending":
         m.status, m.student, m.method, m.submitted_at = "pending", value.student, value.method, utcnow()
         audit(db, user, "membership.submit", m.id)
@@ -193,10 +198,6 @@ def member_list(
 ):
     q = default_quarter(db, quarter_id)
     query = select(Member)
-    if search:
-        query = query.where(
-            Member.name.ilike("%" + search[:100] + "%") | Member.email.ilike("%" + search[:100] + "%")
-        )
     if q and status != "all":
         query = query.outerjoin(
             Membership, (Membership.member_id == Member.id) & (Membership.quarter_id == q.id)
@@ -209,7 +210,7 @@ def member_list(
             query = query.where(Membership.status == "approved", Membership.source != "exception")
         else:
             query = query.where(Membership.status == status)
-    result = page(db, query.order_by(Member.name, Member.id), limit, offset)
+    result = ranked_page(db, query.order_by(Member.name, Member.id), Member, search, limit, offset)
     result["items"] = [
         {
             "member": MemberPrivate.model_validate(m),

@@ -5,6 +5,7 @@ import { useIdentity, useQuarter } from "../lib/context";
 import {
   Button,
   Failure,
+  Field,
   Loading,
   Message,
   Panel,
@@ -26,8 +27,10 @@ export function Membership() {
   const settings = useAPI("SiteSettings", "/api/site-settings");
   const action = useAction();
   const [student, setStudent] = useState(true);
-  const [method, setMethod] = useState<"cash" | "venmo" | "zelle">("cash");
+  const [method, setMethod] = useState<"cash" | "venmo" | "zelle">("zelle");
   const [paid, setPaid] = useState(false);
+  const [phone, setPhone] = useState<string>();
+  const contactPhone = phone ?? session?.member?.phone ?? "";
   const status = membership.data;
   const list = [
     [
@@ -216,11 +219,20 @@ export function Membership() {
                       await action
                         .mutateAsync({
                           url: `/api/me/memberships/${quarter.id}`,
-                          body: { student, method },
+                          body: { student, method, phone: contactPhone.trim() },
                         })
                         .catch(() => {});
                     }}
                   >
+                    <Field
+                      label="What’s your contact phone number?"
+                      type="tel"
+                      autoComplete="tel"
+                      required
+                      maxLength={40}
+                      value={contactPhone}
+                      onChange={(e) => setPhone(e.target.value)}
+                    />
                     <fieldset>
                       <legend>Membership</legend>
                       <div className="segmented">
@@ -243,7 +255,7 @@ export function Membership() {
                     <fieldset>
                       <legend>Paid by</legend>
                       <div className="stack">
-                        {(["cash", "venmo", "zelle"] as const).map((value) => (
+                        {(["zelle", "venmo", "cash"] as const).map((value) => (
                           <label className="check-field" key={value}>
                             <input
                               type="radio"
@@ -297,14 +309,6 @@ export function Membership() {
                         "Ask an officer for the club’s Zelle details before paying."
                       )}
                     </div>
-                    {!session.profile_complete && (
-                      <Message>
-                        <Link to="/my-aac/profile">
-                          Add your contact phone number
-                        </Link>{" "}
-                        before submitting dues.
-                      </Message>
-                    )}
                     <label className="check-field">
                       <input
                         type="checkbox"
@@ -318,7 +322,7 @@ export function Membership() {
                     <Button
                       className="heading-button"
                       disabled={
-                        action.isPending || !paid || !session.profile_complete
+                        action.isPending || !paid || !contactPhone.trim()
                       }
                     >
                       {action.isPending

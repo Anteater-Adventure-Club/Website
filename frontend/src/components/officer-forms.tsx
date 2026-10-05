@@ -5,6 +5,7 @@ import { request, useAction, useAPI } from "../lib/api";
 import type { Person, Schema } from "../lib/api";
 import { Button, Dialog, Field, Message, Pill } from "./ui";
 import { quarterURL } from "../lib/context";
+import { useSearchQuery } from "../lib/search-query";
 
 export function DeleteEventButton({
   url,
@@ -114,10 +115,12 @@ export function PersonDialog({
   const action = useAction<Person>();
   const [lookup, setLookup] = useState("");
   const [search, setSearch] = useState("");
+  const { query: searchQuery, pending: searching } = useSearchQuery(search);
+  const canSearch = !!onSelect && searchQuery.length > 1;
   const existing = useAPI(
     "MemberList",
-    `/api/admin/members?search=${encodeURIComponent(search)}&limit=10`,
-    { enabled: search.length > 1 },
+    `/api/admin/members?search=${encodeURIComponent(searchQuery)}&limit=10`,
+    { enabled: canSearch && !searching },
   );
   async function directory() {
     const email = form.getValues("email")?.trim();
@@ -163,8 +166,30 @@ export function PersonDialog({
               autoComplete="off"
               placeholder="Search name or email"
             />
-            {existing.isFetching && <small>Searching…</small>}
-            {existing.data && (
+            {(searching || (canSearch && existing.isPending)) && (
+              <small role="status">Searching…</small>
+            )}
+            {!searching && canSearch && existing.error && (
+              <>
+                <Message error={existing.error} />
+                <Button
+                  type="button"
+                  variant="quiet"
+                  onClick={() => existing.refetch()}
+                >
+                  Retry
+                </Button>
+              </>
+            )}
+            {!searching &&
+              canSearch &&
+              existing.isSuccess &&
+              !existing.data.items.length && (
+                <small role="status">
+                  No close matches. Try another name or email.
+                </small>
+              )}
+            {!searching && canSearch && existing.isSuccess && (
               <div className="scroll-list">
                 {existing.data.items.map(({ member }) => (
                   <button

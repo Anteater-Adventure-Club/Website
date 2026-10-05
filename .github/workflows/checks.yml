@@ -64,7 +64,7 @@ jobs:
       - run: git diff --exit-code -- frontend/src/lib/api-schema.d.ts
   views:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 35
     services:
       postgres:
         image: postgres:17
@@ -123,6 +123,9 @@ jobs:
       - name: Member and officer journeys across browser engines
         run: npm run test:e2e:journeys
         working-directory: frontend
+      - name: Fuzzy officer name search across desktop and mobile browsers
+        run: npm run test:e2e:search
+        working-directory: frontend
       - name: Layout boundaries, orientation and keyboard focus
         run: npm run test:e2e:boundaries
         working-directory: frontend
@@ -158,6 +161,9 @@ jobs:
             artifacts/boundary-traces
             artifacts/keyboard-results.json
             artifacts/keyboard-traces
+            artifacts/search-results.json
+            artifacts/search-traces
+            artifacts/search-review
             artifacts/social-results.json
             artifacts/social-traces
             artifacts/page-speed

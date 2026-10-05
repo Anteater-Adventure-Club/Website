@@ -116,7 +116,12 @@ test("J02 profile, car, dues, approved membership, signup edit and cancellation"
   context,
 }) => {
   await identity(context, "General Rider");
+  await page.goto("/membership");
+  await expect(
+    page.getByLabel("What’s your contact phone number?"),
+  ).toHaveValue("9495550100");
   await page.goto("/my-aac/profile");
+  await page.getByLabel("Phone number", { exact: true }).fill("");
   await page.getByLabel("Discord handle").fill("fixture-browser-member");
   await page.getByRole("button", { name: "Save Profile", exact: true }).click();
   await expect(page.getByText("Profile saved.")).toBeVisible();
@@ -130,9 +135,18 @@ test("J02 profile, car, dues, approved membership, signup edit and cancellation"
   await dialog(page).getByRole("button", { name: "Save Car" }).click();
   await expect(page.getByText(/Toyota Corolla/).first()).toBeVisible();
   await page.goto("/membership");
+  const contact = page.getByLabel("What’s your contact phone number?");
+  await expect(contact).toHaveValue("");
   await page.getByLabel("I’ve sent my payment or paid an officer.").check();
+  await expect(
+    page.getByRole("button", { name: /Submit for approval/ }),
+  ).toBeDisabled();
+  await contact.fill("9495550123");
   await page.getByRole("button", { name: /Submit for approval/ }).click();
   await expect(page.getByText("Pending confirmation")).toBeVisible();
+  const profile = await api(page, "/api/me/profile");
+  expect(profile.phone).toBe("9495550123");
+  expect(profile.discord).toBe("fixture-browser-member");
   await identity(context, "officer");
   await page.goto("/admin/members?status=pending");
   await page.getByLabel("Search members").fill("Fixture General Rider");

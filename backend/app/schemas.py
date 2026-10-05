@@ -133,6 +133,17 @@ class QuarterPrivate(QuarterPublic):
 class MembershipSubmit(DTO):
     student: bool = True
     method: Literal["cash", "venmo", "zelle"]
+    phone: str | None = Field(default=None, min_length=1, max_length=40)
+
+    @field_validator("phone")
+    @classmethod
+    def contact_phone(cls, value):
+        if value is None:
+            return None
+        value = value.strip()
+        if not value:
+            raise ValueError("Enter your contact phone number")
+        return value
 
 
 class MembershipDecision(DTO):

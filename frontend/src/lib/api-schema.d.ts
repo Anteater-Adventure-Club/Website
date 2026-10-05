@@ -2377,6 +2377,8 @@ export interface components {
        * @enum {string}
        */
       method: "cash" | "venmo" | "zelle";
+      /** Phone */
+      phone?: string | null;
     };
     /** MembershipView */
     MembershipView: {
