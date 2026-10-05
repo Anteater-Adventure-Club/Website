@@ -29,3 +29,11 @@ it("preserves authenticated media preview URLs and external URLs", () => {
     expect(imageSources(url)).toEqual({ src: url, srcSet: undefined });
   }
 });
+
+it("does not construct another variant of an already responsive static image", () => {
+  const url = "/images/responsive/griffith_park-320.webp";
+  expect(imageSources(url)).toEqual({
+    src: staticAssetURL(url),
+    srcSet: undefined,
+  });
+});

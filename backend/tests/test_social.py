@@ -9,10 +9,11 @@ import pytest
 from PIL import Image
 
 from app.models import Event
+from app.schemas import HomeView
 from app.domain import utcnow
 from app.config import Settings
 from app.services.share_cards import render_card
-from app.services.web_assets import HERO_IMAGE_SIZES, static_asset_url
+from app.services.web_assets import HERO_IMAGE_SIZES, hero_sources, static_asset_url
 from conftest import event, quarter
 
 
@@ -92,6 +93,16 @@ def test_home_preload_uses_versioned_static_fallback_when_no_published_photo(api
     assert f'href="{static_asset_url("/images/griffith_park.webp")}"' in response.text
     for width in [320, 640, 800]:
         assert f'{static_asset_url(f"/images/responsive/griffith_park-{width}.webp")} {width}w' in response.text
+
+
+def test_photo_free_legacy_polaroid_preloads_the_same_fallback_as_photo_url():
+    home = HomeView(upcoming=[], polaroids=[{
+        "event_id": 1, "event_name": "Legacy adventure", "image_id": None,
+        "starts_at": utcnow(), "ends_at": utcnow(),
+    }])
+    src, srcset = hero_sources(home)
+    assert src == static_asset_url("/images/about_tide_pools.webp")
+    assert static_asset_url("/images/responsive/about_tide_pools-320.webp") in srcset
 
 
 @pytest.mark.parametrize("path", ["/events", "/board", "/admin/events", "/my-aac"])
