@@ -1,0 +1,51 @@
+{
+  "change": "Restore the public Membership page while keeping the personal My AAC view",
+  "previous_release_sha": "0d5ebdbac3e5b6cd77710feb57c4714db8a7619d",
+  "public_reference_sha": "4b20dd4633064d5b8d69993b06b27ba3d5ca7307",
+  "public_page_matches_reference_exactly": true,
+  "personal_view_matches_previous_implementation_exactly": true,
+  "frontend_build": "passed",
+  "frontend_unit_tests": 47,
+  "browser_page_checks": 48,
+  "browser_page_widths": [
+    360,
+    390,
+    768,
+    1024,
+    1280,
+    1440
+  ],
+  "public_states": [
+    "signed out",
+    "general",
+    "pending",
+    "approved"
+  ],
+  "personal_states": [
+    "general",
+    "pending",
+    "approved",
+    "officer exception"
+  ],
+  "serious_or_critical_accessibility_violations_at_390": 0,
+  "checks": [
+    "production frontend build",
+    "47 frontend unit tests",
+    "48 membership page checks",
+    "public source equals prior revision",
+    "personal source equals deployed revision",
+    "9 My AAC navigation, quarter preservation, and sign-in return journeys"
+  ],
+  "browser_navigation_checks": 9,
+  "browser_navigation_engines": [
+    "Chromium",
+    "Firefox",
+    "WebKit"
+  ],
+  "browser_navigation_widths": [
+    390,
+    768,
+    1440
+  ],
+  "webkit_local_launcher": "Cached WebKit launcher uses available local system libraries."
+}

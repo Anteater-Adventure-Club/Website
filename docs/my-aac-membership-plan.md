@@ -6,7 +6,7 @@ Implement Design B: a personal membership card beside payment signup or membersh
 
 Keep My AAC selected on every `/my-aac/*` route in desktop and mobile navigation. Keep Home and workspace tabs exact so only the current subtab is selected. Preserve `aria-current` indicators.
 
-Add `/my-aac/membership` under the existing sign-in guard and member workspace. Update workspace tabs, account menus, mobile section links, and the overview membership action. Preserve the selected quarter. Keep `/membership` as a public information page with a link into the member view. Signed-out private visits return to their original route and quarter after sign-in.
+Add `/my-aac/membership` under the existing sign-in guard and member workspace. Update workspace tabs, account menus, mobile section links, and the overview membership action. Preserve the selected quarter. Preserve the existing public `/membership` page’s layout, text, and signup behavior. Apply the new design only to `/my-aac/membership`. Keep the public and personal views in separate page files. Signed-out private visits return to their original route and quarter after sign-in.
 
 ## 2. Personal membership
 

@@ -126,8 +126,8 @@ test("J15 My AAC navigation stays selected and membership keeps the selected qua
   await expect(
     page.locator('.workspace-tabs a[aria-current="page"]'),
   ).toHaveText("Membership");
-  await page.goto(`/membership?quarter=${fixture.quarter.id}`);
-  await page.getByRole("link", { name: "View your membership" }).click();
+  await page.goto(`/my-aac?quarter=${fixture.quarter.id}`);
+  await page.getByRole("link", { name: "Become a Member" }).click();
   await expect(page).toHaveURL(
     new RegExp(`/my-aac/membership\\?quarter=${fixture.quarter.id}$`),
   );

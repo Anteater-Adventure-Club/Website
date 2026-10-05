@@ -19,7 +19,78 @@ const cases: Case[] = [
   { id: "4b-8d-board", route: "/board" },
   { id: "3f-signin", route: "/sign-in" },
   { id: "8f-404", route: "/off-the-trail" },
-  { id: "3b-8a-public-membership", route: "/membership" },
+  {
+    id: "3b-8a-public-membership",
+    route: "/membership",
+    open: async (p) => {
+      await expect(
+        p.getByRole("heading", { name: "AAC Membership", exact: true }),
+      ).toBeVisible();
+      await expect(
+        p.getByText("A little support goes a long way.", { exact: true }),
+      ).toBeVisible();
+      await expect(p.locator(".benefit-list > li")).toHaveCount(5);
+      await expect(
+        p.getByRole("heading", { name: "Our live reimbursement budget" }),
+      ).toBeVisible();
+      await expect(
+        p.getByRole("link", { name: "Sign in to join", exact: true }),
+      ).toHaveAttribute("href", "/sign-in?return_to=%2Fmembership");
+      await expect(p.locator(".personal-membership")).toHaveCount(0);
+    },
+  },
+  {
+    id: "3b-public-general-membership",
+    route: "/membership",
+    role: "General Rider",
+    open: async (p) => {
+      await expect(
+        p.getByLabel("What’s your contact phone number?"),
+      ).toBeVisible();
+      await expect(
+        p.getByRole("button", { name: "Student · $25", exact: true }),
+      ).toBeVisible();
+      await expect(
+        p.getByRole("button", {
+          name: "I paid $25 · Submit for approval",
+          exact: true,
+        }),
+      ).toBeDisabled();
+      await expect(p.locator(".personal-membership")).toHaveCount(0);
+    },
+  },
+  {
+    id: "3c-public-pending-membership",
+    route: "/membership",
+    role: "Pending",
+    open: async (p) => {
+      await expect(
+        p.getByRole("heading", {
+          name: "You’re all set for now!",
+          exact: true,
+        }),
+      ).toBeVisible();
+      await expect(p.locator(".status-card")).toContainText(
+        "Pending confirmation",
+      );
+      await expect(p.locator(".status-card form")).toHaveCount(0);
+    },
+  },
+  {
+    id: "8a-public-paid-membership",
+    route: "/membership",
+    role: "Member",
+    open: async (p) => {
+      await expect(
+        p.getByRole("heading", {
+          name: "You’re part of the adventure!",
+          exact: true,
+        }),
+      ).toBeVisible();
+      await expect(p.locator(".status-card")).toContainText("Paid Member");
+      await expect(p.locator(".status-card form")).toHaveCount(0);
+    },
+  },
   {
     id: "3b-general-membership",
     route: "/my-aac/membership",

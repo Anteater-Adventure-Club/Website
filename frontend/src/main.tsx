@@ -23,7 +23,7 @@ const Membership = lazy(() =>
   import("./pages/membership").then((m) => ({ default: m.Membership })),
 );
 const MyMembership = lazy(() =>
-  import("./pages/membership").then((m) => ({ default: m.MyMembership })),
+  import("./pages/my-membership").then((m) => ({ default: m.MyMembership })),
 );
 const PrivacyPolicy = lazy(() =>
   import("./pages/legal").then((m) => ({ default: m.PrivacyPolicy })),
