@@ -241,7 +241,7 @@ test("J17 historical and imported membership, loading failure and retry", async 
   await page.locator("main").getByRole("button", { name: "Try again" }).click();
   await expect(
     page.getByText(
-      "Your approved membership was imported. Payment details weren’t provided.",
+      "Your membership record was imported. Payment details weren’t provided.",
     ),
   ).toBeVisible();
   await expect(page.locator(".membership-receipt")).toHaveCount(0);
@@ -384,7 +384,7 @@ test("J02 profile, car, dues, approved membership, signup edit and cancellation"
   await identity(context, "General Rider");
   await page.goto("/my-aac/membership");
   await expect(
-    page.getByRole("heading", { name: "Membership approved", exact: true }),
+    page.getByRole("heading", { name: "Membership details", exact: true }),
   ).toBeVisible();
   const cars = (await api(page, "/api/me/vehicles")).items;
   const largerCar = await api(page, "/api/me/vehicles", "POST", {

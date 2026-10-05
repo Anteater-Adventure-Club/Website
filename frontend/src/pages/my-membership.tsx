@@ -255,8 +255,7 @@ function MembershipSignup({ quarter }: { quarter: Quarter }) {
 function membershipLabel(status: Schema<"MembershipView">) {
   if (status.status === "pending") return "Pending confirmation";
   if (status.status !== "approved") return "General member";
-  if (status.source === "exception") return "Approved · Officer exception";
-  if (status.source === "imported") return "Approved membership";
+  if (status.source === "exception") return "Paid member · Officer exception";
   return "Paid member";
 }
 
@@ -349,7 +348,7 @@ function MembershipRecord({
           : status.source === "exception"
             ? "An officer approved your membership. No payment receipt is required."
             : status.source === "imported" && !status.receipts.length
-              ? "Your approved membership was imported. Payment details weren’t provided."
+              ? "Your membership record was imported. Payment details weren’t provided."
               : expired || quarter.state !== "open"
                 ? "This membership is recorded for a past or closed quarter. Select the current quarter to view your current status."
                 : "Your membership benefits are active for this quarter."}
@@ -451,7 +450,7 @@ export function MyMembership() {
           </div>
           <h2>
             {approved
-              ? "Approved membership"
+              ? "Paid Membership"
               : pending
                 ? "Payment submitted"
                 : "General member"}
@@ -474,7 +473,7 @@ export function MyMembership() {
                   ? status.source === "exception"
                     ? "No payment required"
                     : status.source === "imported"
-                      ? "Approved membership on record"
+                      ? "Paid membership on record"
                       : expired || closed
                         ? "Membership recorded for this quarter"
                         : "Paid membership benefits are active"
@@ -499,7 +498,7 @@ export function MyMembership() {
             </span>
             <h2>
               {approved
-                ? "Membership approved"
+                ? "Membership details"
                 : pending
                   ? "Payment awaiting confirmation"
                   : closed
@@ -527,7 +526,7 @@ export function MyMembership() {
                   {pending
                     ? "An officer needs to review your payment. You can attend free weekly activities while you wait."
                     : expired || closed
-                      ? `Your membership was approved for ${quarter.name}.`
+                      ? `Your paid membership is recorded for ${quarter.name}.`
                       : `Your membership benefits are active for ${quarter.name}, through ${date}.`}
                 </p>
                 <MembershipRecord status={status} quarter={quarter} />
