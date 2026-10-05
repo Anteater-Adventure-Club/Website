@@ -1,4 +1,6 @@
 import hashlib
+import secrets
+from typing import Literal
 from urllib.parse import urlencode, urlsplit
 from authlib.integrations.starlette_client import OAuth
 from fastapi import APIRouter, Depends, Request
@@ -44,7 +46,7 @@ def member(request: Request, db=Depends(get_db, scope="function")):
     mid = session_member_id(request)
     value = db.get(Member, mid) if isinstance(mid, int) else None
     if value is None:
-        fail(401, "sign_in_required", "Sign in with your UCI account to continue.")
+        fail(401, "sign_in_required", "Sign in to continue.")
     return value
 
 
@@ -128,7 +130,12 @@ def session(request: Request, db=Depends(get_db, scope="function")):
 
 
 @router.get("/auth/login")
-async def login(request: Request, return_to: str = "/my-aac", db=Depends(get_db, scope="function")):
+async def login(
+    request: Request,
+    return_to: str = "/my-aac",
+    mode: Literal["uci", "non_uci"] = "uci",
+    db=Depends(get_db, scope="function"),
+):
     # OAuth state is stored in a host-only session cookie. Start on the same
     # origin as the callback before creating that state (public shares may
     # bring a visitor to a different host).
@@ -136,15 +143,21 @@ async def login(request: Request, return_to: str = "/my-aac", db=Depends(get_db,
     destination = safe_return(return_to)
     if str(request.base_url).rstrip("/") != app_url:
         return RedirectResponse(
-            app_url + "/api/auth/login?" + urlencode({"return_to": destination}),
+            app_url + "/api/auth/login?" + urlencode({"return_to": destination, "mode": mode}),
             status_code=303,
         )
     limited(request, db, "login", 20)
     google = request.app.state.oauth.create_client("google")
     if google is None:
         return RedirectResponse("/sign-in?error=unconfigured", status_code=303)
-    request.session["return_to"] = destination
-    return await google.authorize_redirect(request, app_url + "/api/auth/callback")
+    state = secrets.token_urlsafe(32)
+    # Bind the explicit non-UCI choice to this attempt, not a lasting preference.
+    # Starting another login replaces it, and callback query flags cannot change it.
+    request.session["login_flow"] = {"state": state, "mode": mode, "return_to": destination}
+    options = {"state": state, "prompt": "select_account"}
+    if mode == "uci":
+        options["hd"] = "uci.edu"  # Google account chooser hint; checked below independently.
+    return await google.authorize_redirect(request, app_url + "/api/auth/callback", **options)
 
 
 @router.get("/auth/callback")
@@ -152,20 +165,30 @@ async def callback(request: Request, db=Depends(get_db, scope="function")):
     google = request.app.state.oauth.create_client("google")
     if google is None:
         return RedirectResponse("/sign-in?error=unconfigured", status_code=303)
+    flow = request.session.pop("login_flow", None)
+    if not isinstance(flow, dict) or not flow.get("state") or flow["state"] != request.query_params.get("state"):
+        request.session.clear()
+        return RedirectResponse("/sign-in?error=oauth", status_code=303)
     try:
         token = await google.authorize_access_token(request)
         info = token.get("userinfo", {})
     except Exception:
         request.session.clear()
         return RedirectResponse("/sign-in?error=oauth", status_code=303)
-    if not info.get("email_verified") or not uci_email(info.get("email")) or not info.get("sub"):
+    email = info.get("email")
+    valid_email = isinstance(email, str) and email.count("@") == 1 and all(email.strip().split("@"))
+    if not info.get("email_verified") or not valid_email or not info.get("sub"):
+        request.session.clear()
+        error = "google" if flow.get("mode") == "non_uci" else "uci"
+        return RedirectResponse("/sign-in?error=" + error, status_code=303)
+    if flow.get("mode") != "non_uci" and not uci_email(email):
         request.session.clear()
         return RedirectResponse("/sign-in?error=uci", status_code=303)
     issuer = info.get("iss", "https://accounts.google.com")
     if issuer not in {"https://accounts.google.com", "accounts.google.com"}:
         fail(403, "invalid_issuer", "The identity provider could not be verified.")
     issuer = "https://accounts.google.com"
-    email = info["email"].strip().lower()
+    email = email.strip().lower()
     advisory(db, 701)
     identity = db.scalar(select(Identity).where(Identity.issuer == issuer, Identity.subject == info["sub"]))
     if identity:
@@ -185,7 +208,7 @@ async def callback(request: Request, db=Depends(get_db, scope="function")):
         elif user.name == email.split("@")[0]:
             user.name = info.get("name", user.name)[:100]
         db.add(Identity(member_id=user.id, issuer=issuer, subject=info["sub"]))
-    destination = safe_return(request.session.get("return_to"))
+    destination = safe_return(flow.get("return_to"))
     request.session.clear()
     request.session["member_id"] = user.id
     request.session["login_at"] = int(utcnow().timestamp())

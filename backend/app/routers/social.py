@@ -39,7 +39,7 @@ PAGES = {
     ),
     "/sign-in": (
         f"Sign In | {SITE}",
-        "Sign in with your UCI account to join adventures and manage your AAC membership.",
+        "Sign in to join adventures and manage your AAC membership. Use your UCI email if you have one.",
     ),
     "/privacy": (
         f"Privacy Policy | {SITE}",
@@ -201,7 +201,7 @@ def page_metadata(
         canonical = "/sign-in"
     elif path == "/my-aac" or path.startswith("/my-aac/"):
         title = f"My AAC | {SITE}"
-        description = "Sign in with your UCI account to manage your AAC membership and adventures."
+        description = "Sign in to manage your AAC membership and adventures. Use your UCI email if you have one."
         canonical = "/sign-in"
     else:
         title, description = f"Page Not Found | {SITE}", "Explore Anteater Adventure Club at UC Irvine."

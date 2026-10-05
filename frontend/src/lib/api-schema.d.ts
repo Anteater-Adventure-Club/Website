@@ -3512,6 +3512,7 @@ export interface operations {
     parameters: {
       query?: {
         return_to?: string;
+        mode?: "uci" | "non_uci";
       };
       header?: never;
       path?: never;

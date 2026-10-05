@@ -11,9 +11,11 @@ class GoogleStub:
     def __init__(self, email="officer@uci.edu"):
         self.email = email
         self.initiations = 0
+        self.state = None
 
-    async def authorize_redirect(self, request, redirect_uri):
+    async def authorize_redirect(self, request, redirect_uri, **kwargs):
         self.initiations += 1
+        self.state = kwargs["state"]
         request.session["oauth_state"] = "test-state"
         return RedirectResponse("https://accounts.google.com/test", status_code=302)
 
@@ -46,7 +48,7 @@ def test_public_login_moves_to_callback_origin_before_creating_state(api):
     assert google.initiations == 1
     assert api.cookies.get("aac_session", domain="internal.test")
     assert not any(cookie.domain == "public.test" for cookie in api.cookies.jar)
-    completed = api.get("http://internal.test/api/auth/callback", follow_redirects=False)
+    completed = api.get("http://internal.test/api/auth/callback", params={"state": google.state}, follow_redirects=False)
     assert completed.status_code == 303
     assert completed.headers["location"] == "/officer?tab=members"
     session = api.get("http://internal.test/api/session").json()
@@ -66,9 +68,10 @@ def test_existing_nonofficer_can_sign_in_without_receiving_officer_role(api):
     with api.app.state.sessions() as db:
         db.add(Member(email="member@uci.edu", name="Member"))
         db.commit()
-    configure(api, GoogleStub("member@uci.edu"))
+    google = GoogleStub("member@uci.edu")
+    configure(api, google)
     api.get("http://internal.test/api/auth/login", follow_redirects=False)
-    response = api.get("http://internal.test/api/auth/callback", follow_redirects=False)
+    response = api.get("http://internal.test/api/auth/callback", params={"state": google.state}, follow_redirects=False)
     assert response.status_code == 303
     assert api.get("http://internal.test/api/session").json()["officer"] is False
     assert api.get("http://internal.test/api/admin/overview").status_code == 403
@@ -80,12 +83,13 @@ def test_public_canonical_origin_preserves_mutation_origin_checks(api, engine):
 
     settings = replace(api.app.state.settings, app_url="http://public.test")
     app = create_app(settings, engine)
-    app.state.oauth.create_client = lambda name: GoogleStub()
+    google = GoogleStub()
+    app.state.oauth.create_client = lambda name: google
     with TestClient(app) as client:
         response = client.get("http://internal.test/api/auth/login", follow_redirects=False)
         assert urlsplit(response.headers["location"]).netloc == "public.test"
         client.get(response.headers["location"], follow_redirects=False)
-        client.get("http://public.test/api/auth/callback", follow_redirects=False)
+        client.get("http://public.test/api/auth/callback", params={"state": google.state}, follow_redirects=False)
         rejected = client.post("http://public.test/api/auth/logout", headers={"Origin": "http://internal.test"})
         assert rejected.status_code == 403
         assert rejected.json()["detail"]["code"] == "origin_rejected"

@@ -87,6 +87,20 @@
               "default": "/my-aac",
               "title": "Return To"
             }
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "uci",
+                "non_uci"
+              ],
+              "type": "string",
+              "default": "uci",
+              "title": "Mode"
+            }
           }
         ],
         "responses": {

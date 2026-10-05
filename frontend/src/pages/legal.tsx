@@ -150,11 +150,12 @@ const privacySections: Section[] = [
     content: (
       <>
         <p>
-          Website sign-in uses a UCI Google account. Google provides your
-          account identifier, name, email address, and verification information
-          so we can recognize you and connect you to your club records. We do
-          not receive your Google password or request access to your Gmail
-          messages, Google Drive files, contacts, or calendar.
+          Website sign-in uses your UCI Google account, or another Google
+          account if you do not have a UCI email. Google provides your account
+          identifier, name, email address, and verification information so we
+          can recognize you and connect you to your club records. We do not
+          receive your Google password or request access to your Gmail messages,
+          Google Drive files, contacts, or calendar.
         </p>
         <p>
           You can remove the site’s access in your{" "}
@@ -333,11 +334,13 @@ const termsSections: Section[] = [
     title: "Accounts and accurate records",
     content: (
       <p>
-        Account sign-in currently requires a UCI Google account. Use your own
-        account and provide accurate contact, vehicle, signup, and payment
-        information. Keep your Google account secure and sign out on shared
-        devices. Officer access is limited to authorized officers. Report
-        suspected account misuse or incorrect records to the club.
+        Use your UCI Google account to sign in if you have one. If you do not
+        have a UCI email, choose that option on the sign-in page to use another
+        Google account. Use your own account and the same email each time, and
+        provide accurate contact, vehicle, signup, and payment information. Keep
+        your Google account secure and sign out on shared devices. Officer
+        access is limited to authorized officers. Report suspected account
+        misuse or incorrect records to the club.
       </p>
     ),
   },

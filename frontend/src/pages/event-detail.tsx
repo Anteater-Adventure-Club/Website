@@ -567,8 +567,8 @@ export function EventDetail() {
             <Panel>
               <h2>Come along!</h2>
               <p>
-                Sign in with your UCI Google account to save your spot and
-                arrange a ride.
+                Sign in to save your spot and arrange a ride. Use your UCI
+                Google account if you have one.
               </p>
               <Link
                 className="button primary heading-button"

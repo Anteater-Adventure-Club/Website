@@ -608,8 +608,10 @@ export function SignIn() {
   const { session } = useIdentity();
   const [params] = useSearchParams();
   const error = params.get("error");
+  const returnTo = encodeURIComponent(params.get("return_to") || "/my-aac");
   const messages: Record<string, string> = {
-    uci: "Use a verified UCI Google account, including UCI subdomains.",
+    uci: "Use your verified UCI Google account. If you don’t have a UCI email, choose the option below.",
+    google: "Use a Google account with a verified email address.",
     oauth: "We could not finish signing you in. Please try again.",
     unconfigured:
       "Google sign-in is being configured. You can browse public events in the meantime.",
@@ -637,18 +639,30 @@ export function SignIn() {
             Continue to My AAC
           </Link>
         ) : (
-          <a
-            className="button secondary google-button"
-            href={`/api/auth/login?return_to=${encodeURIComponent(params.get("return_to") || "/my-aac")}`}
-          >
-            <span className="google-g" aria-hidden="true">
-              G
-            </span>
-            Continue with UCI Google
-          </a>
+          <>
+            <a
+              className="button primary google-button"
+              href={`/api/auth/login?return_to=${returnTo}`}
+            >
+              <span className="google-g" aria-hidden="true">
+                G
+              </span>
+              Continue with UCI Google
+            </a>
+            <small className="muted">
+              Use your UCI email if you have one. Use the same email each time
+              to keep your membership and event history in one account.
+            </small>
+            <a
+              className="button quiet"
+              href={`/api/auth/login?mode=non_uci&return_to=${returnTo}`}
+            >
+              I don't have a UCI email
+            </a>
+          </>
         )}
         <small className="muted">
-          Your UCI account is used to identify you. We don’t read your email.
+          Google provides your name and email. We don’t read your inbox.
         </small>
         <Link className="text-link" to="/events">
           Browse events without signing in <ArrowRight size={16} />

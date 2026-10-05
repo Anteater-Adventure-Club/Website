@@ -7,7 +7,7 @@ const viewports = [
 ];
 export default defineConfig({
   testDir: "./tests/e2e",
-  testMatch: "journeys.spec.ts",
+  testMatch: ["journeys.spec.ts", "signin.spec.ts"],
   timeout: 90000,
   expect: { timeout: 10000 },
   workers: 1,

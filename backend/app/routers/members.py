@@ -271,7 +271,7 @@ def grant(db, mid, actor):
     advisory(db, 700)
     m = require(db, Member, mid)
     if not uci_email(m.email):
-        fail(422, "uci_required", "Site access requires a UCI email address.")
+        fail(422, "uci_required", "Officer access requires a UCI email address.")
     if db.get(Officer, mid) is None:
         db.add(Officer(member_id=mid))
         audit(db, actor, "officer.grant", mid)

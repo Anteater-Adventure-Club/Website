@@ -38,7 +38,7 @@ Old-site Sponsors and short-link routes are not new-design requirements. Old arc
 ## Engineering defaults selected for the implementation
 
 - One unified member identity and event model, server-owned Decimal finance and permissions, PostgreSQL everywhere that validates persistence/concurrency.
-- UCI-only Google identity, free general membership and quarter-based paid/exception benefits from the designs/MVP; no new enrollment provider.
+- UCI Google identity by default, with an explicit “I don't have a UCI email” option on sign-in for other verified Google accounts. The choice is bound to one OAuth state and cleared on completion, failure, logout, or a new login attempt; callback flags cannot enable it. Free general membership and quarter-based paid/exception benefits remain unchanged; no new enrollment provider.
 - Pacific timezone, explicit materialized occurrences, protected past/exception/participating dates in series edits, and one signup per multi-day retreat.
 - Two-second visible-view polling for field operations, transactional mutations and stale-revision conflicts; no offline writes or extra realtime service.
 - Same-origin frontend/API, local persistent media volume and derived images; no new object-storage service required for the internal working deployment.
