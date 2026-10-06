@@ -26,9 +26,6 @@ const cases: Case[] = [
       await expect(
         p.getByRole("heading", { name: "AAC Membership", exact: true }),
       ).toBeVisible();
-      await expect(
-        p.getByText("A little support goes a long way.", { exact: true }),
-      ).toBeVisible();
       await expect(p.locator(".benefit-list > li")).toHaveCount(5);
       await expect(
         p.getByRole("heading", { name: "Our live reimbursement budget" }),

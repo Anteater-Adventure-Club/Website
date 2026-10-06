@@ -58,7 +58,6 @@ export function Membership() {
     <div className="page membership-page">
       <div className="center-heading">
         <h1>AAC Membership</h1>
-        <p>A little support goes a long way.</p>
       </div>
       <div className="membership-layout">
         <div>
