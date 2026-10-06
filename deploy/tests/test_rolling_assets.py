@@ -1,5 +1,8 @@
 """Check asset publication and, optionally, two actual rolling Nginx instances."""
 
+import importlib.util
+import json
+import multiprocessing
 import os
 from pathlib import Path
 import subprocess
@@ -13,9 +16,13 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
 PUBLISH = ROOT / "deploy/publish-assets.sh"
+MANAGER = ROOT / "deploy/asset-store.py"
+spec = importlib.util.spec_from_file_location("asset_store", MANAGER)
+asset_store = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(asset_store)
 
 
-class PublicationTests(unittest.TestCase):
+class AssetFixtures(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
@@ -33,11 +40,22 @@ class PublicationTests(unittest.TestCase):
     def publish(self, source):
         return subprocess.run(
             ["sh", str(PUBLISH)],
-            env={**os.environ, "AAC_ASSET_SOURCE": str(source), "AAC_ASSET_STORE": str(self.store)},
+            env=self.environment(source),
             capture_output=True,
             text=True,
         )
 
+    def environment(self, source):
+        return {
+            **os.environ,
+            "AAC_ASSET_SOURCE": str(source),
+            "AAC_ASSET_STORE": str(self.store),
+            "AAC_ASSET_MANAGER": str(MANAGER),
+            "AAC_ASSET_RELEASE": source.name,
+        }
+
+
+class PublicationTests(AssetFixtures):
     def test_new_release_and_rollback_preserve_both_asset_sets(self):
         old = self.release("old", {"entry-old.js": "old", "lazy/route-old.js": "old route"})
         new = self.release("new", {"entry-new.js": "new", "lazy/route-new.js": "new route"})
@@ -70,7 +88,7 @@ class PublicationTests(unittest.TestCase):
         processes = [
             subprocess.Popen(
                 ["sh", str(PUBLISH)],
-                env={**os.environ, "AAC_ASSET_SOURCE": str(source), "AAC_ASSET_STORE": str(self.store)},
+                env=self.environment(source),
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
@@ -86,6 +104,101 @@ class PublicationTests(unittest.TestCase):
 
     def test_missing_build_fails_publication(self):
         self.assertNotEqual(self.publish(self.directory / "missing").returncode, 0)
+
+
+class RetentionTests(AssetFixtures):
+    def test_expiry_boundary_and_shared_chunks(self):
+        old = self.release("old", {"old.js": "old", "shared.js": "shared"})
+        new = self.release("new", {"new.js": "new", "shared.js": "shared"})
+        asset_store.publish(old, self.store, "old", now=0)
+        asset_store.publish(new, self.store, "new", now=1000)
+        expiry = asset_store.RETENTION_SECONDS + asset_store.HEARTBEAT_GRACE
+        result = asset_store.maintain(self.store, now=expiry - 1, force=True)
+        self.assertEqual(result["expired_releases"], [])
+        self.assertTrue((self.store / "old.js").exists())
+        result = asset_store.maintain(self.store, now=expiry, force=True)
+        self.assertEqual(result, {"expired_releases": ["old"], "deleted_assets": 1})
+        self.assertFalse((self.store / "old.js").exists())
+        self.assertEqual((self.store / "new.js").read_text(), "new")
+        self.assertEqual((self.store / "shared.js").read_text(), "shared")
+
+    def test_current_release_survives_sixty_days(self):
+        current = self.release("current", {"current.js": "current"})
+        asset_store.publish(current, self.store, "current", now=0)
+        result = asset_store.maintain(self.store, active_release="current", now=60 * 86400, force=True)
+        self.assertEqual(result["expired_releases"], [])
+        self.assertEqual((self.store / "current.js").read_text(), "current")
+
+    def test_old_running_release_and_candidate_are_both_protected(self):
+        old = self.release("old", {"old.js": "old"})
+        new = self.release("new", {"new.js": "new"})
+        asset_store.publish(old, self.store, "old", now=0)
+        now = 60 * 86400
+        asset_store.maintain(self.store, active_release="old", now=now, force=True)
+        asset_store.publish(new, self.store, "new", now=now)
+        asset_store.maintain(self.store, active_release="new", now=now + 60, force=True)
+        self.assertTrue((self.store / "old.js").exists())
+        self.assertTrue((self.store / "new.js").exists())
+
+    def test_rollback_republishes_expired_release(self):
+        old = self.release("old", {"old.js": "old"})
+        new = self.release("new", {"new.js": "new"})
+        asset_store.publish(old, self.store, "old", now=0)
+        asset_store.publish(new, self.store, "new", now=1000)
+        now = asset_store.RETENTION_SECONDS + asset_store.HEARTBEAT_GRACE
+        asset_store.maintain(self.store, active_release="new", now=now, force=True)
+        self.assertFalse((self.store / "old.js").exists())
+        asset_store.publish(old, self.store, "old", now=now + 1)
+        self.assertEqual((self.store / "old.js").read_text(), "old")
+        self.assertEqual((self.store / "new.js").read_text(), "new")
+
+    def test_legacy_assets_get_migration_grace_then_expire(self):
+        self.store.mkdir()
+        (self.store / "legacy.js").write_text("legacy")
+        os.utime(self.store / "legacy.js", (0, 0))
+        current = self.release("current", {"current.js": "current"})
+        asset_store.publish(current, self.store, "current", now=60 * 86400)
+        self.assertTrue((self.store / "legacy.js").exists())
+        result = asset_store.maintain(self.store, active_release="current", now=61 * 86400, force=True)
+        self.assertEqual(result["expired_releases"], [])
+        now = 67 * 86400 + asset_store.HEARTBEAT_GRACE
+        result = asset_store.maintain(self.store, active_release="current", now=now, force=True)
+        self.assertEqual(result["expired_releases"], ["legacy-assets"])
+        self.assertFalse((self.store / "legacy.js").exists())
+        self.assertTrue((self.store / "current.js").exists())
+
+    def test_cleanup_runs_without_another_deployment(self):
+        old = self.release("old", {"old.js": "old"})
+        new = self.release("new", {"new.js": "new"})
+        asset_store.publish(old, self.store, "old", now=0)
+        asset_store.publish(new, self.store, "new", now=0)
+        now = asset_store.RETENTION_SECONDS + asset_store.HEARTBEAT_GRACE - 60
+        asset_store.maintain(self.store, active_release="new", now=now, force=True)
+        result = asset_store.maintain(self.store, active_release="new", now=now + 60)
+        self.assertEqual(result["expired_releases"], [])
+        result = asset_store.maintain(self.store, active_release="new", now=now + 3600)
+        self.assertEqual(result["expired_releases"], ["old"])
+        self.assertTrue((self.store / "new.js").exists())
+
+    def test_concurrent_cleanup_and_publication_preserve_reused_chunk(self):
+        old = self.release("old", {"shared.js": "shared", "old.js": "old"})
+        new = self.release("new", {"shared.js": "shared", "new.js": "new"})
+        asset_store.publish(old, self.store, "old", now=0)
+        now = 8 * 86400
+        context = multiprocessing.get_context("fork")
+        processes = [
+            context.Process(target=asset_store.publish, args=(new, self.store, "new"), kwargs={"now": now}),
+            context.Process(
+                target=asset_store.maintain, args=(self.store,), kwargs={"now": now, "force": True}
+            ),
+        ]
+        for process in processes:
+            process.start()
+        for process in processes:
+            process.join(10)
+            self.assertEqual(process.exitcode, 0)
+        self.assertEqual((self.store / "shared.js").read_text(), "shared")
+        self.assertEqual((self.store / "new.js").read_text(), "new")
 
 
 @unittest.skipUnless(
@@ -137,7 +250,7 @@ class RollingContainerTests(unittest.TestCase):
                     with urlopen(base + "/health", timeout=1) as response:
                         self.assertEqual(response.status, 200)
                     break
-                except (URLError, TimeoutError):
+                except (URLError, TimeoutError, ConnectionError):
                     time.sleep(0.1)
             else:
                 self.fail("Nginx did not start:\n" + run("logs", container))
@@ -174,6 +287,45 @@ class RollingContainerTests(unittest.TestCase):
         run("stop", containers["old"])
         with urlopen(bases["new"] + "/assets/route-old.js") as response:
             self.assertEqual(response.read().decode(), 'export default "old"')
+
+        # Age only the stopped fixture release, then run the production cleanup.
+        run(
+            "exec",
+            containers["new"],
+            "python3",
+            "-c",
+            "import runpy,time; from pathlib import Path; "
+            "manager=runpy.run_path('/opt/aac/asset-store.py'); "
+            "store=Path('/var/lib/aac/assets'); "
+            "\nwith manager['locked_state'](store,time.time()) as state:\n"
+            " state['releases']['old']['last_active_at']=time.time()-8*86400\n",
+        )
+        run("exec", containers["new"], "python3", "/opt/aac/asset-store.py", "maintain")
+        with self.assertRaises(HTTPError) as error:
+            urlopen(bases["new"] + "/assets/route-old.js")
+        self.assertEqual(error.exception.code, 404)
+        error.exception.close()
+        with urlopen(bases["new"] + "/assets/route-new.js") as response:
+            self.assertEqual(response.read().decode(), 'export default "new"')
+        with self.assertRaises(HTTPError) as error:
+            urlopen(bases["new"] + "/assets/.retention/releases.json")
+        self.assertEqual(error.exception.code, 404)
+        error.exception.close()
+
+        # Coolify's HTTP health check must notice a failed retention worker.
+        heartbeat = json.loads(run("exec", containers["new"], "cat", "/tmp/aac-asset-retention.json"))
+        run("exec", containers["new"], "kill", "-KILL", str(heartbeat["pid"]))
+        for _ in range(50):
+            try:
+                with urlopen(bases["new"] + "/health", timeout=1):
+                    pass
+            except HTTPError as error:
+                self.assertEqual(error.code, 503)
+                error.close()
+                break
+            time.sleep(0.1)
+        else:
+            self.fail("HTTP health stayed ready after the retention worker died")
 
 
 if __name__ == "__main__":
