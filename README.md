@@ -1,6 +1,6 @@
 # Anteater Adventure Club 🌲
 
-This is the GitHub repository for the **Anteater Adventure Club's (AAC) official website**. AAC is an official UCI organization with the mission to foster a sense of community while making nature as accessible as possible for our college community!
+This is the GitHub repository for the **Anteater Adventure Club's (AAC) official website**. AAC is an official UCI RCO with the mission to foster a sense of community while making nature as accessible as possible for our college community!
 
 The site centralizes event information, improves event signups, showcases past adventures in a media gallery, introduces the board members, and provides clear membership details and registration. Members can manage their signups and profiles, while officers coordinate carpools, check-in, dues, and driver reimbursements.
 
