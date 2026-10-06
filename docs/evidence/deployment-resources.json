@@ -12,7 +12,9 @@
     "volume_name": "arrfou0ztdvn7rsjlxkadsho-frontend-assets",
     "mount_path": "/var/lib/aac/assets",
     "uid": 101,
-    "gid": 101
+    "gid": 101,
+    "retention_days": 7,
+    "cleanup_interval_seconds": 3600
   },
   "repository": "Anteater-Adventure-Club/Website",
   "branch": "aac-rebuild",
