@@ -421,7 +421,7 @@ for (const c of cases)
     );
     await expect(page.locator("body")).not.toContainText("A little detour");
     const overflow = await page.evaluate(() => ({
-      width: innerWidth,
+      width: document.documentElement.clientWidth,
       body: document.documentElement.scrollWidth,
     }));
     expect(overflow.body, JSON.stringify(overflow)).toBeLessThanOrEqual(

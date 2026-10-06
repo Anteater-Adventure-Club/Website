@@ -190,7 +190,7 @@ Create `aac_test` only once; subsequent runs reuse and reset it. Apply migration
 
 | Command, run from `frontend/` | Coverage |
 | --- | --- |
-| `npm run test:e2e` | Page states, accessibility, images, and layouts at six viewport sizes |
+| `npm run test:e2e` | Page states, accessibility, images, and layouts at seven viewport sizes |
 | `npm run test:e2e:journeys` | Member/officer workflows in Chromium, Firefox, and WebKit |
 | `npm run test:e2e:boundaries` | Narrow screens, breakpoints, orientation, focus, and simulated 200% reflow |
 | `npm run test:e2e:keyboard` | Mobile forms with simulated keyboard-open viewport changes |

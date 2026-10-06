@@ -2,6 +2,7 @@ import { defineConfig } from "@playwright/test";
 const sizes = [
   [360, 800],
   [390, 844],
+  [440, 956],
   [768, 1024],
   [1024, 768],
   [1280, 800],
@@ -9,7 +10,7 @@ const sizes = [
 ];
 export default defineConfig({
   testDir: "./tests/e2e",
-  testMatch: "views.spec.ts",
+  testMatch: ["views.spec.ts", "event-layout.spec.ts"],
   timeout: 45000,
   expect: { timeout: 8000 },
   fullyParallel: false,

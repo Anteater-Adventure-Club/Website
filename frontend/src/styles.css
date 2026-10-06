@@ -1676,6 +1676,9 @@ dialog::backdrop {
   gap: 2.5rem;
   align-items: start;
 }
+.event-page .preserve-lines {
+  overflow-wrap: anywhere;
+}
 .event-intro {
   display: grid;
   grid-template-columns: 180px 1fr;
