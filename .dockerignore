@@ -7,7 +7,8 @@
 **/__pycache__
 **/.pytest_cache
 design
-docs/evidence
+docs
+assets/readme
 artifacts
 media
 frontend/dist

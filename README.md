@@ -10,7 +10,7 @@ The site centralizes event information, improves event signups, showcases past a
 
 ## Page previews
 
-[![AAC homepage with adventure photos, navigation, and upcoming events](docs/images/readme/home.jpg)](docs/images/readme/home.jpg)
+[![AAC homepage with adventure photos, navigation, and upcoming events](assets/readme/home.jpg)](assets/readme/home.jpg)
 
 The homepage serves as the primary hub for AAC members, with dynamic event spotlights styled as polaroids and a direct link to the full Events page. Its **What we do!** section showcases the club's mission and core activities.
 
@@ -18,19 +18,19 @@ Screenshots show the actual application with synthetic events and accounts; name
 
 | Explore the club | Plan an adventure |
 | --- | --- |
-| [![Homepage About section with hikes and activity photos](docs/images/readme/about.jpg)](docs/images/readme/about.jpg) | [![Events page with the monthly activity calendar](docs/images/readme/events.jpg)](docs/images/readme/events.jpg) |
+| [![Homepage About section with hikes and activity photos](assets/readme/about.jpg)](assets/readme/about.jpg) | [![Events page with the monthly activity calendar](assets/readme/events.jpg)](assets/readme/events.jpg) |
 | **About:** local hikes, city explorations, weekly potluck picnics in Aldrich Park, and quarterly weekend retreats. | **Events:** a monthly calendar to find and sign up for the next adventure, plus a past-event gallery that preserves the club's memories. |
-| [![Board page with synthetic officer profiles](docs/images/readme/board.jpg)](docs/images/readme/board.jpg) | [![Public membership page explaining benefits and dues](docs/images/readme/membership.jpg)](docs/images/readme/membership.jpg) |
+| [![Board page with synthetic officer profiles](assets/readme/board.jpg)](assets/readme/board.jpg) | [![Public membership page explaining benefits and dues](assets/readme/membership.jpg)](assets/readme/membership.jpg) |
 | **Board:** interactive polaroids introduce the student leaders behind AAC, with an archive of previous boards. | **Membership:** what it costs to join, the benefits of being a member, and how dues support club gear, trips, and events. |
-| [![My AAC overview with a synthetic member's signups and membership](docs/images/readme/my-aac.jpg)](docs/images/readme/my-aac.jpg) | [![Officer dashboard with synthetic events, dues, and tasks](docs/images/readme/officer-dashboard.jpg)](docs/images/readme/officer-dashboard.jpg) |
+| [![My AAC overview with a synthetic member's signups and membership](assets/readme/my-aac.jpg)](assets/readme/my-aac.jpg) | [![Officer dashboard with synthetic events, dues, and tasks](assets/readme/officer-dashboard.jpg)](assets/readme/officer-dashboard.jpg) |
 | **My AAC:** membership, signups, profile, cars, and reimbursements. | **Officer tools:** events, members, dues approvals, carpools, check-in, and quarter finances. |
 
 <p align="center">
-  <a href="docs/images/readme/mobile-membership.jpg"><img src="docs/images/readme/mobile-membership.jpg" alt="Phone view of a synthetic member's paid membership" width="260"></a>
-  <a href="docs/images/readme/mobile-check-in.jpg"><img src="docs/images/readme/mobile-check-in.jpg" alt="Phone view of the officer check-in desk with synthetic participants" width="260"></a>
+  <a href="assets/readme/mobile-membership.jpg"><img src="assets/readme/mobile-membership.jpg" alt="Phone view of a synthetic member's paid membership" width="260"></a>
+  <a href="assets/readme/mobile-check-in.jpg"><img src="assets/readme/mobile-check-in.jpg" alt="Phone view of the officer check-in desk with synthetic participants" width="260"></a>
 </p>
 
-Personal membership and the officer field desk adapt to phones for use on the trail. See the [browser preview guide](docs/local-previews.md) to reproduce these views locally.
+Personal membership and the officer field desk adapt to phones for use on the trail. See the [browser preview guide](docs/development.md#browser-fixtures) to reproduce these views locally.
 
 ## Tech stack
 
@@ -64,7 +64,7 @@ Node **24** is required; use the exact version in [`.node-version`](.node-versio
 | [`backend/tests/`](backend/tests/) / [`frontend/tests/e2e/`](frontend/tests/e2e/) | API/integration and browser tests; frontend unit tests sit beside their modules |
 | [`scripts/`](scripts/) / [`assets/`](assets/) | Asset preparation, isolated fixtures, import tools, and asset versions |
 | [`deploy/`](deploy/) / [CI workflow](.github/workflows/checks.yml) | Dockerfiles, Nginx, startup migrations, asset retention, and automated checks |
-| [`docs/`](docs/) / [`design/`](design/) | Maintainer guides, verification evidence, and design references |
+| [`docs/`](docs/) / [`design/`](design/) | Website maintenance guides and design references |
 
 ### Where to make common changes
 
@@ -76,7 +76,7 @@ Node **24** is required; use the exact version in [`.node-version`](.node-versio
 | Homepage activity copy/photos | `frontend/src/pages/home.tsx` and `frontend/public/images/` |
 | Homepage adventure cards | In officer tools, open a completed event's **Recap** tab, add its photo/text, select **Feature in the homepage polaroid rotation**, then **Publish to Gallery**. Draft edits stay private until republished. |
 | API behavior and database structure | `backend/app/routers/`, `services/`, `schemas.py`, and `models.py`; add an Alembic migration for schema changes |
-| API types and static asset versions | Follow [Checks](#checks) and the [asset preparation guide](docs/page-speed.md) |
+| API types and static asset versions | Follow [Checks](#checks) and the [asset preparation guide](docs/content.md#static-assets) |
 
 ```mermaid
 flowchart LR
@@ -102,7 +102,7 @@ node --version
 python3.12 --version
 ```
 
-Run subsequent commands from the repository root unless shown otherwise. If another checkout is running, use the [isolated environment procedure](docs/local-previews.md#an-isolated-environment-when-local-ports-are-busy) instead of replacing its database or processes.
+Run subsequent commands from the repository root unless shown otherwise. If another checkout is running, check [local troubleshooting](docs/development.md#troubleshooting) before starting services on the same ports.
 
 ### 2. Install dependencies and create a local database
 
@@ -166,7 +166,7 @@ Readiness should return HTTP 200. Home, Events, Board, and Membership should loa
 
 Public browsing does not require OAuth credentials. For real Google sign-in, configure a Google OAuth **Web application** client with `http://localhost:5173/api/auth/callback` as an authorized redirect URI. If its consent screen is in testing mode, add your account as a test user. Export `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in the backend terminal, then restart the API with the same environment. These are backend settings, not `VITE_*` variables.
 
-For populated member/officer views without Google credentials, follow [Local browser previews](docs/local-previews.md). That workflow uses a separate disposable database and signed fixture cookies; the deployed application has no development-login endpoint.
+For populated member/officer views without Google credentials, follow [Local browser previews](docs/development.md#browser-fixtures). That workflow uses a separate disposable database and signed fixture cookies; the deployed application has no development-login endpoint.
 
 Stop the servers with Ctrl+C and stop PostgreSQL with `"$AAC_CONTAINER_ENGINE" stop aac-dev-postgres`. Its named volume remains available for next time.
 
@@ -186,7 +186,7 @@ export TEST_DATABASE_URL=postgresql+psycopg://aac:aac@127.0.0.1:55432/aac_test
 (cd frontend && npm run build && npm test)
 ```
 
-Create `aac_test` only once; subsequent runs reuse and reset it. Apply migrations before testing, including after pulling new migrations: readiness tests check the Alembic revision as well as the tables. Browser tests require the [browser fixture setup](docs/local-previews.md), including migrations and the matching session secret.
+Create `aac_test` only once; subsequent runs reuse and reset it. Apply migrations before testing, including after pulling new migrations: readiness tests check the Alembic revision as well as the tables. Browser tests require the [browser fixture setup](docs/development.md#browser-fixtures), including migrations and the matching session secret.
 
 | Command, run from `frontend/` | Coverage |
 | --- | --- |
@@ -195,7 +195,7 @@ Create `aac_test` only once; subsequent runs reuse and reset it. Apply migration
 | `npm run test:e2e:boundaries` | Narrow screens, breakpoints, orientation, focus, and simulated 200% reflow |
 | `npm run test:e2e:keyboard` | Mobile forms with simulated keyboard-open viewport changes |
 | `npm run test:e2e:search` | Officer person search |
-| `npm run test:e2e:social` / `npm run test:e2e:speed` | Production proxy/metadata and speed; see [CI setup](.github/workflows/checks.yml) and the [page-speed guide](docs/page-speed.md) |
+| `npm run test:e2e:social` / `npm run test:e2e:speed` | Production proxy/metadata and speed; see [production proxy checks](docs/development.md#production-proxy-checks) |
 
 ### When API contracts or assets change
 
@@ -212,11 +212,11 @@ PY
 (cd frontend && npm run api:types)
 ```
 
-Commit both generated files with the API change. For photos, fonts, or logos, follow [asset preparation and versioning](docs/page-speed.md); the build checks the committed asset manifest. `scripts/prepare-fonts.py` additionally needs `fonttools[brotli]`. Load fixtures and historical-import scripts have separate prerequisites and are not ordinary startup commands.
+Commit both generated files with the API change. For photos, fonts, or logos, follow [asset preparation and versioning](docs/content.md#static-assets); the build checks the committed asset manifest.
 
 ## Deployment
 
-Coolify builds the website from Git. The [deployment runbook](docs/deployment-plan.md#runtime-configuration-and-fresh-initialization) records **https://anteateradventureclub.com** as the public hostname and the previous internal domain as a redirect. Earlier sections retain the original internal rollout details; use the intended public origin for a new deployment's domain, `APP_URL`, and OAuth callback.
+Coolify builds separate web and API images from Git for **https://anteateradventureclub.com**. The [deployment guide](docs/deployment.md) covers runtime settings, storage, releases, and recovery.
 
 ### First-time Coolify setup
 
@@ -233,8 +233,8 @@ Create three resources on the same private destination network:
 3. Set `MIGRATION_DATABASE_URL` to an owner/migration connection when the runtime role cannot modify the schema. API startup runs Alembic once under a PostgreSQL lock, grants runtime permissions, then starts Uvicorn. Keep secrets in Coolify runtime settings.
 4. Configure `DUES_VENMO_HANDLE`, `DUES_ZELLE_CONTACT`, `DUES_ZELLE_NAME`, `DUES_CASH_INSTRUCTIONS`, and `DISCORD_URL`. The current Instagram/GitHub links are defined in frontend source.
 5. Register your public origin followed by `/api/auth/callback` with Google. Deploy PostgreSQL, API, then web. Verify Nginx resolves `aac-api` and proxies `/api/` and `/media/`.
-6. Ensure the frontend asset volume is writable by UID/GID `101:101`. For an existing installation, follow the [asset-retention adoption procedure](docs/deployment-plan.md#rolling-updates-and-frontend-asset-retention) before its first rollout. Inactive releases' hashed assets remain available for seven days; active releases stay protected.
-7. Sign in as the initial officer and create the first quarter through the UI. Configure database and media backups using the [recovery instructions](docs/deployment-plan.md#backups-monitoring-and-rollback).
+6. Ensure the frontend asset volume is writable by UID/GID `101:101`. For an existing installation, follow the [asset-retention adoption procedure](docs/deployment.md#frontend-asset-storage) before its first rollout. Inactive releases' hashed assets remain available for seven days; active releases stay protected.
+7. Sign in as the initial officer and create the first quarter through the UI. Configure database and media backups using the [recovery instructions](docs/deployment.md#backups-and-restore).
 
 ### Routine releases and recovery
 
@@ -242,15 +242,11 @@ Run the relevant checks, review the change, and push the approved revision to `a
 
 Confirm both resources are healthy, `/version.json` and `/api/health/live` report the expected revision, and `/api/health/ready` succeeds through the website. Check public direct links, sign-in/return/logout, officer access, and an existing published media image.
 
-Retain compatible frontend/API revisions for Coolify rollback. Database and media volumes survive application replacement. A database rollback needs coordinated recovery; follow the [backup/restore runbook](docs/deployment-plan.md#backups-monitoring-and-rollback), including its limits on independent database/media snapshots and same-host backups.
+Retain compatible frontend/API revisions for Coolify rollback. Database and media volumes survive application replacement. A database rollback needs coordinated recovery; follow the [backup/restore runbook](docs/deployment.md#backups-and-restore), using a matched database and media backup.
 
 ## More documentation
 
-- [Local browser previews and isolated environments](docs/local-previews.md)
-- [Fresh-environment README validation](docs/evidence/readme-setup-validation.md)
-- [Deployment and recovery](docs/deployment-plan.md)
-- [Verification and acceptance](docs/verification.md)
-- [Page speed and static assets](docs/page-speed.md)
-- [Branding and social previews](docs/branding-and-embeds.md)
-- [Historical imports](docs/historical-import.md)
-- [Implementation plan](docs/implementation-plan.md), [view matrix](docs/view-matrix.md), and [decisions](docs/decisions.md)
+- [Maintenance guide index](docs/README.md)
+- [Development, browser fixtures, and screenshot refresh](docs/development.md)
+- [Deployment and recovery](docs/deployment.md)
+- [Content, branding, and static assets](docs/content.md)

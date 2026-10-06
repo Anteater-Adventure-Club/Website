@@ -1,8 +1,0 @@
-{
-  "verified_at": "2026-10-02T18:21:21.678970+00:00",
-  "site": "https://aac.internal.gdodge.dev",
-  "redirect_uri": "https://aac.internal.gdodge.dev/api/auth/callback",
-  "method": "Owner confirmed redirect added and successful sign-in using their UCI Google account",
-  "result": "success",
-  "automation_scope": "OAuth initiation, secure cookie attributes, state, nonce and callback URL checked automatically; actual Google login confirmed by owner"
-}

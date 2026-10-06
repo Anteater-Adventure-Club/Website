@@ -1,12 +1,12 @@
-// Refresh the README images after following docs/local-previews.md.
+// Refresh the README images after following docs/development.md#browser-fixtures.
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
-const output = path.dirname(fileURLToPath(import.meta.url));
-const root = path.resolve(output, "../../..");
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const output = path.join(root, "assets/readme");
 const require = createRequire(path.join(root, "frontend/package.json"));
 const { chromium, expect } = require("@playwright/test");
 const origin = "http://localhost:5173";
