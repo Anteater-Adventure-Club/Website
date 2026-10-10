@@ -159,6 +159,18 @@ def signups_projection(db, signups, own=False, include_event=True):
             car = {
                 "driver_name": members[driver.member_id].name,
                 "vehicle": driver.vehicle,
+                "passengers": sorted(
+                    [
+                        {"signup_id": rider.id, "name": members[rider.member_id].name}
+                        for a in assignments.values()
+                        if a.driver_id == s.id
+                        and (rider := related[a.rider_id]).event_id == s.event_id
+                        and rider.role == "ride"
+                        and rider.checked_in_at
+                        and not rider.cancelled
+                    ],
+                    key=lambda passenger: (passenger["name"].casefold(), passenger["signup_id"]),
+                ) if s.role == "driver" and s.id == driver.id and not s.cancelled else [],
                 "co_riders": [
                     members[related[a.rider_id].member_id].name.split()[0]
                     for a in assignments.values()

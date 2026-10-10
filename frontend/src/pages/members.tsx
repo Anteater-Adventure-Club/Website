@@ -8,6 +8,8 @@ import {
   attendanceLabel,
   dateLabel,
   dateRange,
+  clock,
+  departureTime,
   eventURL,
   money,
   transportLabel,
@@ -29,6 +31,10 @@ import {
   Panel,
   Pill,
 } from "../components/ui";
+import {
+  DriverPassengers,
+  isLiveDriverSignup,
+} from "../components/driver-passengers";
 
 const profileSchema = z.object({
   name: z.string().trim().min(1, "Your name is required").max(100),
@@ -531,6 +537,7 @@ export function MySignups() {
   const query = useAPI(
     "Page_SignupOwn_",
     `/api/me/signups?limit=200${quarter ? `&quarter_id=${quarter.id}` : ""}`,
+    { poll: (data) => data?.items.some(isLiveDriverSignup) ?? false },
   );
   const action = useAction();
   const [cancel, setCancel] = useState<Schema<"SignupOwn"> | null>(null);
@@ -566,6 +573,12 @@ export function MySignups() {
                     {s.event!.destination}
                   </p>
                   <p>{transportLabel(s)}</p>
+                  {s.role === "driver" && s.checked_in_at && !s.cancelled && (
+                    <>
+                      <DriverPassengers signup={s} compact />
+                      <p>Leaves {clock(departureTime(s.event!))}</p>
+                    </>
+                  )}
                   {s.card && (
                     <p>
                       {s.card.category === "paid" ? "Paid" : "General"} card #

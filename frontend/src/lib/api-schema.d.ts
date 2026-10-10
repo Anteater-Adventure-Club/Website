@@ -1436,6 +1436,15 @@ export interface components {
       vehicle: components["schemas"]["VehicleSnapshot"] | null;
       /** Co Riders */
       co_riders: string[];
+      /** Passengers */
+      passengers?: components["schemas"]["AssignedPassenger"][];
+    };
+    /** AssignedPassenger */
+    AssignedPassenger: {
+      /** Signup Id */
+      signup_id: number;
+      /** Name */
+      name: string;
     };
     /** AssignmentWrite */
     AssignmentWrite: {

@@ -4464,6 +4464,13 @@
             },
             "type": "array",
             "title": "Co Riders"
+          },
+          "passengers": {
+            "items": {
+              "$ref": "#/components/schemas/AssignedPassenger"
+            },
+            "type": "array",
+            "title": "Passengers"
           }
         },
         "additionalProperties": false,
@@ -4474,6 +4481,25 @@
           "co_riders"
         ],
         "title": "AssignedCar"
+      },
+      "AssignedPassenger": {
+        "properties": {
+          "signup_id": {
+            "type": "integer",
+            "title": "Signup Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "signup_id",
+          "name"
+        ],
+        "title": "AssignedPassenger"
       },
       "AssignmentWrite": {
         "properties": {

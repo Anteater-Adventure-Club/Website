@@ -13,8 +13,10 @@ import {
 import {
   clock,
   dateLabel,
+  departureTime,
   eventURL,
   photoURL,
+  pacificDate,
   useAction,
   useAPI,
 } from "../lib/api";
@@ -33,6 +35,10 @@ import {
   Polaroid,
 } from "../components/ui";
 import { VehicleDialog } from "./members";
+import {
+  DriverPassengers,
+  isLiveDriverSignup,
+} from "../components/driver-passengers";
 
 function SignupForm({
   event,
@@ -411,8 +417,14 @@ function CheckedIn({
       </Panel>
       {signup.assigned_car ? (
         <Panel>
-          <small className="muted">YOUR RIDE</small>
-          <h2>{signup.assigned_car.driver_name}</h2>
+          <small className="muted">
+            {signup.role === "driver" ? "YOUR CAR" : "YOUR RIDE"}
+          </small>
+          {signup.role === "driver" ? (
+            <DriverPassengers signup={signup} />
+          ) : (
+            <h2>{signup.assigned_car.driver_name}</h2>
+          )}
           <p>
             {[
               signup.assigned_car.vehicle?.color,
@@ -425,10 +437,11 @@ function CheckedIn({
             {signup.assigned_car.vehicle?.plate &&
               ` · ${signup.assigned_car.vehicle.plate}`}
           </p>
-          {signup.assigned_car.co_riders.length > 0 && (
-            <p>Riding with {signup.assigned_car.co_riders.join(", ")}.</p>
-          )}
-          <p>Leaves {clock(event.departure_at)}</p>
+          {signup.role !== "driver" &&
+            signup.assigned_car.co_riders.length > 0 && (
+              <p>Riding with {signup.assigned_car.co_riders.join(", ")}.</p>
+            )}
+          <p>Leaves {clock(departureTime(event))}</p>
         </Panel>
       ) : (
         signup.role === "ride" && (
@@ -462,10 +475,11 @@ export function EventDetail() {
   const event = useAPI("EventPublic", `/api/events/${id}`);
   const own = useAPI("Page_SignupOwn_", `/api/me/signups?event_id=${id}`, {
     enabled: !!session?.member,
-    poll:
-      !!event.data &&
-      event.data.starts_at.slice(0, 10) <=
-        new Date().toISOString().slice(0, 10),
+    poll: (data) =>
+      data?.items.some(isLiveDriverSignup) ||
+      (!!event.data &&
+        (data?.items[0]?.event?.state ?? event.data.state) === "published" &&
+        pacificDate(new Date(event.data.starts_at)) <= pacificDate()),
   });
   const membership = useAPI(
     "MembershipView",
@@ -535,7 +549,7 @@ export function EventDetail() {
                   </div>
                   <div>
                     <small>Leave / Start</small>
-                    <strong>{clock(e.departure_at || e.starts_at)}</strong>
+                    <strong>{clock(departureTime(e))}</strong>
                   </div>
                   <div>
                     <small>Back / End</small>

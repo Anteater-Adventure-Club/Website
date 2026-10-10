@@ -628,6 +628,169 @@ test("J06 field arrival, live receipt, preserved seat assignments and undo", asy
     .toBeNull();
 });
 
+test("J18 drivers see full passenger names and live changes in both views with consistent leave times", async ({
+  page,
+  context,
+  playwright,
+}) => {
+  const officer = await playwright.request.newContext({
+    baseURL: testURL,
+    extraHTTPHeaders: {
+      Origin: testURL,
+      Cookie: `aac_session=${fixture.cookies.officer}`,
+    },
+  });
+  try {
+    const field = fixture.events.Field;
+    const starts = new Date(Date.now() + 2 * 86400000);
+    starts.setUTCHours(17, 30, 0, 0);
+    const eventBody = {
+      quarter_id: field.quarter_id,
+      name: field.name,
+      destination: field.destination,
+      questions: field.questions,
+      packing: field.packing,
+      starts_at: starts.toISOString(),
+      ends_at: new Date(starts.getTime() + 6 * 3600000).toISOString(),
+      departure_at: null as string | null,
+    };
+    const updated = await officer.put(`/api/admin/events/${field.id}`, {
+      data: eventBody,
+    });
+    expect(updated.ok(), await updated.text()).toBeTruthy();
+    await identity(context, "Driver");
+    await page.goto(eventURL("Field"));
+    const roster = page.getByRole("region", {
+      name: "Your passengers",
+      exact: true,
+    });
+    await expect(roster.getByRole("heading")).toHaveText("Your passengers (1)");
+    await expect(roster.getByRole("listitem")).toHaveText([
+      "Fixture Paid Rider",
+    ]);
+    const leaveLabel = page
+      .locator(".event-schedule > div")
+      .filter({ hasText: "Leave / Start" })
+      .locator("strong");
+    const fallbackTime = await leaveLabel.innerText();
+    await expect(
+      page.getByText(`Leaves ${fallbackTime}`, { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Leaves To be announced", { exact: true }),
+    ).toHaveCount(0);
+
+    const assign = async (driver_signup_id: number | null) => {
+      const result = await officer.put(
+        `/api/admin/events/${field.id}/carpools/${fixture.signups["General Rider"].id}`,
+        {
+          data: { driver_signup_id },
+        },
+      );
+      expect(result.ok(), await result.text()).toBeTruthy();
+    };
+    await assign(fixture.signups.Driver.id);
+    await expect(roster.getByRole("listitem")).toHaveText([
+      "Fixture General Rider",
+      "Fixture Paid Rider",
+    ]);
+    const longName = `Avery${"LongName".repeat(10)} Morgan`;
+    const renamed = await officer.put("/api/me/profile", {
+      headers: { Cookie: `aac_session=${fixture.cookies["General Rider"]}` },
+      data: { name: longName, phone: "9495550100" },
+    });
+    expect(renamed.ok(), await renamed.text()).toBeTruthy();
+    await expect(roster.getByRole("listitem")).toHaveText([
+      longName,
+      "Fixture Paid Rider",
+    ]);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBeTruthy();
+    await page.goto(`/my-aac/signups?quarter=${fixture.quarter.id}`);
+    const card = page.locator(".record-card").filter({ hasText: field.name });
+    const compactRoster = card.getByRole("region", {
+      name: "Your passengers",
+      exact: true,
+    });
+    await expect(compactRoster.getByRole("listitem")).toHaveText([
+      longName,
+      "Fixture Paid Rider",
+    ]);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBeTruthy();
+    await expect(
+      card.getByText(`Leaves ${fallbackTime}`, { exact: true }),
+    ).toBeVisible();
+    await assign(null);
+    await expect(compactRoster.getByRole("listitem")).toHaveText([
+      "Fixture Paid Rider",
+    ]);
+
+    const unassign = await officer.put(
+      `/api/admin/events/${field.id}/carpools/${fixture.signups["Paid Rider"].id}`,
+      {
+        data: { driver_signup_id: null },
+      },
+    );
+    expect(unassign.ok()).toBeTruthy();
+    await expect(compactRoster).toContainText("No passengers assigned yet.");
+    await page.goto(eventURL("Field"));
+    await expect(roster).toContainText(
+      "No passengers assigned yet. An officer will assign passengers to your car.",
+    );
+
+    const departure = new Date(starts.getTime() + 30 * 60000).toISOString();
+    const explicit = await officer.put(`/api/admin/events/${field.id}`, {
+      data: { ...eventBody, departure_at: departure },
+    });
+    expect(explicit.ok(), await explicit.text()).toBeTruthy();
+    await page.reload();
+    const explicitTime = await leaveLabel.innerText();
+    expect(explicitTime).not.toBe(fallbackTime);
+    await expect(
+      page.getByText(`Leaves ${explicitTime}`, { exact: true }),
+    ).toBeVisible();
+
+    const assigned = await officer.put(
+      `/api/admin/events/${field.id}/carpools/${fixture.signups["Paid Rider"].id}`,
+      {
+        data: { driver_signup_id: fixture.signups.Driver.id },
+      },
+    );
+    expect(assigned.ok()).toBeTruthy();
+    await identity(context, "Paid Rider");
+    await page.goto(eventURL("Field"));
+    await expect(
+      page.getByRole("heading", { name: "Fixture Driver", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(`Leaves ${explicitTime}`, { exact: true }),
+    ).toBeVisible();
+    await expect(roster).toHaveCount(0);
+
+    await identity(context, "Driver");
+    await page.goto(`/my-aac/signups?quarter=${fixture.quarter.id}`);
+    await expect(compactRoster.getByRole("listitem")).toHaveText([
+      "Fixture Paid Rider",
+    ]);
+    const undo = await officer.delete(
+      `/api/admin/signups/${fixture.signups.Driver.id}/check-in`,
+    );
+    expect(undo.ok()).toBeTruthy();
+    await expect(compactRoster).toHaveCount(0);
+    await page.goto(eventURL("Field"));
+    await expect(roster).toHaveCount(0);
+  } finally {
+    await officer.dispose();
+  }
+});
+
 test("J07 recap draft isolation, publication snapshot and unpublication", async ({
   page,
   context,

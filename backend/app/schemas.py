@@ -454,10 +454,16 @@ class CardView(DTO):
     number: int
 
 
+class AssignedPassenger(DTO):
+    signup_id: int
+    name: str
+
+
 class AssignedCar(DTO):
     driver_name: str
     vehicle: VehicleSnapshot | None
     co_riders: list[str]
+    passengers: list[AssignedPassenger] = Field(default_factory=list)
 
 
 class SignupOwn(DTO):

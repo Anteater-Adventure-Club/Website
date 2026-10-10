@@ -97,14 +97,19 @@ export async function request<T>(
 export function useAPI<K extends keyof components["schemas"]>(
   schema: K,
   url: string,
-  options?: { enabled?: boolean; poll?: boolean },
+  options?: {
+    enabled?: boolean;
+    poll?: boolean | ((data: Schema<K> | undefined) => boolean);
+  },
 ) {
+  const polling = (data: Schema<K> | undefined) =>
+    typeof options?.poll === "function" ? options.poll(data) : !!options?.poll;
   return useQuery<Schema<K>, ApiError>({
     queryKey: [schema, url],
     queryFn: ({ signal }) => request(url, "GET", undefined, signal),
     enabled: options?.enabled ?? true,
-    staleTime: options?.poll ? 0 : 20_000,
-    refetchInterval: options?.poll ? 2000 : false,
+    staleTime: (query) => (polling(query.state.data) ? 0 : 20_000),
+    refetchInterval: (query) => (polling(query.state.data) ? 2000 : false),
     refetchIntervalInBackground: false,
     retry: (count, error) => error.status >= 500 && count < 1,
   });
@@ -152,6 +157,11 @@ export function clock(value?: string | null) {
   return value
     ? dateLabel(value, { hour: "numeric", minute: "2-digit" })
     : "To be announced";
+}
+export function departureTime(
+  event: Pick<Event, "departure_at" | "starts_at">,
+) {
+  return event.departure_at || event.starts_at;
 }
 export function pacificDate(value = new Date()) {
   return new Intl.DateTimeFormat("en-CA", {
