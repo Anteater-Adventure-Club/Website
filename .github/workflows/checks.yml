@@ -1,0 +1,178 @@
+name: Website checks
+on:
+  push:
+    branches: [aac-rebuild]
+    paths-ignore: ["docs/**", "**/*.md"]
+  pull_request:
+    branches: [aac-rebuild, main]
+permissions:
+  contents: read
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  backend:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: aac
+          POSTGRES_PASSWORD: aac
+          POSTGRES_DB: aac
+        ports: ["55432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U aac" --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://aac:aac@127.0.0.1:55432/aac
+      SESSION_SECRET: aac-isolated-ci-only-session-secret-123456789
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+      - run: pip install -r backend/requirements-dev.txt
+      - run: ruff check --config backend/pyproject.toml backend deploy scripts
+      - run: alembic upgrade head && alembic check && pytest -q
+        working-directory: backend
+      - name: Check generated OpenAPI
+        working-directory: backend
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from app.main import app
+          Path('openapi.json').write_text(json.dumps(app.openapi(), indent=2) + '\n')
+          PY
+          git diff --exit-code -- openapi.json
+  frontend:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: ".node-version"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run api:types && npm run build && npm test
+        working-directory: frontend
+      - run: git diff --exit-code -- frontend/src/lib/api-schema.d.ts
+      - name: Rolling frontend releases share immutable assets
+        run: |
+          docker build -f deploy/frontend.Dockerfile -t aac-web:rolling-assets .
+          AAC_ASSET_TEST_IMAGE=aac-web:rolling-assets python3 -m unittest discover -s deploy/tests -v
+  views:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: aac
+          POSTGRES_PASSWORD: aac
+          POSTGRES_DB: aac_browser
+        ports: ["55432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U aac" --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://aac:aac@127.0.0.1:55432/aac_browser
+      APP_URL: http://localhost:5173
+      SESSION_SECRET: aac-isolated-browser-only-session-secret-123456789
+      INITIAL_OFFICER_EMAILS: officer@uci.edu
+      MEDIA_ROOT: /tmp/aac-browser-media
+      DUES_VENMO_HANDLE: "@fixture-club"
+      DUES_ZELLE_CONTACT: fixture@uci.edu
+      DUES_ZELLE_NAME: Fixture Recipient
+      E2E_PYTHON: python
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: ".node-version"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: pip install -r backend/requirements-dev.txt
+      - run: alembic upgrade head
+        working-directory: backend
+      - run: python scripts/seed-browser-fixtures.py
+      - run: npm ci && npx playwright install --with-deps chromium firefox webkit
+        working-directory: frontend
+      - name: Start isolated application
+        run: |
+          mkdir -p artifacts
+          (cd backend && uvicorn app.main:app --host 127.0.0.1 --port 8000) > artifacts/api.log 2>&1 &
+          (cd frontend && npm run dev -- --host localhost --port 5173) > artifacts/web.log 2>&1 &
+          python - <<'PY'
+          import time, urllib.request
+          for url in ['http://127.0.0.1:8000/api/health/ready', 'http://localhost:5173']:
+              for attempt in range(60):
+                  try:
+                      urllib.request.urlopen(url, timeout=2)
+                      break
+                  except Exception:
+                      time.sleep(1)
+              else:
+                  raise SystemExit(f'Application did not become ready: {url}')
+          PY
+      - run: npm run test:e2e
+        working-directory: frontend
+      - name: Member and officer journeys across browser engines
+        run: npm run test:e2e:journeys
+        working-directory: frontend
+      - name: Fuzzy officer name search across desktop and mobile browsers
+        run: npm run test:e2e:search
+        working-directory: frontend
+      - name: Layout boundaries, orientation and keyboard focus
+        run: npm run test:e2e:boundaries
+        working-directory: frontend
+      - name: Phone forms with simulated visual and layout viewport keyboards
+        run: npm run test:e2e:keyboard
+        working-directory: frontend
+      - name: Production HTML embeds and responsive branding
+        working-directory: frontend
+        run: |
+          npm run build
+          python - <<'PY'
+          from pathlib import Path
+          config = Path('../deploy/nginx.conf').read_text()
+          Path('../artifacts/social-nginx.conf').write_text(config.replace('http://aac-api:8000', 'http://127.0.0.1:8000'))
+          PY
+          docker run -d --name aac-social-nginx --network host \
+            -v "$PWD/dist:/usr/share/nginx/html:ro" \
+            -v "$PWD/dist/assets:/var/lib/aac/assets:ro" \
+            -v "$PWD/../artifacts/social-nginx.conf:/etc/nginx/conf.d/default.conf:ro" \
+            -v "$PWD/../deploy/security-headers.conf:/etc/nginx/aac-security-headers.conf:ro" \
+            nginxinc/nginx-unprivileged:1.28.0-alpine@sha256:a6bd0e0995ab4723fb65068665f8016decb67dc6a6a32eddc415c7d1229cada6
+          E2E_URL=http://localhost:8080 E2E_SERVES_METADATA=1 npm run test:e2e:social
+          E2E_BASE_URL=http://localhost:8080 npm run test:e2e:speed
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: browser-failure-evidence
+          path: |
+            artifacts/test-results
+            artifacts/playwright-results.json
+            artifacts/journey-results.json
+            artifacts/journey-traces
+            artifacts/boundary-results.json
+            artifacts/boundary-traces
+            artifacts/keyboard-results.json
+            artifacts/keyboard-traces
+            artifacts/search-results.json
+            artifacts/search-traces
+            artifacts/search-review
+            artifacts/social-results.json
+            artifacts/social-traces
+            artifacts/page-speed
+            artifacts/api.log
+            artifacts/web.log
+          retention-days: 7

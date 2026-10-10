@@ -1,0 +1,13 @@
+fastapi==0.135.1
+uvicorn==0.41.0
+SQLAlchemy==2.0.48
+psycopg[binary]==3.3.3
+authlib==1.6.9
+httpx==0.28.1
+itsdangerous==2.2.0
+alembic>=1.18,<2
+pillow>=12.1,<13
+python-multipart>=0.0.22,<0.1
+rapidfuzz==3.14.6
+Metaphone==0.6
+munkres==1.1.4

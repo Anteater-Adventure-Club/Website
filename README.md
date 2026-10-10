@@ -1,102 +1,252 @@
-# Anteater Adventure Club Website 🌲🏕️🥾
+# Anteater Adventure Club 🌲
 
-This is the GitHub repository for the Anteater Adventure Club's (AAC) official website. AAC is an official UCI organization with the mission to foster a sense of community while making nature as accessible as possible for our college community! 
+This is the GitHub repository for the **Anteater Adventure Club's (AAC) official website**. AAC is an official UCI RCO with the mission to foster a sense of community while making nature as accessible as possible for our college community!
 
-This project redesigns AAC's digital presence by:
-- **Centralizing** event information
-- **Improving** event sign-up flows
-- **Showcasing** past adventures in a media gallery
-- **Introducing** the board members
-- **Providing** clear membership details and registration
+The site centralizes event information, improves event signups, showcases past adventures in a media gallery, introduces the board members, and provides clear membership details and registration. Members can manage their signups and profiles, while officers coordinate carpools, check-in, dues, and driver reimbursements.
 
-## Tech Stack
+**[Visit the website](https://anteateradventureclub.com)**
 
-- **Frontend:** Next.js (App Router), React, TypeScript, CSS
-- **Backend:** Next.js API Routes (REST)
-- **Database:** Supabase (PostgreSQL)
-- **Deployment:** Vercel
-- **Tooling:** ESLint, npm
+[Previews](#page-previews) · [Tech stack](#tech-stack) · [Project reference](#project-reference) · [Local development](#local-development) · [Checks](#checks) · [Deployment](#deployment) · [More documentation](#more-documentation)
 
-## Page Previews
+## Page previews
 
-### 🏠 Home Page
-<img src="https://github.com/user-attachments/assets/924a33af-6adc-4355-b0a8-40abe2e3e82e" align="right" width="500">
+[![AAC homepage with adventure photos, navigation, and upcoming events](assets/readme/home.jpg)](assets/readme/home.jpg)
 
-The Home Page serves as the primary hub for AAC members. Key features include:
-* **Dynamic Event Spotlights:** A real-time display of some of the recent events, styled as polaroids that automatically refresh.
-* **Streamlined Navigation:** A direct link to the full Events Page, making it easy to see the calendar and sign up for upcoming trips.
+The homepage serves as the primary hub for AAC members, with dynamic event spotlights styled as polaroids and a direct link to the full Events page. Its **What we do!** section showcases the club's mission and core activities.
 
-<br clear="right"/>
+Screenshots show the actual application with synthetic events and accounts; names, memberships, and financial totals are illustrative. Click any image to view it at full size. Desktop captures use 1440 × 900; phone captures use 390 × 844.
 
-### 🌲 About Page
-<img src="https://github.com/user-attachments/assets/17ba71d3-dec6-4c19-960a-8aa29ddae308" align="right" width="500">
+| Explore the club | Plan an adventure |
+| --- | --- |
+| [![Homepage About section with hikes and activity photos](assets/readme/about.jpg)](assets/readme/about.jpg) | [![Events page with the monthly activity calendar](assets/readme/events.jpg)](assets/readme/events.jpg) |
+| **About:** local hikes, city explorations, weekly potluck picnics in Aldrich Park, and quarterly weekend retreats. | **Events:** a monthly calendar to find and sign up for the next adventure, plus a past-event gallery that preserves the club's memories. |
+| [![Board page with synthetic officer profiles](assets/readme/board.jpg)](assets/readme/board.jpg) | [![Public membership page explaining benefits and dues](assets/readme/membership.jpg)](assets/readme/membership.jpg) |
+| **Board:** interactive polaroids introduce the student leaders behind AAC, with an archive of previous boards. | **Membership:** what it costs to join, the benefits of being a member, and how dues support club gear, trips, and events. |
+| [![My AAC overview with a synthetic member's signups and membership](assets/readme/my-aac.jpg)](assets/readme/my-aac.jpg) | [![Officer dashboard with synthetic events, dues, and tasks](assets/readme/officer-dashboard.jpg)](assets/readme/officer-dashboard.jpg) |
+| **My AAC:** membership, signups, profile, cars, and reimbursements. | **Officer tools:** events, members, dues approvals, carpools, check-in, and quarter finances. |
 
-The About Page showcases our mission and the core activities of AAC:
-* **Club Activities:** A gallery of our primary events, including local hikes, city explorations, and our weekly potluck picnics in Aldrich Park.
-* **Quarterly Retreats:** Highlighting our larger quarterly trips where members get away for a full weekend of nature and exploration.
-* **Socials:** Direct links at the bottom of the page to join our community Discord and follow our Instagram for the latest updates.
+<p align="center">
+  <a href="assets/readme/mobile-membership.jpg"><img src="assets/readme/mobile-membership.jpg" alt="Phone view of a synthetic member's paid membership" width="260"></a>
+  <a href="assets/readme/mobile-check-in.jpg"><img src="assets/readme/mobile-check-in.jpg" alt="Phone view of the officer check-in desk with synthetic participants" width="260"></a>
+</p>
 
-<br clear="right"/>
+Personal membership and the officer field desk adapt to phones for use on the trail. See the [browser preview guide](docs/development.md#browser-fixtures) to reproduce these views locally.
 
-### 🗓️ Events Page
-<>
+## Tech stack
 
-The Events Page serves as the central hub for all club activities:
-* **Upcoming Event's Calendar:** A monthly view that makes it easy to find and sign up for our next hikes and trips.
-* **Past Event Gallery:** A collection of photos from our previous outings, which acts as club archive.
-* **Backend Integration:** A custom-built system that automatically handles moving events from the calendar to the past events section once the event has happened.
+| Layer | Technology and purpose |
+| --- | --- |
+| Frontend | React 19, TypeScript, Vite 7, React Router 7; responsive CSS and Lucide icons |
+| Data and forms | TanStack Query for server state; React Hook Form and Zod for forms |
+| API | Python 3.12, FastAPI, Pydantic, Uvicorn |
+| Database | PostgreSQL 17, SQLAlchemy 2, Alembic migrations, Psycopg 3 |
+| Authentication | Google OAuth through Authlib; signed sessions and server-side officer checks |
+| Media | Persistent uploaded photos; Pillow-generated responsive image variants |
+| Hosting | Coolify builds separate Docker images for Nginx and the API; PostgreSQL is private |
+| Quality checks | Vitest, Testing Library, pytest, Ruff, Playwright, axe, GitHub Actions |
 
-<br clear="right"/>
+Node **24** is required; use the exact version in [`.node-version`](.node-version). Lockfiles and Dockerfiles record reproducible dependency versions.
 
-### 🤝 Board Page
-<img src="https://github.com/user-attachments/assets/0a8d6c9b-0f3c-4719-be56-caaade7e6678" align="right" width="500">
+## Project reference
 
-The Meet the Board Page introduces the student leaders behind AAC:
-* **Interactive Polaroids:** A grid of board members styled as polaroids that display their names and specific leadership positions.
-* **Member Info:** Clicking on photo reveals more personal details, such as their major, their reason for joining AAC, their favorite AAC memory and a direct link to their Instagram
-* **Past Board Archive:** A section at the bottom of the page that preserves a record of board members from previous academic years.
+| Location | What lives here |
+| --- | --- |
+| [`frontend/src/main.tsx`](frontend/src/main.tsx) | Entry point, routes, providers, and lazy-loaded pages |
+| [`frontend/src/pages/`](frontend/src/pages/) | Public pages, My AAC, event management, officer tools, and check-in |
+| [`frontend/src/components/`](frontend/src/components/) | Shared layout, UI primitives, forms, metadata, and carpool operations |
+| [`frontend/src/lib/`](frontend/src/lib/) | API client, generated types, session/quarter context, images, and search |
+| [`frontend/src/styles.css`](frontend/src/styles.css) | Styles, responsive layouts, and typography |
+| [`frontend/public/`](frontend/public/) | Fonts, logos, and static club photos |
+| [`backend/app/`](backend/app/) | Configuration, authentication, models, schemas, projections, and domain rules |
+| [`backend/app/routers/`](backend/app/routers/) / [`services/`](backend/app/services/) | HTTP endpoints and application services |
+| [`backend/alembic/`](backend/alembic/) | Versioned database migrations |
+| [`backend/openapi.json`](backend/openapi.json) | Committed API contract used to generate frontend types |
+| [`backend/tests/`](backend/tests/) / [`frontend/tests/e2e/`](frontend/tests/e2e/) | API/integration and browser tests; frontend unit tests sit beside their modules |
+| [`scripts/`](scripts/) / [`assets/`](assets/) | Asset preparation, isolated fixtures, import tools, and asset versions |
+| [`deploy/`](deploy/) / [CI workflow](.github/workflows/checks.yml) | Dockerfiles, Nginx, startup migrations, asset retention, and automated checks |
+| [`docs/`](docs/) / [`design/`](design/) | Website maintenance guides and design references |
 
-<br clear="right"/>
-  
-### ✍️ Membership Page
+### Where to make common changes
 
-<img src="https://github.com/user-attachments/assets/9ac25f62-04a5-46f1-823d-0aa070f7ebe4" align="right" width="500">
+| Change | Start here |
+| --- | --- |
+| Routes and navigation | `frontend/src/main.tsx` and `frontend/src/components/layout.tsx` |
+| Buttons, dialogs, panels, and polaroids | `frontend/src/components/ui.tsx` |
+| Page behavior and responsive styling | Its module in `frontend/src/pages/` and `frontend/src/styles.css` |
+| Homepage activity copy/photos | `frontend/src/pages/home.tsx` and `frontend/public/images/` |
+| Homepage adventure cards | In officer tools, open a completed event's **Recap** tab, add its photo/text, select **Feature in the homepage polaroid rotation**, then **Publish to Gallery**. Draft edits stay private until republished. |
+| API behavior and database structure | `backend/app/routers/`, `services/`, `schemas.py`, and `models.py`; add an Alembic migration for schema changes |
+| API types and static asset versions | Follow [Checks](#checks) and the [asset preparation guide](docs/content.md#static-assets) |
 
-The Membership Page explains how students can officially join the AAC community:
-* **Membership Overview:** Clear details on what it costs to join and the specific benefits of being a member.
-* **Funding Transparency:** A breakdown of how membership fees directly support club gear, trips, and upcoming events.
-* **Direct Registration:** A button at the bottom that links directly to our membership and payment form.
+```mermaid
+flowchart LR
+    Browser[React in the browser] --> Proxy[Vite locally / Nginx in deployment]
+    Proxy -->|/api and /media| API[FastAPI]
+    API --> DB[(PostgreSQL)]
+    API --> Media[Uploaded media]
+    API --> Google[Google OAuth]
+```
 
-<br clear="right"/>
+Browser API URLs are relative to the site. Vite forwards `/api` and `/media` to port 8000 locally; Nginx forwards them to the private API in deployment.
 
-## File Layout
+## Local development
 
-- `public/` = static assets served by Next.js
-  - `fonts/` = custom fonts
-  - `images/`
-    - `events/` = event photos grouped by academic year
-    - `officers/` = board member photos
-  - `logos/` = social/brand icons
+### 1. Prerequisites and checkout
 
-- `src/` = application source code
-  - `app/` = Next.js App Router pages and route handlers
-    - `about/`, `board/`, `events/`, `membership/` = page routes
-    - `api/events/` = REST API endpoints for event CRUD + seeding
-    - `link/[slug]/` = short-link redirect route
-    - `layout.tsx`, `page.tsx`, `globals.css` = app shell + home page
-  - `components/` = reusable UI components
-    - `Header/`, `Footer/`, `PolaroidCard/`, `PolaroidGallery/`, `Popup/`, `UpcomingCalendar/`
-  - `data/` = seed/static content used by the app
-    - `upcomingEvents.ts`, `pastEvents.ts`, `officers.ts`, `previousOfficers.ts`
-  - `lib/` = backend/data access logic
-    - `eventsDb.ts` = database adapter used by API routes
-  - `types.d.ts` = shared TypeScript types/interfaces
+Use a Bash-compatible shell with Git, curl, Python **3.12** (including `venv`/pip), Node **24.21.0** as specified in `.node-version`, npm, and Docker or Podman. Install that Node version with your preferred version manager before `npm ci`. The examples assume ports **5173**, **8000**, and **55432** are available.
 
-- `supabase/` = database setup scripts
-  - `events_schema.sql` = SQL schema for the `events` table and related setup
+```bash
+git clone --branch aac-rebuild https://github.com/Anteater-Adventure-Club/Website.git
+cd Website
+node --version
+python3.12 --version
+```
 
-- root config files
-  - `package.json`, `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `.env.example`
+Run subsequent commands from the repository root unless shown otherwise. If another checkout is running, check [local troubleshooting](docs/development.md#troubleshooting) before starting services on the same ports.
 
-- `data/` (project root) = local runtime DB artifacts for development (if generated)
+### 2. Install dependencies and create a local database
 
+```bash
+python3.12 -m venv .venv
+.venv/bin/python -m pip install -r backend/requirements-dev.txt
+(cd frontend && npm ci)
+
+export AAC_CONTAINER_ENGINE=podman  # or docker
+"$AAC_CONTAINER_ENGINE" run -d --name aac-dev-postgres \
+  -e POSTGRES_USER=aac -e POSTGRES_PASSWORD=aac -e POSTGRES_DB=aac \
+  -p 127.0.0.1:55432:5432 \
+  -v aac-dev-postgres-data:/var/lib/postgresql/data \
+  docker.io/library/postgres:17
+until "$AAC_CONTAINER_ENGINE" exec aac-dev-postgres pg_isready -U aac -d aac; do sleep 1; done
+```
+
+The named volume preserves local development data. On later visits, use `"$AAC_CONTAINER_ENGINE" start aac-dev-postgres` rather than repeating `run`. These database credentials are for local development only.
+
+### 3. Configure and start the API
+
+In your backend terminal, from the repository root:
+
+```bash
+export APP_ENV=development
+export APP_URL=http://localhost:5173
+export PUBLIC_SITE_URL=http://localhost:5173
+export DATABASE_URL=postgresql+psycopg://aac:aac@127.0.0.1:55432/aac
+export SESSION_SECRET="$(.venv/bin/python -c 'import secrets; print(secrets.token_urlsafe(48))')"
+export INITIAL_OFFICER_EMAILS=your-name@uci.edu
+export MEDIA_ROOT="$PWD/media"
+
+cd backend
+../.venv/bin/alembic upgrade head
+../.venv/bin/uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+Replace `your-name@uci.edu` with your UCI Google account email before the first API startup if you intend to test officer access. Initial officer emails must belong to `uci.edu` or a subdomain; other addresses are ignored. Officer initialization runs once per database. A new database has the schema and initial officer identity; quarters, events, memberships, and payments start empty.
+
+The backend reads **process environment variables**. [`.env.example`](.env.example) is a settings reference; copying it to `.env` does not load it. These exports work without an additional loader. Do not shell-source the example unchanged: some values contain unquoted spaces.
+
+### 4. Start the frontend and verify
+
+In a second terminal, from the repository root:
+
+```bash
+cd frontend
+npm run dev -- --host localhost --port 5173 --strictPort
+```
+
+Open **http://localhost:5173**. Use `localhost` consistently in the browser because it matches `APP_URL` and the OAuth callback. In another terminal:
+
+```bash
+curl --fail http://localhost:5173/api/health/ready
+curl --fail http://localhost:5173/api/home
+```
+
+Readiness should return HTTP 200. Home, Events, Board, and Membership should load; empty calendar and setup states are expected in a new database. API documentation is at **http://localhost:8000/api/docs**.
+
+### Sign-in and populated previews
+
+Public browsing does not require OAuth credentials. For real Google sign-in, configure a Google OAuth **Web application** client with `http://localhost:5173/api/auth/callback` as an authorized redirect URI. If its consent screen is in testing mode, add your account as a test user. Export `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in the backend terminal, then restart the API with the same environment. These are backend settings, not `VITE_*` variables.
+
+For populated member/officer views without Google credentials, follow [Local browser previews](docs/development.md#browser-fixtures). That workflow uses a separate disposable database and signed fixture cookies; the deployed application has no development-login endpoint.
+
+Stop the servers with Ctrl+C and stop PostgreSQL with `"$AAC_CONTAINER_ENGINE" stop aac-dev-postgres`. Its named volume remains available for next time.
+
+## Checks
+
+**Backend tests erase their database tables.** Create a dedicated `aac_test` database and always set `TEST_DATABASE_URL`; its implicit default otherwise points to the ordinary `aac` development database.
+
+From the repository root, with PostgreSQL running:
+
+```bash
+export AAC_CONTAINER_ENGINE=podman  # or docker
+"$AAC_CONTAINER_ENGINE" exec aac-dev-postgres createdb -U aac aac_test
+export TEST_DATABASE_URL=postgresql+psycopg://aac:aac@127.0.0.1:55432/aac_test
+(cd backend && DATABASE_URL="$TEST_DATABASE_URL" ../.venv/bin/alembic upgrade head)
+(cd backend && ../.venv/bin/pytest -q)
+.venv/bin/ruff check --config backend/pyproject.toml backend deploy scripts
+(cd frontend && npm run build && npm test)
+```
+
+Create `aac_test` only once; subsequent runs reuse and reset it. Apply migrations before testing, including after pulling new migrations: readiness tests check the Alembic revision as well as the tables. Browser tests require the [browser fixture setup](docs/development.md#browser-fixtures), including migrations and the matching session secret.
+
+| Command, run from `frontend/` | Coverage |
+| --- | --- |
+| `npm run test:e2e` | Page states, accessibility, images, and layouts at seven viewport sizes |
+| `npm run test:e2e:journeys` | Member/officer workflows in Chromium, Firefox, and WebKit |
+| `npm run test:e2e:boundaries` | Narrow screens, breakpoints, orientation, focus, and simulated 200% reflow |
+| `npm run test:e2e:keyboard` | Mobile forms with simulated keyboard-open viewport changes |
+| `npm run test:e2e:search` | Officer person search |
+| `npm run test:e2e:social` / `npm run test:e2e:speed` | Production proxy/metadata and speed; see [production proxy checks](docs/development.md#production-proxy-checks) |
+
+### When API contracts or assets change
+
+Regenerate the contract from the configured backend environment, then frontend types:
+
+```bash
+(cd backend && ../.venv/bin/python - <<'PY'
+import json
+from pathlib import Path
+from app.main import app
+Path('openapi.json').write_text(json.dumps(app.openapi(), indent=2) + '\n')
+PY
+)
+(cd frontend && npm run api:types)
+```
+
+Commit both generated files with the API change. For photos, fonts, or logos, follow [asset preparation and versioning](docs/content.md#static-assets); the build checks the committed asset manifest.
+
+## Deployment
+
+Coolify builds separate web and API images from Git for **https://anteateradventureclub.com**. The [deployment guide](docs/deployment.md) covers runtime settings, storage, releases, and recovery.
+
+### First-time Coolify setup
+
+Create three resources on the same private destination network:
+
+| Resource | Build/source | Network and persistence |
+| --- | --- | --- |
+| `aac-web` | Root build context; `deploy/frontend.Dockerfile` | Public HTTPS domain targeting port **8080**; shared named volume at `/var/lib/aac/assets` |
+| `aac-api` | Root build context; `deploy/backend.Dockerfile` | Private port **8000**, stable alias **`aac-api`**; media volume at `/app/media` |
+| PostgreSQL | PostgreSQL **17** | Private port **5432**, persistent database storage; no public port |
+
+1. Connect both applications to the Website repository's **`aac-rebuild`** branch and enable Auto Deploy. Leave path filters empty to deploy both applications on each branch push.
+2. Set API runtime variables: `APP_ENV=production`, `APP_URL=https://anteateradventureclub.com`, `PUBLIC_SITE_URL` set to the same public origin, private `DATABASE_URL` using the `postgresql+psycopg://` scheme, a strong `SESSION_SECRET`, Google client ID/secret, `INITIAL_OFFICER_EMAILS`, and `MEDIA_ROOT=/app/media`. For another domain, change both origins and the Google callback together. Set `FORWARDED_ALLOW_IPS` to trusted addresses for the actual ingress network.
+3. Set `MIGRATION_DATABASE_URL` to an owner/migration connection when the runtime role cannot modify the schema. API startup runs Alembic once under a PostgreSQL lock, grants runtime permissions, then starts Uvicorn. Keep secrets in Coolify runtime settings.
+4. Configure `DUES_VENMO_HANDLE`, `DUES_ZELLE_CONTACT`, `DUES_ZELLE_NAME`, `DUES_CASH_INSTRUCTIONS`, and `DISCORD_URL`. The current Instagram/GitHub links are defined in frontend source.
+5. Register your public origin followed by `/api/auth/callback` with Google. Deploy PostgreSQL, API, then web. Verify Nginx resolves `aac-api` and proxies `/api/` and `/media/`.
+6. Ensure the frontend asset volume is writable by UID/GID `101:101`. For an existing installation, follow the [asset-retention adoption procedure](docs/deployment.md#frontend-asset-storage) before its first rollout. Inactive releases' hashed assets remain available for seven days; active releases stay protected.
+7. Sign in as the initial officer and create the first quarter through the UI. Configure database and media backups using the [recovery instructions](docs/deployment.md#backups-and-restore).
+
+### Routine releases and recovery
+
+Run the relevant checks, review the change, and push the approved revision to `aac-rebuild`. Coolify deploys both applications automatically. **Auto Deploy does not wait for GitHub Actions**; validate before pushing to the deployment branch. Markdown/docs-only pushes are excluded from the CI push workflow but still match the configured Coolify trigger.
+
+Confirm both resources are healthy, `/version.json` and `/api/health/live` report the expected revision, and `/api/health/ready` succeeds through the website. Check public direct links, sign-in/return/logout, officer access, and an existing published media image.
+
+Retain compatible frontend/API revisions for Coolify rollback. Database and media volumes survive application replacement. A database rollback needs coordinated recovery; follow the [backup/restore runbook](docs/deployment.md#backups-and-restore), using a matched database and media backup.
+
+## More documentation
+
+- [Maintenance guide index](docs/README.md)
+- [Development, browser fixtures, and screenshot refresh](docs/development.md)
+- [Deployment and recovery](docs/deployment.md)
+- [Content, branding, and static assets](docs/content.md)

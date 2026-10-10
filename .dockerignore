@@ -1,0 +1,14 @@
+.git
+.env*
+**/.secrets
+**/secrets
+**/.venv
+**/node_modules
+**/__pycache__
+**/.pytest_cache
+design
+docs
+assets/readme
+artifacts
+media
+frontend/dist
