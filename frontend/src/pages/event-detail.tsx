@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import {
   ArrowLeft,
   CarFront,
@@ -44,6 +44,7 @@ import {
   Polaroid,
 } from "../components/ui";
 import { VehicleDialog } from "./members";
+import { MultipleSelectQuestion } from "../components/multiple-select-question";
 import {
   DriverPassengers,
   isLiveDriverSignup,
@@ -331,40 +332,56 @@ function SignupForm({
             </div>
           </>
         )}
-        {event.questions.map((question) => (
-          <label className="field" key={question.id}>
-            {question.label}
-            {!question.required && <small>Optional</small>}
-            {question.kind === "choice" || question.kind === "yes-no" ? (
-              <select
-                required={question.required}
-                {...form.register(`answers.${question.id}`)}
-              >
-                <option value="">Choose an answer</option>
-                {(question.kind === "yes-no"
-                  ? ["yes", "no"]
-                  : question.options || []
-                ).map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            ) : question.kind === "long" ? (
-              <textarea
-                required={question.required}
-                maxLength={2000}
-                {...form.register(`answers.${question.id}`)}
-              />
-            ) : (
-              <input
-                required={question.required}
-                maxLength={2000}
-                {...form.register(`answers.${question.id}`)}
-              />
-            )}
-          </label>
-        ))}
+        {event.questions.map((question) =>
+          question.kind === "multiple-select" ? (
+            <Controller
+              key={question.id}
+              control={form.control}
+              name={`answers.${question.id}`}
+              defaultValue={[]}
+              render={({ field: { ref, ...field } }) => (
+                <MultipleSelectQuestion
+                  question={question}
+                  inputRef={ref}
+                  {...field}
+                />
+              )}
+            />
+          ) : (
+            <label className="field" key={question.id}>
+              {question.label}
+              {!question.required && <small>Optional</small>}
+              {question.kind === "choice" || question.kind === "yes-no" ? (
+                <select
+                  required={question.required}
+                  {...form.register(`answers.${question.id}`)}
+                >
+                  <option value="">Choose an answer</option>
+                  {(question.kind === "yes-no"
+                    ? ["yes", "no"]
+                    : question.options || []
+                  ).map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              ) : question.kind === "long" ? (
+                <textarea
+                  required={question.required}
+                  maxLength={2000}
+                  {...form.register(`answers.${question.id}`)}
+                />
+              ) : (
+                <input
+                  required={question.required}
+                  maxLength={2000}
+                  {...form.register(`answers.${question.id}`)}
+                />
+              )}
+            </label>
+          ),
+        )}
         <label className="field">
           Any questions, comments, or concerns?<small>Optional</small>
           <textarea maxLength={1000} {...form.register("notes")} />

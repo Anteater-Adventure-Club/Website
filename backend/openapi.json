@@ -7853,7 +7853,17 @@
           },
           "answers": {
             "additionalProperties": {
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              ]
             },
             "type": "object",
             "title": "Answers"
@@ -8660,6 +8670,7 @@
               "text",
               "long",
               "choice",
+              "multiple-select",
               "yes-no"
             ],
             "title": "Kind",
@@ -8702,7 +8713,17 @@
           },
           "answers": {
             "additionalProperties": {
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              ]
             },
             "type": "object",
             "title": "Answers"
@@ -9694,7 +9715,17 @@
           },
           "answers": {
             "additionalProperties": {
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              ]
             },
             "type": "object",
             "title": "Answers"
@@ -9916,7 +9947,17 @@
           },
           "answers": {
             "additionalProperties": {
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              ]
             },
             "type": "object",
             "title": "Answers"
@@ -10135,7 +10176,17 @@
           },
           "answers": {
             "additionalProperties": {
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              ]
             },
             "type": "object",
             "title": "Answers"

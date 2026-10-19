@@ -212,13 +212,15 @@ class MembershipView(DTO):
 class Question(DTO):
     id: Annotated[str, Field(min_length=1, max_length=80, pattern=r"^[a-zA-Z0-9_-]+$")]
     label: Annotated[str, Field(min_length=1, max_length=200)]
-    kind: Literal["text", "long", "choice", "yes-no"] = "text"
+    kind: Literal["text", "long", "choice", "multiple-select", "yes-no"] = "text"
     required: bool = False
     options: list[Annotated[str, Field(min_length=1, max_length=100)]] = Field(default=[], max_length=30)
 
     @model_validator(mode="after")
     def choices_valid(self):
-        if self.kind == "choice" and (len(self.options) < 2 or len(set(self.options)) != len(self.options)):
+        if self.kind in {"choice", "multiple-select"} and (
+            len(self.options) < 2 or len(set(self.options)) != len(self.options)
+        ):
             raise ValueError("Choice questions need at least two distinct options")
         return self
 
@@ -319,7 +321,7 @@ class SignupWrite(Revision):
     role: Literal["ride", "driver", "own"]
     vehicle_id: int | None = None
     seats: int = Field(default=0, ge=0, le=50)
-    answers: dict[str, str] = Field(default_factory=dict)
+    answers: dict[str, str | list[str]] = Field(default_factory=dict)
     notes: str = Field(default="", max_length=1000)
     phone: str | None = Field(default=None, max_length=40)
     request_id: str | None = Field(default=None, max_length=80)
@@ -517,7 +519,7 @@ class SignupOwn(DTO):
     vehicle_id: int | None
     vehicle: VehicleSnapshot | None
     seats: int | None
-    answers: dict[str, str]
+    answers: dict[str, str | list[str]]
     notes: str
     cancelled: bool
     checked_in_at: datetime | None
@@ -833,7 +835,7 @@ class AttendanceLogRow(DTO):
 class QuestionAnswerRow(DTO):
     signup_id: int
     name: str
-    answers: dict[str, str]
+    answers: dict[str, str | list[str]]
 
 
 class QuestionAnswers(DTO):

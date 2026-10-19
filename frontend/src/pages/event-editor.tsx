@@ -571,8 +571,11 @@ function Editor({
                               kind: e.target
                                 .value as Schema<"Question">["kind"],
                               options:
-                                e.target.value === "choice"
-                                  ? ["Option 1", "Option 2"]
+                                e.target.value === "choice" ||
+                                e.target.value === "multiple-select"
+                                  ? question.options?.length
+                                    ? question.options
+                                    : ["Option 1", "Option 2"]
                                   : [],
                             })
                           }
@@ -580,10 +583,14 @@ function Editor({
                           <option value="text">Short text</option>
                           <option value="long">Long text</option>
                           <option value="choice">Multiple choice</option>
+                          <option value="multiple-select">
+                            Multiple select
+                          </option>
                           <option value="yes-no">Yes / No</option>
                         </select>
                       </label>
-                      {question.kind === "choice" && (
+                      {(question.kind === "choice" ||
+                        question.kind === "multiple-select") && (
                         <label className="field">
                           Choices · one per line
                           <textarea

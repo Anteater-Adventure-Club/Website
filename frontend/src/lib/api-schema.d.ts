@@ -2558,7 +2558,7 @@ export interface components {
       seats: number;
       /** Answers */
       answers?: {
-        [key: string]: string;
+        [key: string]: string | string[];
       };
       /**
        * Notes
@@ -2844,7 +2844,7 @@ export interface components {
        * @default text
        * @enum {string}
        */
-      kind: "text" | "long" | "choice" | "yes-no";
+      kind: "text" | "long" | "choice" | "multiple-select" | "yes-no";
       /**
        * Required
        * @default false
@@ -2864,7 +2864,7 @@ export interface components {
       name: string;
       /** Answers */
       answers: {
-        [key: string]: string;
+        [key: string]: string | string[];
       };
     };
     /** QuestionAnswers */
@@ -3221,7 +3221,7 @@ export interface components {
       seats: number | null;
       /** Answers */
       answers: {
-        [key: string]: string;
+        [key: string]: string | string[];
       };
       /** Notes */
       notes: string;
@@ -3282,7 +3282,7 @@ export interface components {
       seats: number | null;
       /** Answers */
       answers: {
-        [key: string]: string;
+        [key: string]: string | string[];
       };
       /** Notes */
       notes: string;
@@ -3343,7 +3343,7 @@ export interface components {
       seats: number;
       /** Answers */
       answers?: {
-        [key: string]: string;
+        [key: string]: string | string[];
       };
       /**
        * Notes

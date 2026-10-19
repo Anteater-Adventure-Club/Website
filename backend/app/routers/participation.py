@@ -1,6 +1,7 @@
 import csv
 import hashlib
 import io
+from collections import Counter
 from typing import Annotated
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import Response
@@ -320,16 +321,23 @@ def answers(eid: int, user=Depends(officer), db=Depends(get_db, scope="function"
         "questions": e.questions,
         "items": [{"signup_id": s.id, "name": m.name, "answers": s.answers} for s, m in rows],
         "totals": {
-            q["id"]: {
-                answer: sum(s.answers.get(q["id"]) == answer for s, _ in rows)
-                for answer in set(s.answers.get(q["id"], "") for s, _ in rows)
-            }
+            q["id"]: dict(Counter(
+                answer
+                for s, _ in rows
+                for answer in (
+                    (s.answers.get(q["id"]) or [""])
+                    if q["kind"] == "multiple-select"
+                    else [s.answers.get(q["id"], "")]
+                )
+            ))
             for q in e.questions
         },
     }
 
 
 def safe_cell(value):
+    if isinstance(value, list):
+        value = "; ".join(value)
     value = str(value or "")
     return "'" + value if value.lstrip().startswith(("=", "+", "-", "@", "\t", "\r")) else value
 

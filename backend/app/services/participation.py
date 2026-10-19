@@ -65,10 +65,24 @@ def save_signup(db, event, member, value, officer=False, source="member", *, act
         ):
             db.add(DriverRegistration(quarter_id=event.quarter_id, member_id=member.id))
     definitions = {q["id"]: q for q in event.questions}
-    if any(k not in definitions for k in value.answers) or any(len(v) > 2000 for v in value.answers.values()):
+    if any(k not in definitions for k in value.answers):
         fail(422, "answer_invalid", "An answer does not match the event questions.")
     for q in event.questions:
-        answer = value.answers.get(q["id"], "").strip()
+        if q["kind"] == "multiple-select":
+            answer = value.answers.get(q["id"], [])
+            if (
+                not isinstance(answer, list)
+                or len(answer) != len(set(answer))
+                or any(option not in q["options"] for option in answer)
+            ):
+                fail(422, "answer_invalid", "Choose from the available answers.", field=q["id"])
+            if source != "import" and q["required"] and not answer:
+                fail(422, "answer_required", "Complete the required questions.", field=q["id"])
+            continue
+        answer = value.answers.get(q["id"], "")
+        if not isinstance(answer, str) or len(answer) > 2000:
+            fail(422, "answer_invalid", "An answer does not match the event questions.", field=q["id"])
+        answer = answer.strip()
         if source != "import" and q["required"] and not answer:
             fail(422, "answer_required", "Complete the required questions.", field=q["id"])
         if answer and q["kind"] == "choice" and answer not in q["options"]:

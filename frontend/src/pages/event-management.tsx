@@ -738,12 +738,17 @@ function Questions({ event }: { event: AdminEvent }) {
             )}
           </div>
           <div className="section stack">
-            {query.data.items.map((p) => (
-              <div className="history-row" key={p.signup_id}>
-                <strong>{p.name}</strong>
-                <span>{p.answers[q.id] || "—"}</span>
-              </div>
-            ))}
+            {query.data.items.map((p) => {
+              const answer = p.answers[q.id];
+              return (
+                <div className="history-row" key={p.signup_id}>
+                  <strong>{p.name}</strong>
+                  <span>
+                    {(Array.isArray(answer) ? answer.join(", ") : answer) || "—"}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </Panel>
       ))}
