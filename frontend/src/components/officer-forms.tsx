@@ -6,6 +6,7 @@ import type { Person, Schema } from "../lib/api";
 import { Button, Dialog, Field, Message, Pill } from "./ui";
 import { quarterURL } from "../lib/context";
 import { useSearchQuery } from "../lib/search-query";
+import { CapacityOverride } from "./signup-capacity";
 
 export function DeleteEventButton({
   url,
@@ -275,6 +276,8 @@ export function ImportDialog({
   const [outcome, setOutcome] = useState<Schema<"ImportOutcome"> | null>(null);
   const previewAction = useAction<Schema<"ImportView">>();
   const applyAction = useAction<Schema<"ImportOutcome">>();
+  const [override, setOverride] = useState(false);
+  const [overrideReason, setOverrideReason] = useState("");
   return (
     <Dialog
       title={eventId ? "Import participants" : "Import members"}
@@ -295,6 +298,8 @@ export function ImportDialog({
           onSubmit={async (e) => {
             e.preventDefault();
             setPreview(null);
+            setOverride(false);
+            setOverrideReason("");
             await previewAction
               .mutateAsync({
                 url: "/api/admin/imports/preview",
@@ -433,6 +438,14 @@ export function ImportDialog({
               </small>
             </div>
           )}
+          {mode === "participants" && preview?.can_apply && (
+            <CapacityOverride
+              enabled={override}
+              reason={overrideReason}
+              onEnabled={setOverride}
+              onReason={setOverrideReason}
+            />
+          )}
           <div className="sticky-actions">
             <Button type="button" variant="quiet" onClick={onClose}>
               Cancel
@@ -443,12 +456,23 @@ export function ImportDialog({
             {preview?.can_apply && (
               <Button
                 type="button"
-                disabled={applyAction.isPending}
+                disabled={
+                  applyAction.isPending ||
+                  (mode === "participants" &&
+                    override &&
+                    !overrideReason.trim())
+                }
                 onClick={() => {
                   void applyAction
                     .mutateAsync({
                       url: `/api/admin/imports/${preview.id}/apply`,
-                      body: { request_hash: preview.request_hash },
+                      body: {
+                        request_hash: preview.request_hash,
+                        capacity_override_reason:
+                          mode === "participants" && override
+                            ? overrideReason.trim()
+                            : null,
+                      },
                     })
                     .then(setOutcome)
                     .catch(() => {});

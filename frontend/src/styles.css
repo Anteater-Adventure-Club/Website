@@ -1735,6 +1735,43 @@ dialog::backdrop {
   position: sticky;
   top: 1.5rem;
 }
+.signup-transport-options,
+.signup-transport-remaining {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.3rem;
+}
+.signup-transport-options button {
+  min-width: 0;
+}
+.signup-transport-remaining {
+  margin-top: 0.5rem;
+  padding: 0 0.25rem;
+  color: var(--muted);
+  text-align: center;
+}
+.signup-transport-remaining small {
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+.signup-capacity {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--tint);
+  font-size: 0.9rem;
+}
+.signup-capacity p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.signup-capacity strong {
+  display: block;
+}
 .event-signup-stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

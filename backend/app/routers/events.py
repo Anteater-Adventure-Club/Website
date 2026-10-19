@@ -70,12 +70,22 @@ def validate_event(db, value, existing=None):
 
 def apply_event(e, value):
     for k, v in value.model_dump(exclude={"expected_revision"}).items():
+        if k.startswith("signup_cap_") and e.id is not None and k not in value.model_fields_set:
+            continue
         setattr(e, k, v)
     if not value.signups_enabled:
         e.questions = []
         e.opens_at = e.closes_at = e.arrival_at = e.departure_at = e.return_at = None
         e.miles = e.gas_price = 0
         e.rate_override = None
+
+
+def inherit_signup_caps(value, defaults):
+    """Older editors omit new limit fields; only explicit null clears a limit."""
+    for role in ("total", "ride", "driver", "own"):
+        field = f"signup_cap_{role}"
+        if field not in value.model_fields_set:
+            setattr(value, field, defaults.get(field))
 
 
 def touch_series(db, e):
@@ -383,6 +393,7 @@ def event_to_series(eid: int, value: SeriesWrite, user=Depends(officer), db=Depe
         fail(409, "already_recurring", "Edit this event's existing series instead.")
     require_unused_drafts(db, [e])
     validate_event(db, value.event, e)
+    inherit_signup_caps(value.event, {f"signup_cap_{role}": getattr(e, f"signup_cap_{role}") for role in ("total", "ride", "driver", "own")})
     if not series_dates(db, value):
         fail(422, "empty_series", "Choose a schedule with at least one date.")
     if db.scalar(select(Series.id).where(Series.request_id == value.request_id)):
@@ -453,11 +464,13 @@ def series_detail(sid: int, user=Depends(officer), db=Depends(get_db, scope="fun
 
 @router.put("/admin/series/{sid}", response_model=SeriesView)
 def edit_series(sid: int, value: SeriesWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
-    rows = series_dates(db, value)
+    open_quarter(db, value.event.quarter_id)
     series = require(db, Series, sid, True)
     revision(series, value.expected_revision)
     if series.quarter_id != value.event.quarter_id:
         fail(422, "quarter_change", "A series cannot move between quarters.")
+    inherit_signup_caps(value.event, series.definition["event"])
+    rows = series_dates(db, value)
     effective = value.effective_from or today()
     if effective < today():
         fail(422, "past_edit", "Series edits may affect only today and future dates.")

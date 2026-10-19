@@ -6,6 +6,10 @@ import type { Quarter, Schema } from "../lib/api";
 import { staticAssetURL } from "../lib/images";
 import { quarterURL, useIdentity, useQuarter } from "../lib/context";
 import {
+  MembershipPauseNotice,
+  useMembershipPause,
+} from "../components/membership-pause";
+import {
   Button,
   Empty,
   Failure,
@@ -379,6 +383,7 @@ function MembershipRecord({
 export function MyMembership() {
   const { session } = useIdentity();
   const { quarter, loading } = useQuarter();
+  const membershipPaused = useMembershipPause(quarter);
   const membership = useAPI(
     "MembershipView",
     `/api/me/memberships/${quarter?.id}`,
@@ -510,6 +515,8 @@ export function MyMembership() {
                 <p className="muted">
                   Membership submissions for this quarter are closed.
                 </p>
+              ) : membershipPaused ? (
+                <MembershipPauseNotice quarter={quarter} />
               ) : (
                 <>
                   <p className="muted">

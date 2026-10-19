@@ -114,6 +114,28 @@ class QuarterPublic(DTO):
     starts_on: date
     ends_on: date
     state: str
+    membership_pause_starts_at: datetime | None
+    membership_pause_ends_at: datetime | None
+    membership_pause_message: str
+    membership_signups_paused: bool
+
+
+class MembershipSignupSettingsWrite(Revision):
+    membership_pause_starts_at: AwareDatetime | None = None
+    membership_pause_ends_at: AwareDatetime | None = None
+    membership_pause_message: str = Field(default="", max_length=500)
+
+    @model_validator(mode="after")
+    def pause_valid(self):
+        start, end = self.membership_pause_starts_at, self.membership_pause_ends_at
+        if (start is None) != (end is None) or (start and end and start >= end):
+            raise ValueError("Set both pause dates, with the end after the start")
+        self.membership_pause_message = self.membership_pause_message.strip()
+        if start and not self.membership_pause_message:
+            self.membership_pause_message = (
+                "New membership signups are temporarily paused to give current members time to sign up for retreat."
+            )
+        return self
 
 
 class QuarterPrivate(QuarterPublic):
@@ -210,6 +232,10 @@ class EventWrite(Revision):
     starts_at: AwareDatetime
     ends_at: AwareDatetime
     signups_enabled: bool = True
+    signup_cap_total: int | None = Field(default=None, ge=0, le=2147483647)
+    signup_cap_ride: int | None = Field(default=None, ge=0, le=2147483647)
+    signup_cap_driver: int | None = Field(default=None, ge=0, le=2147483647)
+    signup_cap_own: int | None = Field(default=None, ge=0, le=2147483647)
     opens_at: AwareDatetime | None = None
     closes_at: AwareDatetime | None = None
     arrival_at: AwareDatetime | None = None
@@ -257,6 +283,11 @@ class EventPublic(DTO):
     ends_at: datetime
     state: str
     signups_enabled: bool
+    signup_cap_total: int | None
+    signup_cap_ride: int | None
+    signup_cap_driver: int | None
+    signup_cap_own: int | None
+    signup_counts_by_role: dict[Literal["ride", "driver", "own"], int]
     opens_at: datetime | None
     closes_at: datetime | None
     arrival_at: datetime | None
@@ -294,7 +325,18 @@ class SignupWrite(Revision):
     request_id: str | None = Field(default=None, max_length=80)
 
 
-class OfficerSignup(SignupWrite):
+class CapacityOverride(DTO):
+    capacity_override_reason: str | None = Field(default=None, max_length=500)
+
+    @field_validator("capacity_override_reason")
+    @classmethod
+    def override_reason(cls, value):
+        if value is not None and not value.strip():
+            raise ValueError("Enter a reason to override signup capacity")
+        return value.strip() if value is not None else None
+
+
+class OfficerSignup(SignupWrite, CapacityOverride):
     member_id: int
 
 
@@ -411,11 +453,11 @@ class ImportWrite(DTO):
     fallback_role: Literal["ride", "driver", "own"] = "ride"
 
 
-class ImportApply(DTO):
+class ImportApply(CapacityOverride):
     request_hash: str
 
 
-class WalkInWrite(DTO):
+class WalkInWrite(CapacityOverride):
     member_id: int | None = None
     member: MemberInput | None = None
     vehicle: VehicleWrite | None = None

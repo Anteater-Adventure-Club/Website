@@ -57,6 +57,7 @@ def events_projection(db, events, private=False):
         select(
             Signup.event_id,
             func.count().label("signup_count"),
+            *[func.count().filter(Signup.role == role).label(role) for role in ("ride", "driver", "own")],
             func.coalesce(func.sum(Signup.seats).filter(Signup.role == "driver"), 0).label("offered_seats"),
         )
         .where(Signup.event_id.in_(ids), Signup.cancelled.is_(False))
@@ -80,6 +81,7 @@ def events_projection(db, events, private=False):
             slug=slug(e.name),
             signup_status=signup_window(e),
             signup_count=total.signup_count if total else 0,
+            signup_counts_by_role={role: getattr(total, role) if total else 0 for role in ("ride", "driver", "own")},
             offered_seats=offered_seats,
             paid_riders=paid_riders,
             paid_ride_guaranteed=offered_seats >= paid_riders and paid_riders > 0,

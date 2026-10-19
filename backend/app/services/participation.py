@@ -5,7 +5,26 @@ from ..models import Assignment, AttendanceAction, Card, DriverRegistration, Sig
 from ..projections import signup_window
 
 
-def save_signup(db, event, member, value, officer=False, source="member"):
+def capacity_violations(db, event, signup, role):
+    """Called while the event is locked; only increasing counts consume capacity."""
+    counts = dict(db.execute(
+        select(Signup.role, func.count())
+        .where(Signup.event_id == event.id, Signup.cancelled.is_(False))
+        .group_by(Signup.role)
+    ).all())
+    active = signup is not None and not signup.cancelled
+    violations = []
+    for category, count, increase in (
+        ("total", sum(counts.values()), not active),
+        (role, counts.get(role, 0), not active or signup.role != role),
+    ):
+        cap = getattr(event, f"signup_cap_{category}")
+        if increase and cap is not None and count >= cap:
+            violations.append({"category": category, "limit": cap, "count": count, "resulting_count": count + 1})
+    return violations
+
+
+def save_signup(db, event, member, value, officer=False, source="member", *, actor=None, capacity_override_reason=None):
     if not officer and signup_window(event) != "open":
         fail(409, "signup_closed", "Signups are not currently open.")
     if event.kind == "retreat" and not paid(db, member.id, event.quarter_id):
@@ -15,6 +34,14 @@ def save_signup(db, event, member, value, officer=False, source="member"):
         revision(s, value.expected_revision)
         if s.checked_in_at:
             fail(409, "already_arrived", "This signup is locked after check-in.")
+    violations = capacity_violations(db, event, s, value.role)
+    if violations and not (officer and actor and capacity_override_reason):
+        total_full = any(v["category"] == "total" for v in violations)
+        fail(
+            409, "signup_capacity",
+            "This event is full." if total_full else "This transport choice is full. Choose another option.",
+            limits=violations,
+        )
     if value.phone is not None:
         member.phone = value.phone.strip()
     if source == "member" and not member.phone:
@@ -59,6 +86,11 @@ def save_signup(db, event, member, value, officer=False, source="member"):
     s.answers, s.notes, s.source, s.cancelled = value.answers, value.notes, source, False
     event.revision += 1
     db.flush()
+    if violations:
+        audit(db, actor, "signup.capacity_override", s.id, {
+            "reason": capacity_override_reason, "event_id": event.id,
+            "member_id": member.id, "source": source, "limits": violations,
+        })
     return s
 
 

@@ -1338,6 +1338,55 @@
         }
       }
     },
+    "/api/admin/quarters/{qid}/membership-signups": {
+      "put": {
+        "summary": "Membership Signup Settings",
+        "operationId": "membership_signup_settings_api_admin_quarters__qid__membership_signups_put",
+        "parameters": [
+          {
+            "name": "qid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Qid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MembershipSignupSettingsWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuarterPrivate"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/members/{mid}/memberships/{qid}/decision": {
       "post": {
         "summary": "Decide Dues",
@@ -5481,6 +5530,64 @@
             "type": "boolean",
             "title": "Signups Enabled"
           },
+          "signup_cap_total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signup Cap Total"
+          },
+          "signup_cap_ride": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signup Cap Ride"
+          },
+          "signup_cap_driver": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signup Cap Driver"
+          },
+          "signup_cap_own": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signup Cap Own"
+          },
+          "signup_counts_by_role": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "propertyNames": {
+              "enum": [
+                "ride",
+                "driver",
+                "own"
+              ]
+            },
+            "type": "object",
+            "title": "Signup Counts By Role"
+          },
           "opens_at": {
             "anyOf": [
               {
@@ -5664,6 +5771,11 @@
           "ends_at",
           "state",
           "signups_enabled",
+          "signup_cap_total",
+          "signup_cap_ride",
+          "signup_cap_driver",
+          "signup_cap_own",
+          "signup_counts_by_role",
           "opens_at",
           "closes_at",
           "arrival_at",
@@ -5752,6 +5864,64 @@
           "signups_enabled": {
             "type": "boolean",
             "title": "Signups Enabled"
+          },
+          "signup_cap_total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signup Cap Total"
+          },
+          "signup_cap_ride": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signup Cap Ride"
+          },
+          "signup_cap_driver": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signup Cap Driver"
+          },
+          "signup_cap_own": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signup Cap Own"
+          },
+          "signup_counts_by_role": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "propertyNames": {
+              "enum": [
+                "ride",
+                "driver",
+                "own"
+              ]
+            },
+            "type": "object",
+            "title": "Signup Counts By Role"
           },
           "opens_at": {
             "anyOf": [
@@ -5890,6 +6060,11 @@
           "ends_at",
           "state",
           "signups_enabled",
+          "signup_cap_total",
+          "signup_cap_ride",
+          "signup_cap_driver",
+          "signup_cap_own",
+          "signup_counts_by_role",
           "opens_at",
           "closes_at",
           "arrival_at",
@@ -5967,6 +6142,58 @@
             "type": "boolean",
             "title": "Signups Enabled",
             "default": true
+          },
+          "signup_cap_total": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2147483647.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signup Cap Total"
+          },
+          "signup_cap_ride": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2147483647.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signup Cap Ride"
+          },
+          "signup_cap_driver": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2147483647.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signup Cap Driver"
+          },
+          "signup_cap_own": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2147483647.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signup Cap Own"
           },
           "opens_at": {
             "anyOf": [
@@ -6175,6 +6402,58 @@
             "type": "boolean",
             "title": "Signups Enabled",
             "default": true
+          },
+          "signup_cap_total": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2147483647.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signup Cap Total"
+          },
+          "signup_cap_ride": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2147483647.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signup Cap Ride"
+          },
+          "signup_cap_driver": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2147483647.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signup Cap Driver"
+          },
+          "signup_cap_own": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2147483647.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signup Cap Own"
           },
           "opens_at": {
             "anyOf": [
@@ -6437,6 +6716,18 @@
       },
       "ImportApply": {
         "properties": {
+          "capacity_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capacity Override Reason"
+          },
           "request_hash": {
             "type": "string",
             "title": "Request Hash"
@@ -7158,6 +7449,54 @@
         ],
         "title": "MembershipDecision"
       },
+      "MembershipSignupSettingsWrite": {
+        "properties": {
+          "expected_revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Revision"
+          },
+          "membership_pause_starts_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Membership Pause Starts At"
+          },
+          "membership_pause_ends_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Membership Pause Ends At"
+          },
+          "membership_pause_message": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Membership Pause Message",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "MembershipSignupSettingsWrite"
+      },
       "MembershipSubmit": {
         "properties": {
           "student": {
@@ -7462,6 +7801,18 @@
       },
       "OfficerSignup": {
         "properties": {
+          "capacity_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capacity Override Reason"
+          },
           "expected_revision": {
             "anyOf": [
               {
@@ -7946,6 +8297,38 @@
             "type": "string",
             "title": "State"
           },
+          "membership_pause_starts_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Membership Pause Starts At"
+          },
+          "membership_pause_ends_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Membership Pause Ends At"
+          },
+          "membership_pause_message": {
+            "type": "string",
+            "title": "Membership Pause Message"
+          },
+          "membership_signups_paused": {
+            "type": "boolean",
+            "title": "Membership Signups Paused"
+          },
           "reimbursement_data_available": {
             "type": "boolean",
             "title": "Reimbursement Data Available"
@@ -7999,6 +8382,10 @@
           "starts_on",
           "ends_on",
           "state",
+          "membership_pause_starts_at",
+          "membership_pause_ends_at",
+          "membership_pause_message",
+          "membership_signups_paused",
           "reimbursement_data_available",
           "budget",
           "driver_cap",
@@ -8030,6 +8417,38 @@
           "state": {
             "type": "string",
             "title": "State"
+          },
+          "membership_pause_starts_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Membership Pause Starts At"
+          },
+          "membership_pause_ends_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Membership Pause Ends At"
+          },
+          "membership_pause_message": {
+            "type": "string",
+            "title": "Membership Pause Message"
+          },
+          "membership_signups_paused": {
+            "type": "boolean",
+            "title": "Membership Signups Paused"
           }
         },
         "additionalProperties": false,
@@ -8039,7 +8458,11 @@
           "name",
           "starts_on",
           "ends_on",
-          "state"
+          "state",
+          "membership_pause_starts_at",
+          "membership_pause_ends_at",
+          "membership_pause_message",
+          "membership_signups_paused"
         ],
         "title": "QuarterPublic"
       },
@@ -8626,6 +9049,64 @@
             "type": "boolean",
             "title": "Signups Enabled"
           },
+          "signup_cap_total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signup Cap Total"
+          },
+          "signup_cap_ride": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signup Cap Ride"
+          },
+          "signup_cap_driver": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signup Cap Driver"
+          },
+          "signup_cap_own": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signup Cap Own"
+          },
+          "signup_counts_by_role": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "propertyNames": {
+              "enum": [
+                "ride",
+                "driver",
+                "own"
+              ]
+            },
+            "type": "object",
+            "title": "Signup Counts By Role"
+          },
           "opens_at": {
             "anyOf": [
               {
@@ -8813,6 +9294,11 @@
           "ends_at",
           "state",
           "signups_enabled",
+          "signup_cap_total",
+          "signup_cap_ride",
+          "signup_cap_driver",
+          "signup_cap_own",
+          "signup_counts_by_role",
           "opens_at",
           "closes_at",
           "arrival_at",
@@ -10194,6 +10680,18 @@
       },
       "WalkInWrite": {
         "properties": {
+          "capacity_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capacity Override Reason"
+          },
           "member_id": {
             "anyOf": [
               {

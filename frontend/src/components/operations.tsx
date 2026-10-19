@@ -6,6 +6,7 @@ import { clock, eventURL, request, useAction, useAPI } from "../lib/api";
 import type { Person, Schema } from "../lib/api";
 import { Button, Dialog, Empty, Field, Message, Panel, Pill } from "./ui";
 import { useSearchQuery } from "../lib/search-query";
+import { CapacityOverride, SignupCapacity } from "./signup-capacity";
 
 type ParticipantForm = {
   name: string;
@@ -302,6 +303,8 @@ export function AddParticipantDialog({
   const canSearch = searchQuery.length > 1 && !manual;
   const [lookup, setLookup] = useState("");
   const [requestId] = useState(crypto.randomUUID());
+  const [override, setOverride] = useState(false);
+  const [overrideReason, setOverrideReason] = useState("");
   const members = useAPI(
     "MemberList",
     `/api/admin/members?limit=10&search=${encodeURIComponent(searchQuery)}`,
@@ -336,6 +339,10 @@ export function AddParticipantDialog({
   const action = useAction<RosterPerson>();
   const [error, setError] = useState<Error | null>(null);
   async function save(fields: ParticipantForm) {
+    if (override && !overrideReason.trim()) {
+      setError(new Error("Enter a reason to override signup capacity."));
+      return;
+    }
     const member = {
       name: fields.name,
       email: fields.email || null,
@@ -374,6 +381,7 @@ export function AddParticipantDialog({
               vehicle,
               signup,
               request_id: requestId,
+              capacity_override_reason: override ? overrideReason.trim() : null,
             },
           })
           .then((result) => {
@@ -395,7 +403,11 @@ export function AddParticipantDialog({
         await action
           .mutateAsync({
             url: `/api/admin/events/${event.id}/signups`,
-            body: { ...signup, member_id: person.id },
+            body: {
+              ...signup,
+              member_id: person.id,
+              capacity_override_reason: override ? overrideReason.trim() : null,
+            },
           })
           .then(onClose);
       }
@@ -409,6 +421,7 @@ export function AddParticipantDialog({
       onClose={onClose}
     >
       <form onSubmit={form.handleSubmit(save)}>
+        <SignupCapacity event={event} />
         {!selected && !manual ? (
           <>
             <Field
@@ -478,6 +491,8 @@ export function AddParticipantDialog({
                 onClick={() => {
                   setSelected(null);
                   setManual(false);
+                  setOverride(false);
+                  setOverrideReason("");
                 }}
               >
                 Change Person
@@ -645,6 +660,12 @@ export function AddParticipantDialog({
                 confirmed receipt shows the actual card number.
               </Message>
             )}
+            <CapacityOverride
+              enabled={override}
+              reason={overrideReason}
+              onEnabled={setOverride}
+              onReason={setOverrideReason}
+            />
             <Message error={error || action.error} />
             <div className="sticky-actions">
               <Button type="button" variant="quiet" onClick={onClose}>

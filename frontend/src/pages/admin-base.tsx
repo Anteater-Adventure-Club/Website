@@ -14,6 +14,7 @@ import {
 import type { AdminEvent, Person, Schema } from "../lib/api";
 import { quarterURL, useQuarter } from "../lib/context";
 import { useSearchQuery } from "../lib/search-query";
+import { MembershipSignupSettings } from "../components/membership-signup-settings";
 import {
   Button,
   Dialog,
@@ -477,6 +478,9 @@ function QuarterDialog({
 export function Settings() {
   const { quarter } = useQuarter();
   const query = useAPI("Page_QuarterPrivate_", "/api/admin/quarters");
+  const [membershipEditing, setMembershipEditing] = useState<number | null>(
+    null,
+  );
   const [editing, setEditing] = useState<
     Schema<"QuarterPrivate"> | "new" | null
   >(null);
@@ -516,11 +520,30 @@ export function Settings() {
                   {Number(q.driver_cap) ? money(q.driver_cap) : "None"} ·{" "}
                   {q.mpg} MPG
                 </p>
+                <p>
+                  Membership signups:{" "}
+                  {q.state !== "open"
+                    ? "Closed"
+                    : q.membership_signups_paused
+                      ? "Paused"
+                      : q.membership_pause_ends_at &&
+                          new Date(q.membership_pause_ends_at) > new Date()
+                        ? "Pause scheduled"
+                        : "Open"}
+                </p>
               </div>
               {q.state === "open" ? (
-                <Button variant="secondary" onClick={() => setEditing(q)}>
-                  Edit Quarter
-                </Button>
+                <div className="actions">
+                  <Button variant="secondary" onClick={() => setEditing(q)}>
+                    Edit Quarter
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => setMembershipEditing(q.id)}
+                  >
+                    Membership Signups
+                  </Button>
+                </div>
               ) : (
                 <Link
                   className="button secondary"
@@ -550,6 +573,13 @@ export function Settings() {
           onClose={() => setEditing(null)}
         />
       )}
+      {membershipEditing !== null &&
+        query.data.items.some((q) => q.id === membershipEditing) && (
+          <MembershipSignupSettings
+            quarter={query.data.items.find((q) => q.id === membershipEditing)!}
+            onClose={() => setMembershipEditing(null)}
+          />
+        )}
     </>
   );
 }

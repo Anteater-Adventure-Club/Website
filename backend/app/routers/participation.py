@@ -103,7 +103,8 @@ def roster(
 def add_signup(eid: int, value: OfficerSignup, user=Depends(officer), db=Depends(get_db, scope="function")):
     e = operational_event(db, eid)
     target = require(db, Member, value.member_id)
-    s = save_signup(db, e, target, value, True, "officer")
+    s = save_signup(db, e, target, value, True, "officer", actor=user,
+                    capacity_override_reason=value.capacity_override_reason)
     audit(db, user, "signup.add", s.id)
     return signup_projection(db, s)
 
@@ -259,7 +260,8 @@ def walk_in(eid: int, value: WalkInWrite, user=Depends(officer), db=Depends(get_
         db.add(vehicle)
         db.flush()
         value.signup.vehicle_id = vehicle.id
-    s = save_signup(db, e, target, value.signup, True, "walk-in")
+    s = save_signup(db, e, target, value.signup, True, "walk-in", actor=user,
+                    capacity_override_reason=value.capacity_override_reason)
     arrive(db, e, s, user)
     audit(db, user, "attendance.walk-in", key, {"signup_id": s.id})
     return signup_projection(db, s)

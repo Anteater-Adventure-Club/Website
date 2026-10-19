@@ -13,6 +13,7 @@ from ..domain import (
     open_quarter,
     page,
     require,
+    revision,
     today,
     utcnow,
 )
@@ -30,6 +31,8 @@ from ..schemas import (
     MembershipDecision,
     MembershipSubmit,
     MembershipView,
+    MembershipSignupSettingsWrite,
+    QuarterPrivate,
     OfficerGrant,
     Page,
     PayoutDetailsWrite,
@@ -109,11 +112,17 @@ def own_membership(qid: int, user=Depends(member), db=Depends(get_db, scope="fun
 
 @router.post("/me/memberships/{qid}", response_model=MembershipView)
 def submit_dues(qid: int, value: MembershipSubmit, user=Depends(member), db=Depends(get_db, scope="function")):
-    open_quarter(db, qid)
+    q = open_quarter(db, qid)
+    existing = db.scalar(select(Membership).where(Membership.member_id == user.id, Membership.quarter_id == qid))
+    if q.membership_signups_paused:
+        if existing and existing.status in {"approved", "pending"}:
+            return membership_view(db, user.id, qid)
+        fail(409, "membership_signups_paused", q.membership_pause_message,
+             reopens_at=q.membership_pause_ends_at.isoformat())
     phone = value.phone if value.phone is not None else user.phone.strip()
     if not phone:
         fail(422, "phone_required", "Enter your contact phone number on the dues form.")
-    m = ensure_membership(db, user.id, qid)
+    m = existing or ensure_membership(db, user.id, qid)
     if m.status == "approved":
         return membership_view(db, user.id, qid)
     if value.phone is not None and user.phone != phone:
@@ -124,6 +133,21 @@ def submit_dues(qid: int, value: MembershipSubmit, user=Depends(member), db=Depe
         audit(db, user, "membership.submit", m.id)
     db.flush()
     return membership_view(db, user.id, qid)
+
+
+@router.put("/admin/quarters/{qid}/membership-signups", response_model=QuarterPrivate)
+def membership_signup_settings(
+    qid: int, value: MembershipSignupSettingsWrite,
+    user=Depends(officer), db=Depends(get_db, scope="function"),
+):
+    q = open_quarter(db, qid)
+    revision(q, value.expected_revision)
+    for key, val in value.model_dump(exclude={"expected_revision"}).items():
+        setattr(q, key, val)
+    q.revision += 1
+    audit(db, user, "membership.signup_settings", qid, value.model_dump(mode="json", exclude={"expected_revision"}))
+    db.flush()
+    return q
 
 
 @router.post("/admin/members/{mid}/memberships/{qid}/decision", response_model=MembershipView)

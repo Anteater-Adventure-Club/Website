@@ -161,6 +161,8 @@ def apply(pid: str, value: ImportApply, user=Depends(officer), db=Depends(get_db
                 SignupWrite(role=row["role"], seats=row["seats"], vehicle_id=vehicle_id),
                 True,
                 "import",
+                actor=user,
+                capacity_override_reason=value.capacity_override_reason,
             )
             if row.get("joined_at"):
                 s.joined_at = datetime.fromisoformat(row["joined_at"])

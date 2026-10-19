@@ -21,7 +21,16 @@ import {
   useAPI,
 } from "../lib/api";
 import type { Event, Schema } from "../lib/api";
-import { useIdentity } from "../lib/context";
+import { useIdentity, useQuarter } from "../lib/context";
+import {
+  capacityBlocked,
+  remainingSignupSpots,
+  transportRoles,
+} from "../lib/signup-capacity";
+import {
+  MembershipPauseNotice,
+  useMembershipPause,
+} from "../components/membership-pause";
 import {
   Button,
   Dialog,
@@ -54,7 +63,10 @@ function SignupForm({
   const [addCar, setAddCar] = useState(false);
   const form = useForm<Schema<"SignupWrite">>({
     defaultValues: {
-      role: (signup?.role as Schema<"SignupWrite">["role"]) || "ride",
+      role:
+        (signup?.role as Schema<"SignupWrite">["role"]) ||
+        transportRoles.find((role) => !capacityBlocked(event, role)) ||
+        "ride",
       vehicle_id: signup?.vehicle_id || null,
       seats: signup?.seats || 1,
       answers: signup?.answers || {},
@@ -67,6 +79,11 @@ function SignupForm({
   const action = useAction();
   const [saved, setSaved] = useState(false);
   const role = form.watch("role");
+  const blocked = capacityBlocked(event, role, signup);
+  const totalFull =
+    (!signup || signup.cancelled) &&
+    event.signup_cap_total != null &&
+    event.signup_count >= event.signup_cap_total;
   const selectedCar = cars.data?.items.find(
     (car) => car.id === form.watch("vehicle_id"),
   );
@@ -120,6 +137,15 @@ function SignupForm({
           {signup && !signup.cancelled ? "You’re signed up!" : "Sign up!"}
         </h2>
       </div>
+      {blocked && (
+        <Message>
+          {totalFull
+            ? "This event is full. Check back for an opening."
+            : !signup || signup.cancelled
+              ? "This signup choice is full. Choose an available transport option, or check back for an opening."
+              : "This transport choice is full. Your existing signup is still reserved."}
+        </Message>
+      )}
       <div className="details-grid">
         <p>
           <strong>{session?.member?.name}</strong>
@@ -160,24 +186,52 @@ function SignupForm({
         )}
         <fieldset>
           <legend>Ride situation</legend>
-          <div className="segmented">
+          <div className="segmented signup-transport-options">
             {(
               [
                 ["ride", "I need a ride!"],
                 ["driver", "I can drive others!"],
                 ["own", "I have my own ride!"],
               ] as const
-            ).map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                aria-pressed={role === value}
-                onClick={() => form.setValue("role", value)}
-              >
-                {label}
-              </button>
-            ))}
+            ).map(([value, label]) => {
+              const remaining = remainingSignupSpots(event, value);
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={role === value}
+                  aria-describedby={
+                    remaining !== null
+                      ? `signup-spots-${event.id}-${value}`
+                      : undefined
+                  }
+                  disabled={capacityBlocked(event, value, signup)}
+                  onClick={() => form.setValue("role", value)}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
+          {transportRoles.some(
+            (value) => remainingSignupSpots(event, value) !== null,
+          ) && (
+            <div className="signup-transport-remaining">
+              {transportRoles.map((value) => {
+                const remaining = remainingSignupSpots(event, value);
+                return (
+                  <small key={value} id={`signup-spots-${event.id}-${value}`}>
+                    {remaining !== null && (
+                      <>
+                        {remaining.toLocaleString()}{" "}
+                        {remaining === 1 ? "spot" : "spots"} remaining
+                      </>
+                    )}
+                  </small>
+                );
+              })}
+            </div>
+          )}
         </fieldset>
         {(hasMembershipBenefits || role !== "own") && (
           <div
@@ -338,6 +392,7 @@ function SignupForm({
             className="heading-button"
             disabled={
               action.isPending ||
+              blocked ||
               (role === "driver" &&
                 (!selectedCar || offer > selectedCar.capacity))
             }
@@ -472,7 +527,11 @@ export function EventDetail() {
   const { id, slug } = useParams();
   const navigate = useNavigate();
   const { session } = useIdentity();
-  const event = useAPI("EventPublic", `/api/events/${id}`);
+  const { quarter } = useQuarter();
+  const membershipPaused = useMembershipPause(quarter);
+  const event = useAPI("EventPublic", `/api/events/${id}`, {
+    poll: (data) => data?.signup_status === "open",
+  });
   const own = useAPI("Page_SignupOwn_", `/api/me/signups?event_id=${id}`, {
     enabled: !!session?.member,
     poll: (data) =>
@@ -644,6 +703,17 @@ export function EventDetail() {
             <Failure error={own.error} retry={own.refetch} />
           ) : membership.error ? (
             <Failure error={membership.error} retry={membership.refetch} />
+          ) : e.kind === "retreat" &&
+            membership.data?.status !== "approved" &&
+            membershipPaused &&
+            membership.data?.status !== "pending" &&
+            quarter ? (
+            <Panel>
+              <MembershipPauseNotice quarter={quarter} />
+              <p>
+                Retreat signups require approved membership for this quarter.
+              </p>
+            </Panel>
           ) : e.kind === "retreat" && membership.data?.status !== "approved" ? (
             <Empty
               title="A weekend for members"

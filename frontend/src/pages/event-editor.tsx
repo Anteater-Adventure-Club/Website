@@ -13,6 +13,7 @@ import {
   useAPI,
 } from "../lib/api";
 import type { AdminEvent, Schema } from "../lib/api";
+import { capacityLabels } from "../lib/signup-capacity";
 import { useQuarter } from "../lib/context";
 import {
   Button,
@@ -49,6 +50,10 @@ type EditorValues = {
   gas: string;
   rate: string;
   packing: string;
+  signup_cap_total: string;
+  signup_cap_ride: string;
+  signup_cap_driver: string;
+  signup_cap_own: string;
 };
 type Recurrence = "none" | "weekly" | "alternating";
 
@@ -78,6 +83,10 @@ function Editor({
       starts: source ? pacificInput(source.starts_at) : `${day}T10:30`,
       ends: source ? pacificInput(source.ends_at) : `${day}T16:00`,
       signups: source?.signups_enabled ?? true,
+      signup_cap_total: source?.signup_cap_total?.toString() ?? "",
+      signup_cap_ride: source?.signup_cap_ride?.toString() ?? "",
+      signup_cap_driver: source?.signup_cap_driver?.toString() ?? "",
+      signup_cap_own: source?.signup_cap_own?.toString() ?? "",
       opens: pacificInput(source?.opens_at),
       closes: pacificInput(source?.closes_at),
       arrival: pacificInput(source?.arrival_at),
@@ -143,6 +152,16 @@ function Editor({
       starts_at: fromPacific(values.starts)!,
       ends_at: fromPacific(values.ends)!,
       signups_enabled: values.signups,
+      signup_cap_total:
+        values.signup_cap_total === "" ? null : Number(values.signup_cap_total),
+      signup_cap_ride:
+        values.signup_cap_ride === "" ? null : Number(values.signup_cap_ride),
+      signup_cap_driver:
+        values.signup_cap_driver === ""
+          ? null
+          : Number(values.signup_cap_driver),
+      signup_cap_own:
+        values.signup_cap_own === "" ? null : Number(values.signup_cap_own),
       opens_at: values.signups ? fromPacific(values.opens) : null,
       closes_at: values.signups ? fromPacific(values.closes) : null,
       arrival_at: values.signups ? fromPacific(values.arrival) : null,
@@ -455,6 +474,27 @@ function Editor({
                     Blank opening means immediately on publication; blank
                     closing means event start.
                   </small>
+                  <h3>Signup limits</h3>
+                  <p className="muted">
+                    Blank means unlimited; 0 closes new signups. Limits count
+                    people, including drivers. Lowering a limit keeps existing
+                    signups.
+                  </p>
+                  <div className="form-grid">
+                    {(["total", "ride", "driver", "own"] as const).map(
+                      (role) => (
+                        <Field
+                          key={role}
+                          label={`${capacityLabels[role]} signup limit`}
+                          type="number"
+                          min={0}
+                          max={2147483647}
+                          step={1}
+                          {...form.register(`signup_cap_${role}`)}
+                        />
+                      ),
+                    )}
+                  </div>
                   <h3>Transportation</h3>
                   <div className="form-grid">
                     <Field

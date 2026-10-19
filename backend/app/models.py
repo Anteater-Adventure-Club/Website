@@ -85,12 +85,29 @@ class Quarter(Base):
     mpg: Mapped[Decimal] = mapped_column(Numeric(8, 2), default=25)
     state: Mapped[str] = mapped_column(String(20), default="open")
     reimbursement_data_available: Mapped[bool] = mapped_column(default=True, server_default="true")
+    membership_pause_starts_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    membership_pause_ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    membership_pause_message: Mapped[str] = mapped_column(String(500), default="", server_default="")
     revision: Mapped[int] = mapped_column(default=1)
     __table_args__ = (
         CheckConstraint("ends_on >= starts_on"),
         CheckConstraint("budget >= 0 AND driver_cap >= 0 AND mpg > 0"),
         CheckConstraint("state IN ('open','finalized','archived')"),
+        CheckConstraint(
+            "(membership_pause_starts_at IS NULL AND membership_pause_ends_at IS NULL) OR "
+            "(membership_pause_starts_at IS NOT NULL AND membership_pause_ends_at IS NOT NULL "
+            "AND membership_pause_ends_at > membership_pause_starts_at)",
+            name="ck_quarters_membership_pause",
+        ),
     )
+
+    @property
+    def membership_signups_paused(self):
+        return bool(
+            self.membership_pause_starts_at
+            and self.membership_pause_ends_at
+            and self.membership_pause_starts_at <= now() < self.membership_pause_ends_at
+        )
 
 
 class Membership(Base):
@@ -150,6 +167,10 @@ class Event(Base):
     ends_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     state: Mapped[str] = mapped_column(String(20), default="draft")
     signups_enabled: Mapped[bool] = mapped_column(default=True)
+    signup_cap_total: Mapped[int | None]
+    signup_cap_ride: Mapped[int | None]
+    signup_cap_driver: Mapped[int | None]
+    signup_cap_own: Mapped[int | None]
     opens_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     closes_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     arrival_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -173,6 +194,10 @@ class Event(Base):
         CheckConstraint("miles >= 0 AND gas_price >= 0"),
         CheckConstraint("kind IN ('regular','meeting','picnic','retreat')"),
         CheckConstraint("state IN ('draft','published','completed','cancelled')"),
+        CheckConstraint(
+            "signup_cap_total >= 0 AND signup_cap_ride >= 0 AND signup_cap_driver >= 0 AND signup_cap_own >= 0",
+            name="ck_events_signup_caps",
+        ),
     )
 
 

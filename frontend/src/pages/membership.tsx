@@ -3,6 +3,10 @@ import { Link } from "react-router";
 import { dateLabel, money, useAction, useAPI } from "../lib/api";
 import { useIdentity, useQuarter } from "../lib/context";
 import {
+  MembershipPauseNotice,
+  useMembershipPause,
+} from "../components/membership-pause";
+import {
   Button,
   Failure,
   Field,
@@ -14,6 +18,7 @@ import {
 
 export function Membership() {
   const { quarter, loading } = useQuarter();
+  const membershipPaused = useMembershipPause(quarter);
   const { session, loading: identityLoading } = useIdentity();
   const benefits = useAPI(
     "MembershipBenefitView",
@@ -111,6 +116,9 @@ export function Membership() {
           </Panel>
         </div>
         <aside>
+          {membershipPaused && quarter && !session?.member && (
+            <MembershipPauseNotice quarter={quarter} />
+          )}
           <Panel className="status-card">
             {loading || identityLoading ? (
               <Loading />
@@ -211,6 +219,8 @@ export function Membership() {
                 <h2>Join for {quarter.name}!</h2>
                 {quarter.state !== "open" ? (
                   <p>Membership submissions for this quarter are closed.</p>
+                ) : membershipPaused ? (
+                  <MembershipPauseNotice quarter={quarter} />
                 ) : (
                   <form
                     onSubmit={async (e) => {

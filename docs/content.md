@@ -13,6 +13,14 @@ To add a completed adventure to the gallery or homepage:
 
 Recap edits remain private until republished. The homepage rotates when at least two published recaps are featured. Update the static **What we do!** copy and activity photos in [home.tsx](../frontend/src/pages/home.tsx) and [frontend/public/images](../frontend/public/images/), then follow the asset steps below.
 
+## Signup limits and retreat priority
+
+In an event's editor, open **Signups & Carpools** and set the **Signup limits**. The total counts everyone; the transport limits count people who need a ride, drive others, or have their own ride. Blank means unlimited, and zero closes that choice. A full transport category leaves other categories open until the total limit is reached. Offered passenger seats are separate from signup limits.
+
+Lowering a limit preserves existing registrations. Members can still edit their existing signup or change to a transport category with space, subject to the normal signup window. Cancellations release places. Officer additions, walk-ins, and participant imports also respect limits; use **Officer capacity override** with a reason to exceed them. Overrides are audited and do not bypass retreat membership requirements. An import that exceeds capacity without an override saves no rows.
+
+For a retreat priority period, open **Settings → Membership Signups** for the retreat's quarter. Set the pause start and reopening times in Pacific time and the message new members should see. Start the pause before retreat signups open. The pause blocks new dues submissions for that quarter, and the membership forms return automatically at the scheduled end. Pending submissions can still be approved, and approved members can register for retreat. Clear both pause dates and save to reopen early. Budget edits do not change this schedule.
+
 ## Board profiles
 
 Open **Officers & Board**, select the board year, and use **Add Board Profile** or edit an existing entry. Review the photo, role, biography, and **Show on the public board** setting. Reorder profiles in that screen and check `/board` afterward.

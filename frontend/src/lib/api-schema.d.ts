@@ -441,6 +441,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/admin/quarters/{qid}/membership-signups": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Membership Signup Settings */
+    put: operations["membership_signup_settings_api_admin_quarters__qid__membership_signups_put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/admin/members/{mid}/memberships/{qid}/decision": {
     parameters: {
       query?: never;
@@ -1819,6 +1836,18 @@ export interface components {
       state: string;
       /** Signups Enabled */
       signups_enabled: boolean;
+      /** Signup Cap Total */
+      signup_cap_total: number | null;
+      /** Signup Cap Ride */
+      signup_cap_ride: number | null;
+      /** Signup Cap Driver */
+      signup_cap_driver: number | null;
+      /** Signup Cap Own */
+      signup_cap_own: number | null;
+      /** Signup Counts By Role */
+      signup_counts_by_role: {
+        [key: string]: number;
+      };
       /** Opens At */
       opens_at: string | null;
       /** Closes At */
@@ -1903,6 +1932,18 @@ export interface components {
       state: string;
       /** Signups Enabled */
       signups_enabled: boolean;
+      /** Signup Cap Total */
+      signup_cap_total: number | null;
+      /** Signup Cap Ride */
+      signup_cap_ride: number | null;
+      /** Signup Cap Driver */
+      signup_cap_driver: number | null;
+      /** Signup Cap Own */
+      signup_cap_own: number | null;
+      /** Signup Counts By Role */
+      signup_counts_by_role: {
+        [key: string]: number;
+      };
       /** Opens At */
       opens_at: string | null;
       /** Closes At */
@@ -1975,6 +2016,14 @@ export interface components {
        * @default true
        */
       signups_enabled: boolean;
+      /** Signup Cap Total */
+      signup_cap_total?: number | null;
+      /** Signup Cap Ride */
+      signup_cap_ride?: number | null;
+      /** Signup Cap Driver */
+      signup_cap_driver?: number | null;
+      /** Signup Cap Own */
+      signup_cap_own?: number | null;
       /** Opens At */
       opens_at?: string | null;
       /** Closes At */
@@ -2049,6 +2098,14 @@ export interface components {
        * @default true
        */
       signups_enabled: boolean;
+      /** Signup Cap Total */
+      signup_cap_total?: number | null;
+      /** Signup Cap Ride */
+      signup_cap_ride?: number | null;
+      /** Signup Cap Driver */
+      signup_cap_driver?: number | null;
+      /** Signup Cap Own */
+      signup_cap_own?: number | null;
       /** Opens At */
       opens_at?: string | null;
       /** Closes At */
@@ -2149,6 +2206,8 @@ export interface components {
     };
     /** ImportApply */
     ImportApply: {
+      /** Capacity Override Reason */
+      capacity_override_reason?: string | null;
       /** Request Hash */
       request_hash: string;
     };
@@ -2378,6 +2437,20 @@ export interface components {
        */
       reason: string;
     };
+    /** MembershipSignupSettingsWrite */
+    MembershipSignupSettingsWrite: {
+      /** Expected Revision */
+      expected_revision?: number | null;
+      /** Membership Pause Starts At */
+      membership_pause_starts_at?: string | null;
+      /** Membership Pause Ends At */
+      membership_pause_ends_at?: string | null;
+      /**
+       * Membership Pause Message
+       * @default
+       */
+      membership_pause_message: string;
+    };
     /** MembershipSubmit */
     MembershipSubmit: {
       /**
@@ -2467,6 +2540,8 @@ export interface components {
     };
     /** OfficerSignup */
     OfficerSignup: {
+      /** Capacity Override Reason */
+      capacity_override_reason?: string | null;
       /** Expected Revision */
       expected_revision?: number | null;
       /**
@@ -2657,6 +2732,14 @@ export interface components {
       ends_on: string;
       /** State */
       state: string;
+      /** Membership Pause Starts At */
+      membership_pause_starts_at: string | null;
+      /** Membership Pause Ends At */
+      membership_pause_ends_at: string | null;
+      /** Membership Pause Message */
+      membership_pause_message: string;
+      /** Membership Signups Paused */
+      membership_signups_paused: boolean;
       /** Reimbursement Data Available */
       reimbursement_data_available: boolean;
       /** Budget */
@@ -2686,6 +2769,14 @@ export interface components {
       ends_on: string;
       /** State */
       state: string;
+      /** Membership Pause Starts At */
+      membership_pause_starts_at: string | null;
+      /** Membership Pause Ends At */
+      membership_pause_ends_at: string | null;
+      /** Membership Pause Message */
+      membership_pause_message: string;
+      /** Membership Signups Paused */
+      membership_signups_paused: boolean;
     };
     /** QuarterReport */
     QuarterReport: {
@@ -2923,6 +3014,18 @@ export interface components {
       state: string;
       /** Signups Enabled */
       signups_enabled: boolean;
+      /** Signup Cap Total */
+      signup_cap_total: number | null;
+      /** Signup Cap Ride */
+      signup_cap_ride: number | null;
+      /** Signup Cap Driver */
+      signup_cap_driver: number | null;
+      /** Signup Cap Own */
+      signup_cap_own: number | null;
+      /** Signup Counts By Role */
+      signup_counts_by_role: {
+        [key: string]: number;
+      };
       /** Opens At */
       opens_at: string | null;
       /** Closes At */
@@ -3433,6 +3536,8 @@ export interface components {
     };
     /** WalkInWrite */
     WalkInWrite: {
+      /** Capacity Override Reason */
+      capacity_override_reason?: string | null;
       /** Member Id */
       member_id?: number | null;
       member?: components["schemas"]["MemberInput"] | null;
@@ -4471,6 +4576,41 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["MembershipView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  membership_signup_settings_api_admin_quarters__qid__membership_signups_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        qid: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["MembershipSignupSettingsWrite"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["QuarterPrivate"];
         };
       };
       /** @description Validation Error */

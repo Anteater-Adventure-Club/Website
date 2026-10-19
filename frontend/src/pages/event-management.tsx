@@ -17,6 +17,7 @@ import {
   Upload,
 } from "lucide-react";
 import { DeleteEventButton } from "../components/officer-forms";
+import { SignupCapacity } from "../components/signup-capacity";
 import {
   attendanceLabel,
   clock,
@@ -407,6 +408,7 @@ function SignupRoster({
   const action = useAction();
   return (
     <>
+      <SignupCapacity event={event} />
       <div className="toolbar">
         <div className="filters">
           <input

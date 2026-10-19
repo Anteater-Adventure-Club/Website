@@ -48,6 +48,211 @@ async function api(page: Page, url: string, method = "GET", body?: unknown) {
 }
 const dialog = (page: Page) => page.getByRole("dialog").last();
 
+test("J20 signup caps close individual transports and preserve existing places", async ({
+  page,
+  context,
+}) => {
+  await identity(context, "officer");
+  await page.goto(eventURL("Adventure", true) + "/edit");
+  await page.getByRole("tab", { name: "Signups & Carpools" }).click();
+  await page.getByLabel("Total signup limit", { exact: true }).fill("1");
+  await page.getByLabel("Needs a ride signup limit", { exact: true }).fill("5");
+  await page
+    .getByLabel("Driving others signup limit", { exact: true })
+    .fill("0");
+  await page.getByRole("button", { name: "Save Changes", exact: true }).click();
+  await expect(page).not.toHaveURL(/\/edit$/);
+  await identity(context, "General Rider");
+  await page.goto(eventURL("Adventure"));
+  const transport = page.getByRole("group", { name: "Ride situation" });
+  await expect(page.getByLabel("Signup capacity")).toHaveCount(0);
+  await expect(
+    transport.getByRole("button", {
+      name: "I can drive others!",
+      exact: true,
+    }),
+  ).toBeDisabled();
+  await expect(
+    transport.getByRole("button", {
+      name: "I need a ride!",
+      exact: true,
+    }),
+  ).toBeEnabled();
+  await expect(
+    transport.getByRole("button", {
+      name: "I have my own ride!",
+      exact: true,
+    }),
+  ).toBeEnabled();
+  await expect(
+    transport.getByRole("button", { name: "I can drive others!", exact: true }),
+  ).toHaveAccessibleDescription("0 spots remaining");
+  await expect(
+    transport.getByRole("button", { name: "I need a ride!", exact: true }),
+  ).toHaveAccessibleDescription("1 spot remaining");
+  await expect(
+    transport.getByRole("button", { name: "I have my own ride!", exact: true }),
+  ).toHaveAccessibleDescription("1 spot remaining");
+  await page.getByRole("button", { name: "Sign me up!", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "You’re signed up!" }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", {
+      name: "I have my own ride!",
+      exact: true,
+    })
+    .click();
+  await page.getByRole("button", { name: "Save Signup", exact: true }).click();
+  await expect
+    .poll(
+      async () =>
+        (
+          await api(
+            page,
+            `/api/me/signups?event_id=${fixture.events.Adventure.id}`,
+          )
+        ).items[0].role,
+    )
+    .toBe("own");
+  await identity(context, "Member");
+  await page.goto(eventURL("Adventure"));
+  await expect(
+    page.getByRole("button", {
+      name: "I need a ride!",
+      exact: true,
+    }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Sign me up!", exact: true }),
+  ).toBeDisabled();
+  await identity(context, "General Rider");
+  await page.goto(eventURL("Adventure"));
+  await page
+    .getByRole("button", { name: "Cancel Signup", exact: true })
+    .click();
+  await dialog(page)
+    .getByRole("button", { name: "Cancel Signup", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Sign me up!", exact: true }),
+  ).toBeEnabled();
+});
+
+test("J21 officers explicitly override capacity with an audit reason", async ({
+  page,
+  context,
+}) => {
+  await identity(context, "officer");
+  await page.goto("/admin/events");
+  const e = await api(page, "/api/admin/events", "POST", {
+    quarter_id: fixture.quarter.id,
+    name: "Capacity override test",
+    starts_at: fixture.events.Adventure.starts_at,
+    ends_at: fixture.events.Adventure.ends_at,
+    signup_cap_total: 0,
+  });
+  await api(page, `/api/admin/events/${e.id}/state`, "POST", {
+    state: "published",
+  });
+  await page.goto(`/admin/events/${e.slug}/${e.id}`);
+  await page.getByRole("button", { name: "Add Person", exact: true }).click();
+  await dialog(page).getByLabel("Find a member").fill("Fixture General Rider");
+  await dialog(page)
+    .getByRole("button", { name: /Fixture General Rider/ })
+    .click();
+  await dialog(page)
+    .getByRole("button", { name: "Add Participant", exact: true })
+    .click();
+  await expect(dialog(page).getByText("This event is full.")).toBeVisible();
+  await dialog(page)
+    .getByLabel("Allow this action to exceed signup limits")
+    .check();
+  await dialog(page)
+    .getByLabel("Capacity override reason")
+    .fill("Additional campsite confirmed");
+  await dialog(page)
+    .getByRole("button", { name: "Add Participant", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByLabel("Signup capacity")).toContainText(
+    "1 / 0 · Full",
+  );
+  expect((await api(page, `/api/admin/events/${e.id}/signups`)).total).toBe(1);
+});
+
+test("J22 scheduled membership pause displays the message and reopens automatically", async ({
+  page,
+  context,
+}) => {
+  await identity(context, "officer");
+  await page.goto("/admin/settings");
+  const card = page.locator(".record-card").filter({
+    has: page.getByRole("heading", { name: "Fixture Fall", exact: true }),
+  });
+  await card.getByRole("button", { name: "Membership Signups" }).click();
+  await dialog(page)
+    .getByLabel("Pause starts · Pacific")
+    .fill(new Date(Date.now() - 86_400_000).toISOString().slice(0, 16));
+  await dialog(page)
+    .getByLabel("Reopens · Pacific")
+    .fill(new Date(Date.now() + 86_400_000).toISOString().slice(0, 16));
+  await dialog(page)
+    .getByLabel("Message for new members")
+    .fill("Current members have first access to retreat.");
+  await dialog(page)
+    .getByRole("button", { name: "Save Membership Settings" })
+    .click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(card).toContainText("Membership signups: Paused");
+  await identity(context);
+  await page.goto("/membership");
+  await expect(
+    page.getByText("Current members have first access to retreat."),
+  ).toBeVisible();
+  await identity(context, "General Rider");
+  for (const route of [
+    "/membership",
+    "/my-aac/membership",
+    eventURL("Multi-day"),
+  ]) {
+    await page.goto(route);
+    await expect(
+      page.getByText("Current members have first access to retreat."),
+    ).toBeVisible();
+    await expect(page.getByText(/Signups reopen/)).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Submit payment details" }),
+    ).toHaveCount(0);
+  }
+  await identity(context, "Pending");
+  await page.goto("/my-aac/membership");
+  await expect(
+    page.getByRole("heading", {
+      name: "Payment awaiting confirmation",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await identity(context, "officer");
+  await api(
+    page,
+    `/api/admin/quarters/${fixture.quarter.id}/membership-signups`,
+    "PUT",
+    {
+      membership_pause_starts_at: new Date(Date.now() - 60_000).toISOString(),
+      membership_pause_ends_at: new Date(Date.now() + 8000).toISOString(),
+      membership_pause_message: "Reopening shortly.",
+    },
+  );
+  await identity(context, "General Rider");
+  await page.goto("/my-aac/membership");
+  await expect(page.getByText("Reopening shortly.")).toBeVisible();
+  await expect(page.locator(".membership-signup-form")).toBeVisible({
+    timeout: 15_000,
+  });
+  await expect(page.getByText("Reopening shortly.")).toHaveCount(0);
+});
+
 test("J15 My AAC navigation stays selected and membership keeps the selected quarter", async ({
   page,
   context,
