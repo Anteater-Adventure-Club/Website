@@ -56,15 +56,19 @@ After deploying:
 ## Google Sheets event sync
 
 This optional integration defaults to disabled. It creates a new spreadsheet in
-one connected club account's My Drive for each configured event. It uses a
-dedicated Google OAuth client, independently of member sign-in.
+one connected club account's My Drive for each configured event. It has separate
+OAuth settings and consent from member sign-in. Use either a dedicated OAuth
+client or the existing member sign-in client with both callback URLs registered.
 
-1. In the club's Google Cloud project, enable the **Google Sheets API** and
-   **Google Drive API**. Create a Web application OAuth client with the authorized
+1. In the Google Cloud project containing the OAuth client, enable the
+   **Google Sheets API** and **Google Drive API**. Use a Web application OAuth client with the authorized
    redirect URI `https://anteateradventureclub.com/api/admin/integrations/google-sheets/callback`.
    Configure consent for `openid`, `email`, and `https://www.googleapis.com/auth/drive.file`.
    Use a production consent configuration: external apps left in Testing normally
    receive refresh tokens that expire after seven days for Drive access.
+   Granting OAuth consent does not enable these APIs. A `SERVICE_DISABLED` or
+   `accessNotConfigured` response requires enabling the named API in the OAuth
+   client's project, waiting for propagation, and choosing **Sync now**.
 2. Set `GOOGLE_SHEETS_CLIENT_ID`, `GOOGLE_SHEETS_CLIENT_SECRET`, and
    `GOOGLE_SHEETS_TOKEN_KEY` on the API and worker. Generate the encryption key with
    `python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'`.

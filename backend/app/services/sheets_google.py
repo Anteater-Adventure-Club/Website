@@ -1,5 +1,6 @@
 """Small Google REST adapter. All user-provided cell values are literal strings."""
 import json
+import re
 import time
 import httpx
 from cryptography.fernet import Fernet, InvalidToken
@@ -69,11 +70,32 @@ class GoogleSheetsClient:
             if response.status_code == 403:
                 # Google sometimes reports quota errors as 403 instead of 429.
                 try:
-                    reasons = [e.get("reason") for e in response.json().get("error", {}).get("errors", [])]
-                except (ValueError, AttributeError):
-                    reasons = []
+                    error = response.json().get("error", {})
+                    reasons = {e.get("reason") for e in error.get("errors", [])
+                               if isinstance(e, dict) and isinstance(e.get("reason"), str)}
+                    details = [d for d in error.get("details", []) if isinstance(d, dict)]
+                except (ValueError, AttributeError, TypeError):
+                    reasons, details = set(), []
                 if any(r in {"rateLimitExceeded", "userRateLimitExceeded", "quotaExceeded"} for r in reasons):
                     raise GoogleFailure("Google’s request limit was reached. Updates will retry automatically.")
+                disabled = next((d for d in details if d.get("reason") == "SERVICE_DISABLED"), None)
+                if "accessNotConfigured" in reasons or disabled is not None:
+                    metadata = disabled.get("metadata", {}) if disabled else {}
+                    if not isinstance(metadata, dict):
+                        metadata = {}
+                    api = {"drive.googleapis.com": "Google Drive API", "sheets.googleapis.com": "Google Sheets API"}.get(
+                        metadata.get("service") if isinstance(metadata.get("service"), str) else None,
+                        "Google Sheets API" if url.startswith(SHEETS + "/") else "Google Drive API",
+                    )
+                    consumer = metadata.get("consumer")
+                    project = ("Google Cloud project " + consumer.removeprefix("projects/")
+                               if isinstance(consumer, str) and re.fullmatch(r"projects/[0-9]{1,20}", consumer)
+                               else "the Google Cloud project used by the OAuth client")
+                    # Only known API names and a numeric project ID may leave Google's response.
+                    raise GoogleFailure(
+                        f"{api} is disabled for {project}. Enable it in that project, wait a few minutes, "
+                        "then choose Sync now.", permanent=True,
+                    )
                 raise GoogleFailure("Google denied access. Check the club account’s file and sharing permissions, then sync again.",
                                     permanent=True)
             if response.status_code == 404:
