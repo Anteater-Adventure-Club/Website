@@ -216,6 +216,32 @@ form {
 .field-error {
   color: #a62e26;
 }
+.sheet-column-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 0.75rem;
+}
+.sheet-column-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+.sheet-column-row > .field {
+  flex: 1;
+}
+.sheet-column-row .actions {
+  flex-wrap: nowrap;
+}
+.sheet-preview {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.sheet-preview td {
+  min-width: 140px;
+  max-width: 320px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .check-field {
   display: flex;
   align-items: flex-start;

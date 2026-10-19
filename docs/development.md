@@ -66,6 +66,16 @@ Choose additional suites for the affected behavior:
 
 Keyboard simulation does not replace a check on a physical phone. Test output stays in ignored `artifacts/`.
 
+The Google Sheets browser test uses synthetic API responses and only needs Vite:
+`npx playwright test google-sheets.spec.ts`. It covers column configuration,
+pause/resume, retry messages, disconnect, accessibility, and viewport overflow.
+`backend/tests/test_google_sheets.py` exercises the transactional queue, worker
+recovery, sharing, and OAuth against the disposable PostgreSQL database;
+`backend/tests/test_sheets_google.py` tests the Google REST adapter with mocked
+HTTP responses. None of these tests contact Google. Follow the
+[Google Sheets deployment steps](deployment.md#google-sheets-event-sync) for a
+separate acceptance check using a test Google account.
+
 ### Production proxy checks
 
 Social previews and page-speed checks need the production Nginx configuration and fixture API. Use the **Production HTML embeds and responsive branding** setup in the [CI workflow](../.github/workflows/checks.yml) to build the frontend and run the proxy on port 8080. Then, from `frontend/`:

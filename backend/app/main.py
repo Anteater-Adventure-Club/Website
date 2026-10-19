@@ -17,7 +17,7 @@ from .auth import bootstrap, make_oauth, router as auth_router
 from .config import Settings
 from .db import make_engine, session_factory
 from .schemas import SiteSettings
-from .routers import editorial, events, finance, imports, members, overview, participation, social
+from .routers import editorial, events, finance, google_sheets, imports, members, overview, participation, social
 
 logger = logging.getLogger("aac.http")
 if not logger.handlers:
@@ -51,6 +51,7 @@ def create_app(settings=None, engine=None):
         openapi_url="/api/openapi.json",
     )
     app.state.settings, app.state.sessions, app.state.oauth = settings, sessions, make_oauth(settings)
+    app.state.sheets_oauth = google_sheets.make_sheets_oauth(settings)
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.session_secret,
@@ -137,6 +138,7 @@ def create_app(settings=None, engine=None):
         imports.router,
         overview.router,
         social.router,
+        google_sheets.router,
     ):
         app.include_router(router)
     return app

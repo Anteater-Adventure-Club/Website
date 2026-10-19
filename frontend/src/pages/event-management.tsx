@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { DeleteEventButton } from "../components/officer-forms";
 import { SignupCapacity } from "../components/signup-capacity";
+import { EventGoogleSheet } from "../components/event-google-sheet";
 import {
   attendanceLabel,
   clock,
@@ -85,6 +86,7 @@ export function EventManagement() {
         ["carpools", "Carpools"],
         ["check-in-log", "Check-in Log"],
         ["questions", "Questions"],
+        ["google-sheets", "Google Sheets"],
         ["trips", "Trips & Mileage"],
         ["recap", "Recap"],
       ]
@@ -215,6 +217,8 @@ export function EventManagement() {
           <AttendanceLog event={event} locked={!operational} />
         ) : tab === "questions" ? (
           <Questions event={event} />
+        ) : tab === "google-sheets" ? (
+          <EventGoogleSheet eventId={event.id} />
         ) : tab === "trips" ? (
           <Trips
             event={event}
@@ -744,7 +748,8 @@ function Questions({ event }: { event: AdminEvent }) {
                 <div className="history-row" key={p.signup_id}>
                   <strong>{p.name}</strong>
                   <span>
-                    {(Array.isArray(answer) ? answer.join(", ") : answer) || "—"}
+                    {(Array.isArray(answer) ? answer.join(", ") : answer) ||
+                      "—"}
                   </span>
                 </div>
               );

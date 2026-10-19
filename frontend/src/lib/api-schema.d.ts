@@ -1424,6 +1424,93 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/admin/integrations/google-sheets": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Connection Status */
+    get: operations["connection_status_api_admin_integrations_google_sheets_get"];
+    put?: never;
+    post?: never;
+    /** Disconnect */
+    delete: operations["disconnect_api_admin_integrations_google_sheets_delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/integrations/google-sheets/connect": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Connect */
+    post: operations["connect_api_admin_integrations_google_sheets_connect_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/integrations/google-sheets/callback": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Callback */
+    get: operations["callback_api_admin_integrations_google_sheets_callback_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/events/{eid}/google-sheet": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Event Sheet */
+    get: operations["event_sheet_api_admin_events__eid__google_sheet_get"];
+    /** Configure */
+    put: operations["configure_api_admin_events__eid__google_sheet_put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/events/{eid}/google-sheet/sync": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Sync */
+    post: operations["sync_api_admin_events__eid__google_sheet_sync_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1976,6 +2063,57 @@ export interface components {
       published_recap?: {
         [key: string]: unknown;
       } | null;
+    };
+    /** EventSheetView */
+    EventSheetView: {
+      /** Configured */
+      configured: boolean;
+      /** Enabled */
+      enabled: boolean;
+      /** Revision */
+      revision: number | null;
+      /** Columns */
+      columns: components["schemas"]["SheetColumn"][];
+      /** Catalog */
+      catalog: components["schemas"]["SheetColumn"][];
+      /** Spreadsheet Url */
+      spreadsheet_url: string | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status:
+        | "not_configured"
+        | "provisioning"
+        | "pending"
+        | "synced"
+        | "paused"
+        | "retrying"
+        | "attention";
+      /** Last Synced At */
+      last_synced_at: string | null;
+      /** Pending Since */
+      pending_since: string | null;
+      /** Error */
+      error: string;
+      /** Sharing Pending */
+      sharing_pending: boolean;
+      /** Sharing Error */
+      sharing_error: string;
+      /** Preview */
+      preview: string[][];
+    };
+    /** EventSheetWrite */
+    EventSheetWrite: {
+      /** Expected Revision */
+      expected_revision?: number | null;
+      /**
+       * Enabled
+       * @default true
+       */
+      enabled: boolean;
+      /** Columns */
+      columns: components["schemas"]["SheetColumn"][];
     };
     /** EventWrite */
     "EventWrite-Input": {
@@ -3198,6 +3336,42 @@ export interface components {
       oauth_available: boolean;
       /** Profile Complete */
       profile_complete: boolean;
+    };
+    /** SheetColumn */
+    SheetColumn: {
+      /** Key */
+      key: string;
+      /** Header */
+      header: string;
+    };
+    /** SheetsConnectURL */
+    SheetsConnectURL: {
+      /** Url */
+      url: string;
+    };
+    /** SheetsConnectWrite */
+    SheetsConnectWrite: {
+      /** Event Id */
+      event_id: number;
+    };
+    /** SheetsConnectionView */
+    SheetsConnectionView: {
+      /** Available */
+      available: boolean;
+      /** Connected */
+      connected: boolean;
+      /** Email */
+      email: string | null;
+      /** Error */
+      error: string;
+      /** Worker Seen At */
+      worker_seen_at: string | null;
+      /** Worker Healthy */
+      worker_healthy: boolean;
+      /** Pending Count */
+      pending_count: number;
+      /** Oldest Pending At */
+      oldest_pending_at: string | null;
     };
     /** SignupOwn */
     SignupOwn: {
@@ -6844,6 +7018,200 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["AdminOverview"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  connection_status_api_admin_integrations_google_sheets_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SheetsConnectionView"];
+        };
+      };
+    };
+  };
+  disconnect_api_admin_integrations_google_sheets_delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+    };
+  };
+  connect_api_admin_integrations_google_sheets_connect_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SheetsConnectWrite"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SheetsConnectURL"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  callback_api_admin_integrations_google_sheets_callback_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+    };
+  };
+  event_sheet_api_admin_events__eid__google_sheet_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        eid: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EventSheetView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  configure_api_admin_events__eid__google_sheet_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        eid: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["EventSheetWrite"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EventSheetView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  sync_api_admin_events__eid__google_sheet_sync_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        eid: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["Revision"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EventSheetView"];
         };
       };
       /** @description Validation Error */

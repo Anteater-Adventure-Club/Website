@@ -154,8 +154,20 @@ const privacySections: Section[] = [
           account if you do not have a UCI email. Google provides your account
           identifier, name, email address, and verification information so we
           can recognize you and connect you to your club records. We do not
-          receive your Google password or request access to your Gmail messages,
-          Google Drive files, contacts, or calendar.
+          receive your Google password. Ordinary website sign-in does not
+          request access to your Google Drive files, Gmail messages, contacts,
+          or calendar.
+        </p>
+        <p>
+          Officers may separately connect a club Google account to create event
+          signup spreadsheets. For configured events, selected contact details,
+          signup information, and custom-question answers are copied to Google
+          Sheets and kept up to date. These spreadsheets belong to the connected
+          club account and are shared with current website officers. Cancelled
+          signups remain marked as cancelled. This connection accesses files
+          created for the integration; it does not give us access to members’
+          personal Google Drive files. Disconnecting stops updates but does not
+          delete spreadsheets or existing Google sharing permissions.
         </p>
         <p>
           You can remove the site’s access in your{" "}
@@ -194,9 +206,9 @@ const privacySections: Section[] = [
           </li>
           <li>
             <strong>Service providers</strong> process information needed for
-            their services, including Google for sign-in, Cloudflare for traffic
-            delivery and security, and infrastructure used to host the website,
-            database, and backups.
+            their services, including Google for sign-in and configured event
+            signup spreadsheets, Cloudflare for traffic delivery and security,
+            and infrastructure used to host the website, database, and backups.
           </li>
           <li>
             <strong>Emergency services and UCI personnel</strong> may receive

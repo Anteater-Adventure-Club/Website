@@ -53,6 +53,79 @@ After deploying:
 3. Open public pages through direct links. Check sign-in, return navigation, logout, officer access, and an existing published photo.
 4. For storage or proxy changes, restart the affected container and confirm records, media, and API name resolution still work.
 
+## Google Sheets event sync
+
+This optional integration defaults to disabled. It creates a new spreadsheet in
+one connected club account's My Drive for each configured event. It uses a
+dedicated Google OAuth client, independently of member sign-in.
+
+1. In the club's Google Cloud project, enable the **Google Sheets API** and
+   **Google Drive API**. Create a Web application OAuth client with the authorized
+   redirect URI `https://anteateradventureclub.com/api/admin/integrations/google-sheets/callback`.
+   Configure consent for `openid`, `email`, and `https://www.googleapis.com/auth/drive.file`.
+   Use a production consent configuration: external apps left in Testing normally
+   receive refresh tokens that expire after seven days for Drive access.
+2. Set `GOOGLE_SHEETS_CLIENT_ID`, `GOOGLE_SHEETS_CLIENT_SECRET`, and
+   `GOOGLE_SHEETS_TOKEN_KEY` on the API and worker. Generate the encryption key with
+   `python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'`.
+   Store it as a secret, preserve it across releases, and include it in the private
+   recovery procedure. It must differ from `SESSION_SECRET`. Losing the key
+   requires reconnecting the same club account.
+3. Deploy the API migration before starting the worker. Add a private Coolify
+   application built from the same repository, branch, root context, and
+   `deploy/backend.Dockerfile`. Set **Docker Build Stage Target** to `sheets-worker`.
+   This target starts `python -m app.workers.google_sheets` automatically. Leave
+   the API's build target empty (the default `api` target). Give the worker the
+   runtime `DATABASE_URL`,
+   `APP_ENV`, `APP_URL`, `SESSION_SECRET`, and the Google Sheets secrets. No domain,
+   inbound port, database-owner credential, or media volume is needed.
+4. Keep the worker image's built-in health check:
+   `python -m app.workers.google_sheets --health` (30-second interval, 90-second
+   startup grace). Coolify [uses Dockerfile health checks ahead of dashboard
+   overrides](https://coolify.io/docs/applications/configuration/health-checks),
+   so selecting the worker target is required. Use automatic restart and the same
+   branch auto-deploy settings as the API. Set `GOOGLE_SHEETS_ENABLED=true` on both
+   services only when configured.
+   Startup validates credentials and the schema revision. PostgreSQL elects one
+   active worker during overlapping deployments.
+5. Sign in as an officer and open an event's **Google Sheets** tab. Connect the
+   **club** Google account, select columns, and create a spreadsheet. Every officer
+   will receive edit access using their website email, without notification email.
+   Confirm that the account can share files with UCI addresses under its Workspace
+   policies. The Signups tab is protected; Notes and other tabs remain editable.
+
+The worker coalesces updates for 30 seconds and polls every five seconds. Under
+normal load, committed signups and changes arrive within one minute. Outages and
+rate limits retry with backoff; signup requests never wait for Google. One elected
+worker shares a 40-request/minute budget. The event tab shows last sync time,
+pending age, data errors, and sharing errors separately. The connection status API
+also reports worker heartbeat, pending count, and oldest pending timestamp. Monitor
+worker health, growing queue age, `sheet_worker_failure` logs, and repeated errors.
+Logs contain IDs and status only, never tokens or signup answers.
+
+**Recovery:** reconnect the same Google account after token revocation. Restore a
+deleted spreadsheet/tab from Google before using **Sync now**; the worker never
+silently replaces missing spreadsheets. An uncertain create is recovered by a
+private Drive provisioning marker. If it cannot be found, ask an administrator
+to verify the account's Drive before clearing the provisioning attempt; never
+blindly repeat creation. Manually granted permissions are preserved. Failed officer
+access changes remain visible and retryable. Permission reconciliation continues
+while data sync is paused and is checked periodically every 15 minutes.
+
+Disconnecting the club account deletes its encrypted stored credential and stops
+all jobs; files and sharing remain in Google. Reconnecting the same account queues
+catch-up updates. Event deletion retains a cleanup record until integration-granted
+access is removed; the owner keeps the spreadsheet. Duplicates and series dates
+must each be configured explicitly. Changing the owning Google account is a
+separate migration and is not supported by reconnect.
+
+Before enabling real events, use a test event and Google account to verify
+backfill, edits, cancellation/restoration, multiple-select answers, officer
+grant/revoke, and preservation of a manually edited Notes tab. Verify the normal
+update delay is at most 60 seconds. Never use production member data in automated
+Google acceptance tests. Disabling `GOOGLE_SHEETS_ENABLED` and stopping the worker
+leaves ordinary signup behavior intact; retain the additive database tables.
+
 ## Frontend asset storage
 
 Every replacement web container must attach the same named volume at `/var/lib/aac/assets`. Startup publishes the image's hashed assets before it becomes healthy. Active releases remain available; inactive releases are retained for seven days and then cleaned up automatically. A tab using an expired release may need a refresh. Monitor volume usage and asset-related startup errors.

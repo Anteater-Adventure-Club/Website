@@ -1,4 +1,4 @@
-FROM python:3.12.14-slim-bookworm@sha256:1aaa65a85fda306ffb8b910824d4e93bdce61e212c7e87168123ea3073b41a1a
+FROM python:3.12.14-slim-bookworm@sha256:1aaa65a85fda306ffb8b910824d4e93bdce61e212c7e87168123ea3073b41a1a AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONPATH=/app/backend
 WORKDIR /app/backend
 COPY backend/requirements.txt ./requirements.txt
@@ -14,6 +14,12 @@ RUN mkdir -p /app/media && chown aac:aac /app/media
 ARG SOURCE_COMMIT=development
 ENV RELEASE_SHA=$SOURCE_COMMIT
 USER aac
+
+FROM runtime AS sheets-worker
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 CMD python -m app.workers.google_sheets --health
+CMD ["python", "-m", "app.workers.google_sheets"]
+
+FROM runtime AS api
 EXPOSE 8000
 HEALTHCHECK --interval=15s --timeout=5s --start-period=45s --retries=3 CMD python /app/deploy/healthcheck.py
 CMD ["python", "/app/deploy/start-api.py"]

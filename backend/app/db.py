@@ -23,4 +23,7 @@ def get_db(request: Request) -> Generator[Session, None, None]:
 
 
 def session_factory(engine):
+    from .services.sheets_queue import install_hooks
+
+    install_hooks()
     return sessionmaker(engine, expire_on_commit=False)

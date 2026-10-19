@@ -842,3 +842,65 @@ class QuestionAnswers(DTO):
     questions: list[Question]
     items: list[QuestionAnswerRow]
     totals: dict[str, dict[str, int]]
+
+
+class SheetColumn(DTO):
+    key: str = Field(min_length=1, max_length=100)
+    header: str = Field(min_length=1, max_length=200)
+
+    @field_validator("header")
+    @classmethod
+    def header_not_blank(cls, value):
+        if not value.strip():
+            raise ValueError("Enter a column heading")
+        return value.strip()
+
+
+class EventSheetWrite(Revision):
+    enabled: bool = True
+    columns: list[SheetColumn] = Field(min_length=1, max_length=27)
+
+    @model_validator(mode="after")
+    def columns_valid(self):
+        if len({c.key for c in self.columns}) != len(self.columns):
+            raise ValueError("Select each column only once")
+        if len({c.header.casefold() for c in self.columns}) != len(self.columns):
+            raise ValueError("Column headings must be distinct")
+        if "status" not in {c.key for c in self.columns}:
+            raise ValueError("Keep the signup status column to identify cancellations")
+        return self
+
+
+class SheetsConnectWrite(DTO):
+    event_id: int
+
+
+class SheetsConnectURL(DTO):
+    url: str
+
+
+class SheetsConnectionView(DTO):
+    available: bool
+    connected: bool
+    email: str | None
+    error: str
+    worker_seen_at: datetime | None
+    worker_healthy: bool
+    pending_count: int
+    oldest_pending_at: datetime | None
+
+
+class EventSheetView(DTO):
+    configured: bool
+    enabled: bool
+    revision: int | None
+    columns: list[SheetColumn]
+    catalog: list[SheetColumn]
+    spreadsheet_url: str | None
+    status: Literal["not_configured", "provisioning", "pending", "synced", "paused", "retrying", "attention"]
+    last_synced_at: datetime | None
+    pending_since: datetime | None
+    error: str
+    sharing_pending: bool
+    sharing_error: str
+    preview: list[list[str]]

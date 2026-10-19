@@ -1,5 +1,6 @@
 from datetime import date, datetime, timezone
 from decimal import Decimal
+from uuid import uuid4
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
@@ -224,6 +225,67 @@ class Signup(Base):
         CheckConstraint("role IN ('ride','driver','own','unknown')", name="ck_signups_role"),
         CheckConstraint("seats >= 0"),
     )
+
+
+class SheetsConnection(Base):
+    __tablename__ = "google_sheets_connection"
+    id: Mapped[int] = mapped_column(primary_key=True, default=1)
+    subject: Mapped[str | None] = mapped_column(String(200))
+    email: Mapped[str | None] = mapped_column(String(254))
+    refresh_token: Mapped[str | None] = mapped_column(Text)
+    generation: Mapped[int] = mapped_column(default=0)
+    error: Mapped[str] = mapped_column(String(500), default="")
+    worker_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    __table_args__ = (CheckConstraint("id = 1"),)
+
+
+class SheetsOAuthFlow(Base):
+    __tablename__ = "google_sheets_oauth_flows"
+    state_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    officer_id: Mapped[int] = mapped_column(ForeignKey("members.id", ondelete="CASCADE"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    return_to: Mapped[str] = mapped_column(String(500))
+
+
+class EventSheet(Base):
+    """Configuration and coalescing transactional outbox; retained for deletion cleanup."""
+    __tablename__ = "event_google_sheets"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_id: Mapped[int | None] = mapped_column(ForeignKey("events.id", ondelete="SET NULL"), unique=True)
+    title: Mapped[str] = mapped_column(String(300))
+    provision_key: Mapped[str] = mapped_column(String(32), unique=True, default=lambda: uuid4().hex)
+    provision_started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    spreadsheet_id: Mapped[str | None] = mapped_column(String(200), unique=True)
+    sheet_id: Mapped[int | None]
+    columns: Mapped[list] = mapped_column(JSON)
+    enabled: Mapped[bool] = mapped_column(default=True)
+    revision: Mapped[int] = mapped_column(default=1)
+    requested: Mapped[int] = mapped_column(default=1)
+    completed: Mapped[int] = mapped_column(default=0)
+    due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=now)
+    pending_since: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=now)
+    last_synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    error: Mapped[str] = mapped_column(String(500), default="")
+    attempts: Mapped[int] = mapped_column(default=0)
+    blocked: Mapped[bool] = mapped_column(default=False)
+    access_requested: Mapped[int] = mapped_column(default=1)
+    access_completed: Mapped[int] = mapped_column(default=0)
+    access_due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=now)
+    access_error: Mapped[str] = mapped_column(String(500), default="")
+    access_attempts: Mapped[int] = mapped_column(default=0)
+    access_blocked: Mapped[bool] = mapped_column(default=False)
+    claim_token: Mapped[str | None] = mapped_column(String(32))
+    claimed_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    __table_args__ = (Index("ix_event_google_sheets_due", "due_at", "access_due_at"),)
+
+
+class SheetPermission(Base):
+    __tablename__ = "google_sheet_permissions"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    sheet_id: Mapped[int] = mapped_column(ForeignKey("event_google_sheets.id", ondelete="CASCADE"), index=True)
+    email: Mapped[str] = mapped_column(String(254))
+    permission_id: Mapped[str | None] = mapped_column(String(200))
+    __table_args__ = (UniqueConstraint("sheet_id", "email"),)
 
 
 class Card(Base):

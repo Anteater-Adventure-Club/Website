@@ -15,6 +15,10 @@ class Settings:
     session_secret: str = field(default_factory=lambda: os.getenv("SESSION_SECRET", ""))
     google_client_id: str = field(default_factory=lambda: os.getenv("GOOGLE_CLIENT_ID", ""))
     google_client_secret: str = field(default_factory=lambda: os.getenv("GOOGLE_CLIENT_SECRET", ""))
+    sheets_enabled: bool = field(default_factory=lambda: os.getenv("GOOGLE_SHEETS_ENABLED", "false").lower() == "true")
+    sheets_client_id: str = field(default_factory=lambda: os.getenv("GOOGLE_SHEETS_CLIENT_ID", ""))
+    sheets_client_secret: str = field(default_factory=lambda: os.getenv("GOOGLE_SHEETS_CLIENT_SECRET", ""))
+    sheets_token_key: str = field(default_factory=lambda: os.getenv("GOOGLE_SHEETS_TOKEN_KEY", ""))
     initial_officers: str = field(
         default_factory=lambda: os.getenv("INITIAL_OFFICER_EMAILS", "gdodge@uci.edu")
     )
@@ -29,6 +33,12 @@ class Settings:
     discord: str = field(default_factory=lambda: os.getenv("DISCORD_URL", ""))
 
     def validate(self):
+        if self.sheets_enabled:
+            from cryptography.fernet import Fernet
+
+            if not self.sheets_client_id or not self.sheets_client_secret or not self.sheets_token_key:
+                raise RuntimeError("Google Sheets requires its client ID, client secret, and token encryption key")
+            Fernet(self.sheets_token_key.encode())
         if self.public_site_url:
             url = urlsplit(self.public_site_url)
             if (url.scheme not in {"http", "https"} or not url.hostname or url.username or url.password
