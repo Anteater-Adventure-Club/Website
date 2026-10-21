@@ -1,9 +1,17 @@
 import { useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router";
-import { ArrowRight, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  MapPin,
+  Minus,
+} from "lucide-react";
 import {
   dateLabel,
   dateRange,
+  eventURL,
   pacificDate,
   photoURL,
   useAPI,
@@ -11,6 +19,12 @@ import {
 import type { Schema } from "../lib/api";
 import { staticAssetURL } from "../lib/images";
 import { useIdentity } from "../lib/context";
+import {
+  calendarNotices,
+  federalHolidaySource,
+  noticesOnDate,
+  uciCalendarSource,
+} from "../lib/calendar-notices";
 import {
   Button,
   Dialog,
@@ -21,6 +35,16 @@ import {
   Pill,
   Polaroid,
 } from "../components/ui";
+
+const calendarCategories = [
+  { kind: "regular", label: "Events" },
+  { kind: "meeting", label: "Weekly meeting" },
+  { kind: "picnic", label: "Potluck picnic" },
+  { kind: "retreat", label: "Retreat" },
+  { kind: "federal", label: "Federal holidays" },
+  { kind: "academic", label: "UCI dates" },
+] as const;
+type CalendarCategory = (typeof calendarCategories)[number]["kind"];
 
 function GalleryDialog({
   row,
@@ -58,12 +82,18 @@ function GalleryDialog({
 
 export function Events() {
   const [params] = useSearchParams();
-  const initial = pacificDate().split("-").map(Number);
+  const today = pacificDate();
+  const initial = today.split("-").map(Number);
   const [month, setMonth] = useState({
     year: initial[0],
     month: initial[1] - 1,
   });
-  const [selected, setSelected] = useState(pacificDate());
+  const [selected, setSelected] = useState(today);
+  const [hiddenCategories, setHiddenCategories] = useState<CalendarCategory[]>(
+    [],
+  );
+  const isVisible = (kind: CalendarCategory) =>
+    !hiddenCategories.includes(kind);
   const [galleryRow, setGalleryRow] = useState<Schema<"GalleryRow"> | null>(
     null,
   );
@@ -76,18 +106,26 @@ export function Events() {
     `/api/events?from=${iso(1)}&to=${iso(last.getUTCDate())}&limit=200`,
   );
   const gallery = useAPI("Page_GalleryRow_", "/api/gallery?limit=100");
-  const activity = params.get("activity");
-  const all = (events.data?.items || []).filter((e) =>
-    !activity || activity === "retreat"
-      ? !activity || e.kind === "retreat"
-      : activity === "meeting"
-        ? ["meeting", "picnic"].includes(e.kind)
-        : activity === "beach"
-          ? /beach|tide|coast|creek|laguna|pier/i.test(e.name + e.destination)
-          : activity === "city"
-            ? /city|los angeles|san diego|balboa/i.test(e.name + e.destination)
-            : true,
+  const notices = calendarNotices(month.year).filter((notice) =>
+    isVisible(notice.kind),
   );
+  const selectedNotices = noticesOnDate(notices, selected);
+  const activity = params.get("activity");
+  const all = (events.data?.items || [])
+    .filter((e) => isVisible(e.kind))
+    .filter((e) =>
+      !activity || activity === "retreat"
+        ? !activity || e.kind === "retreat"
+        : activity === "meeting"
+          ? ["meeting", "picnic"].includes(e.kind)
+          : activity === "beach"
+            ? /beach|tide|coast|creek|laguna|pier/i.test(e.name + e.destination)
+            : activity === "city"
+              ? /city|los angeles|san diego|balboa/i.test(
+                  e.name + e.destination,
+                )
+              : true,
+    );
   const onDay = (day: string) =>
     all.filter(
       (e) =>
@@ -105,6 +143,12 @@ export function Events() {
     setSelected(
       `${next.getUTCFullYear()}-${String(next.getUTCMonth() + 1).padStart(2, "0")}-01`,
     );
+  }
+  function goToToday() {
+    const date = pacificDate();
+    const [year, month] = date.split("-").map(Number);
+    setMonth({ year, month: month - 1 });
+    setSelected(date);
   }
   return (
     <div className="page events-page">
@@ -142,13 +186,62 @@ export function Events() {
           >
             <ChevronRight size={18} />
           </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            className="calendar-today"
+            onClick={goToToday}
+          >
+            Today
+          </Button>
         </div>
-        <div className="calendar-legend">
-          <span className="regular">Event</span>
-          <span className="meeting">Weekly meeting</span>
-          <span className="picnic">Potluck picnic</span>
-          <span className="retreat">Retreat</span>
+        <div
+          className="calendar-legend"
+          role="group"
+          aria-label="Calendar categories"
+        >
+          {calendarCategories.map(({ kind, label }) => (
+            <button
+              type="button"
+              key={kind}
+              className={`calendar-filter ${kind}`}
+              aria-pressed={isVisible(kind)}
+              onClick={() =>
+                setHiddenCategories((hidden) =>
+                  hidden.includes(kind)
+                    ? hidden.filter((item) => item !== kind)
+                    : [...hidden, kind],
+                )
+              }
+            >
+              {isVisible(kind) ? (
+                <Check size={13} aria-hidden="true" />
+              ) : (
+                <Minus size={13} aria-hidden="true" />
+              )}
+              {label}
+            </button>
+          ))}
         </div>
+        <div className="calendar-filter-help">
+          <span>
+            Tap a category to show or hide it. Select a date for details.
+            <span className="calendar-link-help">
+              {" "}
+              Select an event → to open its page.
+            </span>
+          </span>
+          {hiddenCategories.length > 0 && (
+            <button type="button" onClick={() => setHiddenCategories([])}>
+              Show all
+            </button>
+          )}
+        </div>
+        {hiddenCategories.length === calendarCategories.length && (
+          <p className="notice" role="status">
+            All categories are hidden. Turn one on or choose Show all.
+          </p>
+        )}
         {events.error ? (
           <Failure error={events.error} retry={events.refetch} />
         ) : (
@@ -164,28 +257,97 @@ export function Events() {
             {Array.from({ length: last.getUTCDate() }, (_, i) => {
               const day = iso(i + 1);
               const rows = onDay(day);
+              const referenceDates = noticesOnDate(notices, day);
+              const items = [
+                ...rows.map((event) => ({
+                  id: `event-${event.id}`,
+                  title:
+                    event.state === "cancelled"
+                      ? `Cancelled · ${event.name}`
+                      : event.name,
+                  kind: event.kind,
+                  cancelled: event.state === "cancelled",
+                  href: eventURL(event),
+                })),
+                ...referenceDates.map((notice) => ({
+                  id: `${notice.kind}-${notice.start}-${notice.title}`,
+                  title: notice.title,
+                  kind: notice.kind,
+                  cancelled: false,
+                  href: null,
+                })),
+              ];
+              const shown = items.slice(0, 3);
               return (
-                <button
+                <div
                   key={day}
-                  className={`calendar-day ${rows[0]?.kind || ""} ${rows.every((e) => e.state === "cancelled") && rows.length ? "cancelled" : ""} ${selected === day ? "selected" : ""}`}
-                  aria-pressed={selected === day}
-                  aria-label={`${dateLabel(day, { month: "long", day: "numeric" })}, ${rows.length} events`}
-                  onClick={() => setSelected(day)}
+                  className={`calendar-day ${items.length === 1 ? "single-item" : ""} ${selected === day ? "selected" : ""}`}
                 >
-                  <span>{i + 1}</span>
-                  <div className="calendar-day-events">
-                    {rows.map((e) => (
-                      <span key={e.id}>{e.name}</span>
+                  <button
+                    type="button"
+                    className="calendar-day-select"
+                    aria-current={day === today ? "date" : undefined}
+                    aria-pressed={selected === day}
+                    aria-label={`${dateLabel(day, { month: "long", day: "numeric" })}, ${items.length} ${items.length === 1 ? "item" : "items"}${items.length ? `: ${items.map((item) => item.title).join(", ")}` : ""}`}
+                    onClick={() => setSelected(day)}
+                  >
+                    <span className="calendar-day-number">{i + 1}</span>
+                  </button>
+                  <span className="calendar-day-events">
+                    {shown.map((item) => {
+                      const className = `calendar-item ${item.kind} ${item.cancelled ? "cancelled" : ""}`;
+                      return item.href ? (
+                        <Link
+                          to={item.href}
+                          className={`${className} calendar-event-link`}
+                          key={item.id}
+                          title={`View event: ${item.title}`}
+                        >
+                          <span className="calendar-event-title">
+                            {item.title}
+                          </span>
+                          <ArrowRight size={10} aria-hidden="true" />
+                        </Link>
+                      ) : (
+                        <span
+                          className={className}
+                          key={item.id}
+                          title={item.title}
+                          aria-hidden="true"
+                        >
+                          {item.title}
+                        </span>
+                      );
+                    })}
+                  </span>
+                  <span className="calendar-day-dots" aria-hidden="true">
+                    {shown.map((item) => (
+                      <span
+                        className={`calendar-dot ${item.kind} ${item.cancelled ? "cancelled" : ""}`}
+                        key={item.id}
+                      />
                     ))}
-                  </div>
-                  {rows.length > 1 && (
-                    <small className="event-count">{rows.length} events</small>
+                  </span>
+                  {items.length > shown.length && (
+                    <small className="calendar-more" aria-hidden="true">
+                      +{items.length - shown.length}
+                      <span> more</span>
+                    </small>
                   )}
-                </button>
+                </div>
               );
             })}
           </div>
         )}
+        <p className="calendar-source-note muted">
+          <a href={federalHolidaySource} target="_blank" rel="noreferrer">
+            U.S. federal holidays
+          </a>
+          {" · "}
+          <a href={uciCalendarSource} target="_blank" rel="noreferrer">
+            Key UCI dates: Fall 2026–Spring 2028
+          </a>
+        </p>
       </Panel>
       <section className="section">
         <div className="section-heading">
@@ -198,6 +360,26 @@ export function Events() {
           </h2>
           <span className="muted">Pacific time</span>
         </div>
+        {selectedNotices.length > 0 && (
+          <Panel className="calendar-notices">
+            <ul className="calendar-notice-list">
+              {selectedNotices.map((notice) => (
+                <li key={`${notice.kind}-${notice.start}-${notice.title}`}>
+                  <a href={notice.source} target="_blank" rel="noreferrer">
+                    {notice.title}
+                  </a>
+                  <small className="muted">
+                    {notice.kind === "federal"
+                      ? "U.S. federal holiday"
+                      : "UCI academic date"}
+                    {notice.start !== notice.end &&
+                      ` · ${dateLabel(notice.start, { month: "short", day: "numeric", year: "numeric" })} – ${dateLabel(notice.end, { month: "short", day: "numeric", year: "numeric" })}`}
+                  </small>
+                </li>
+              ))}
+            </ul>
+          </Panel>
+        )}
         {events.isPending ? (
           <Loading />
         ) : onDay(selected).length ? (
@@ -206,11 +388,14 @@ export function Events() {
               <EventCard key={e.id} event={e} />
             ))}
           </div>
-        ) : (
+        ) : !selectedNotices.length ? (
           <Panel>
-            <p>No adventures on this date. Pick another day to explore.</p>
+            <p>
+              No visible events or dates. Pick another day or adjust the
+              categories above.
+            </p>
           </Panel>
-        )}
+        ) : null}
       </section>
       {recurring.length > 0 && (
         <section className="section">

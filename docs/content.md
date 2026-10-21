@@ -13,6 +13,18 @@ To add a completed adventure to the gallery or homepage:
 
 Recap edits remain private until republished. The homepage rotates when at least two published recaps are featured. Update the static **What we do!** copy and activity photos in [home.tsx](../frontend/src/pages/home.tsx) and [frontend/public/images](../frontend/public/images/), then follow the asset steps below.
 
+### Calendar holidays and UCI dates
+
+The public calendar displays federal holidays separately from AAC events. `frontend/src/lib/calendar-notices.ts` calculates actual and weekend-observed dates using [OPM's federal holiday rules](https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/).
+
+The calendar uses the display names **Presidents’ Day** and **Indigenous Peoples’ Day** for all years. UCI fee payment and add/drop deadlines are intentionally excluded when maintaining the academic dates.
+
+Key UCI dates for Fall 2026–Spring 2028 are listed in `frontend/src/lib/uci-academic-dates.ts`, with links to the Registrar's published calendars. Update this list from the official calendars when dates change or another academic year is published, and update the displayed coverage in `frontend/src/pages/public.tsx`. These are reference dates, not signup-enabled club events; federal holidays alone do not establish UCI closures.
+
+Multi-day reference dates appear only on their start and end dates, labeled **Starts** and **Ends**. Selecting either marker shows the full date range. The category buttons show or hide items in the calendar and its day details; **Show all** resets them. Busy dates show up to three colored entries (dots on phones) and a count for any others; select the date to see all visible items.
+
+Club event labels in the calendar link directly to the event page, just like the cards below. Select the date or its empty space to view that day's details without navigating away. Phones keep the compact dots and date selection.
+
 ## Signup limits and retreat priority
 
 In an event's editor, open **Signups & Carpools** and set the **Signup limits**. The total counts everyone; the transport limits count people who need a ride, drive others, or have their own ride. Blank means unlimited, and zero closes that choice. A full transport category leaves other categories open until the total limit is reached. Offered passenger seats are separate from signup limits.
