@@ -1,0 +1,46 @@
+:root{
+--header-height:4.5rem;
+--outside-padding:3rem;
+
+--space-1:0.25rem;
+--space-2:0.5rem;
+--space-3:0.75rem;
+--space-4:1rem;
+--space-5:1.25rem;
+--space-6:1.5rem;
+--space-7:1.75rem;
+--space-8:2rem;
+--space-10:2.5rem;
+--space-12:3rem;
+--space-16:4rem;
+
+--radius-xs:3px;
+--radius-sm:0.4rem;
+--radius-md:0.5rem;
+--radius-lg:1rem;
+--radius-xl:1.1rem;
+--radius-2xl:1.25rem;
+--radius-3xl:1.5rem;
+--radius-pill:999px;
+
+--shadow-polaroid:0 4px 8px rgba(0,0,0,0.2);
+--shadow-cta:0 6px 18px rgba(31,77,59,0.25);
+--shadow-payment:0 12px 30px rgba(31,77,59,0.25);
+--shadow-price:0 20px 40px rgba(31,77,59,0.25);
+--shadow-lift-sm:0 10px 25px rgba(0,0,0,0.08);
+--shadow-lift:0 12px 24px rgba(0,0,0,0.08);
+--shadow-lift-md:0 15px 35px rgba(0,0,0,0.08);
+--shadow-panel:0 20px 40px rgba(0,0,0,0.08);
+--shadow-detail:0 1px 3px rgba(0,0,0,0.08);
+
+--blur-glass-sm:blur(8px); /* @kind other */
+--blur-glass:blur(10px); /* @kind other */
+--blur-header:blur(12px); /* @kind other */
+
+--ease-standard:ease; /* @kind other */
+--ease-page:cubic-bezier(0.4,0,0.2,1); /* @kind other */
+--dur-fast:0.2s; /* @kind other */
+--dur-base:0.25s; /* @kind other */
+--dur-slow:0.3s; /* @kind other */
+--dur-page:0.45s; /* @kind other */
+}

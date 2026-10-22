@@ -1,0 +1,131 @@
+/* Component styles, ported from the Website repo's component/page CSS. Class names prefixed aac- */
+
+/* Buttons (.button, .cta-button, .outline-button, .payment-button, .social-button) */
+.aac-button{display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.85rem 1.75rem;border-radius:999px;transition:all 0.25s ease;font-weight:600;cursor:pointer;text-decoration:none;line-height:1.5}
+.aac-button--cta{font-family:var(--font-display);background-color:var(--forest);color:var(--white);box-shadow:var(--shadow-cta)}
+.aac-button--cta:hover{background-color:var(--forest-light);color:var(--white);transform:translateY(-2px)}
+.aac-button--outline{border:1px solid var(--forest);color:var(--forest);background:transparent}
+.aac-button--outline:hover{background:var(--forest-tint);color:var(--forest)}
+.aac-button--payment{background-color:var(--forest);color:var(--white);font-size:1.25rem;font-weight:600;padding:1rem 2.5rem;box-shadow:var(--shadow-payment)}
+.aac-button--payment:hover{background-color:var(--forest-light);color:var(--white);transform:translateY(-3px)}
+.aac-button--discord{color:var(--white);font-weight:bold;background-color:var(--discord)}
+.aac-button--discord:hover{background-color:var(--discord-hover);color:var(--white)}
+.aac-button--instagram{color:var(--white);font-weight:bold;background-color:var(--instagram)}
+.aac-button--instagram:hover{background-color:var(--instagram-hover);color:var(--white)}
+.aac-button[disabled]{opacity:0.5;pointer-events:none}
+.aac-button img{width:20px;height:20px}
+
+/* Header */
+.aac-header{position:fixed;top:0;left:0;width:100%;height:var(--header-height);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:rgba(255,255,255,0.6);border-bottom:1px solid var(--border);transition:background 0.3s ease;z-index:1000}
+.aac-header--static{position:relative}
+.aac-header:hover{background:rgba(255,255,255,0.85)}
+.aac-header__container{display:flex;align-items:center;justify-content:center;position:relative;width:100%;height:100%}
+.aac-desktop-nav{display:flex;gap:2.5rem}
+.aac-desktop-nav a{color:#333;font-weight:400;text-decoration:none;transition:all 0.2s ease;position:relative;cursor:pointer}
+.aac-desktop-nav a:hover{color:var(--forest)}
+.aac-desktop-nav a.active{color:var(--forest);font-weight:700}
+.aac-desktop-nav a.active::after{content:"";position:absolute;bottom:-6px;left:0;width:100%;height:2px;background:var(--forest);border-radius:2px}
+.aac-hamburger{position:absolute;left:0.5rem;padding:1rem;cursor:pointer;z-index:10;background:none;border:none;display:none;color:#2a2a2a}
+.aac-hamburger[aria-expanded="true"]{color:var(--tan)}
+.aac-menu-overlay{position:fixed;inset:0;background-color:rgba(0,0,0,0.5);opacity:0;visibility:hidden;transition:opacity 0.3s ease,visibility 0.3s ease}
+.aac-menu-overlay.open{opacity:1;visibility:visible}
+.aac-mobile-nav{position:fixed;top:0;left:0;bottom:0;width:70%;max-width:300px;background-color:var(--forest);padding:5rem 2rem 2rem;overflow-y:auto;transform:translateX(-100%);transition:transform 0.3s ease;display:flex;flex-direction:column;gap:1.5rem}
+.aac-menu-overlay.open .aac-mobile-nav{transform:translateX(0)}
+.aac-mobile-nav a{color:var(--white);font-size:1.25rem;padding:0.5rem 0;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.15);transition:0.2s ease;cursor:pointer}
+.aac-mobile-nav a:hover{color:var(--tan)}
+.aac-mobile-nav a.active{color:var(--tan);font-weight:700}
+.aac-header--mobile .aac-hamburger{display:flex}
+.aac-header--mobile .aac-desktop-nav{display:none}
+@media (max-width:639px){.aac-hamburger{display:flex}.aac-desktop-nav{display:none}}
+@media (min-width:640px){.aac-header:not(.aac-header--mobile) .aac-menu-overlay{display:none}}
+
+/* Footer */
+.aac-footer{margin-top:4rem;padding:2rem 0;text-align:center;font-size:0.9rem;color:#666;border-top:1px solid var(--border)}
+@media (max-width:384px){.aac-footer__extra{display:none}}
+
+/* Polaroid */
+.aac-polaroid{width:300px;background-color:white;padding:1rem;box-shadow:var(--shadow-polaroid);cursor:pointer;text-align:center;transition:transform 0.2s}
+.aac-polaroid:hover{transform:scale(1.05)}
+.aac-polaroid img{width:100%;height:auto}
+.aac-polaroid__caption{margin-top:1rem;display:flex;flex-direction:column;gap:0.5rem}
+.aac-polaroid-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:2rem;padding:2rem;justify-items:center}
+.aac-polaroid-gallery .aac-polaroid{max-width:400px;width:auto;height:min-content}
+@media (max-width:1023px){.aac-polaroid-gallery{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}}
+
+/* Popup */
+.aac-popup{position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;background-color:rgba(0,0,0,0.6);overflow-y:auto}
+.aac-popup--inline{position:relative;height:auto;padding:1px 0}
+.aac-popup__content{margin:10% auto;padding:2rem;border-radius:1rem;width:80%;max-width:600px;background-color:var(--white)}
+.aac-popup--inline .aac-popup__content{margin:2rem auto}
+.aac-popup__header{display:flex;justify-content:space-between}
+.aac-popup__buttons{font-size:2rem;display:flex;align-items:center;gap:1rem}
+.aac-popup__ig{width:1.4rem;transition:transform 0.2s}
+.aac-popup__ig:hover{transform:scale(1.2)}
+.aac-popup__close{cursor:pointer}
+.aac-popup__body{margin-top:1rem;display:flex;flex-direction:column;gap:1rem}
+.aac-signup-link{text-align:center;color:#85afff;text-decoration:underline}
+.aac-signup-link h3{transition:transform 0.2s}
+.aac-signup-link h3:hover{transform:scale(1.05)}
+
+/* Upcoming calendar */
+.aac-calendar{margin:2.25rem 0}
+.aac-calendar__header{display:flex;justify-content:center;align-items:center;gap:0.75rem;font-size:1.5rem;font-weight:600;margin-bottom:1rem}
+.aac-month-nav{border:1px solid #333;background:#fff;color:#333;border-radius:0.4rem;padding:0.25rem 0.55rem;font-size:0.8rem;cursor:pointer}
+.aac-month-nav:hover{background:#f3f4f6}
+.aac-calendar__status{text-align:center;font-size:0.9rem;color:#4b5563;margin:0.5rem 0 0.85rem}
+.aac-calendar__legend{display:flex;gap:1rem;justify-content:center;align-items:center;flex-wrap:wrap;margin-bottom:1rem}
+.aac-legend-item{display:inline-flex;align-items:center;gap:0.4rem;font-size:0.875rem;color:#333}
+.aac-legend-color{width:14px;height:14px;border-radius:3px;border:1px solid rgba(0,0,0,0.2)}
+.aac-calendar__weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:0.5rem;margin-bottom:0.5rem;text-align:center;font-size:0.875rem;font-weight:700;color:#333}
+.aac-calendar__weekdays div{padding:0.25rem 0}
+.aac-calendar__grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0.75rem}
+.aac-day{position:relative;padding:1.25rem;border:1px solid #333;border-radius:0.5rem;text-align:center;cursor:pointer;transition:background-color 0.2s ease}
+.aac-day:hover{background-color:#f3f4f6}
+.aac-day.today::before{content:"";position:absolute;width:28px;height:28px;background-color:#ef4444;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);z-index:0}
+.aac-day.today span{position:relative;z-index:1;color:white;font-weight:600}
+.aac-day.event-regular,.aac-legend-color.event-regular{background-color:var(--event-regular)}
+.aac-day.event-regular:hover{background-color:var(--event-regular-hover)}
+.aac-day.event-potlock-picnic,.aac-legend-color.event-potlock-picnic{background-color:var(--event-picnic)}
+.aac-day.event-potlock-picnic:hover{background-color:var(--event-picnic-hover)}
+.aac-day.event-weekly-meeting,.aac-legend-color.event-weekly-meeting{background-color:var(--event-meeting)}
+.aac-day.event-weekly-meeting:hover{background-color:var(--event-meeting-hover)}
+.aac-event-details{margin-top:1.5rem;padding:1rem;border:1px solid #333;border-radius:0.5rem;box-shadow:var(--shadow-detail)}
+.aac-event-details h3{font-size:1.125rem;font-weight:600}
+.aac-event-details__date{margin-top:0.5rem;font-size:0.875rem;color:#333}
+.aac-event-details__desc{margin-top:0.5rem;white-space:pre-line}
+.aac-event-details a{display:inline-block;margin-top:0.75rem;color:#2563eb;text-decoration:underline}
+.aac-event-details a:hover{opacity:0.8}
+
+/* Glass card (free-activities, sponsor-reasons, sponsor-contact, option-card) */
+.aac-glass{padding:2rem;border-radius:1.5rem;border:1px solid var(--border);background:rgba(255,255,255,0.65);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.aac-glass--option{padding:1.25rem;border-radius:1.1rem;background:rgba(255,255,255,0.8);backdrop-filter:none;transition:transform 0.2s ease,box-shadow 0.2s ease}
+.aac-glass--option:hover{transform:translateY(-3px);box-shadow:var(--shadow-lift)}
+.aac-glass--option h3{color:var(--forest);margin-bottom:0.5rem}
+.aac-glass--option p{margin:0;color:#555}
+
+/* Membership */
+.aac-price-card{flex:1;padding:2rem;background:var(--forest);color:var(--white);border-radius:1.5rem;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:0.5rem;box-shadow:var(--shadow-price)}
+.aac-price-card__number{font-family:var(--font-display);font-size:3rem;line-height:1}
+.aac-price-card__period{font-size:1rem;opacity:0.9}
+.aac-price-card__note{font-size:0.85rem;opacity:0.85;font-style:italic}
+.aac-benefit{display:flex;gap:1.5rem;align-items:flex-start;padding:2rem;background:rgba(255,255,255,0.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:1.5rem;transition:all 0.25s ease}
+.aac-benefit:hover{transform:translateY(-4px);box-shadow:var(--shadow-lift-md)}
+.aac-benefit__number{background:var(--forest);color:var(--white);width:2.75rem;height:2.75rem;border-radius:50%;display:flex;justify-content:center;align-items:center;font-weight:600;font-size:1.1rem;flex-shrink:0}
+.aac-benefit__content h3{margin-bottom:0.75rem;color:var(--forest)}
+.aac-benefit__content p{margin:0;line-height:1.6;color:#555}
+@media (max-width:640px){.aac-benefit{padding:1.5rem;gap:1rem}.aac-price-card__number{font-size:2.5rem}}
+
+/* Previous boards accordion */
+.aac-prev-board{margin:3rem 0}
+.aac-prev-board__toggle{width:100%;padding:1.25rem 2rem;background:rgba(255,255,255,0.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:1.25rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;color:var(--forest);transition:all 0.25s ease}
+.aac-prev-board__toggle:hover{background:rgba(255,255,255,0.85);transform:translateY(-2px);box-shadow:var(--shadow-lift-sm)}
+.aac-prev-board__icon{font-size:1.5rem;font-weight:500;transition:transform 0.3s ease}
+.aac-prev-board__content{margin-top:1.5rem;padding:2.5rem;background:rgba(255,255,255,0.75);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:1.5rem;box-shadow:var(--shadow-panel)}
+.aac-prev-board__grid{display:grid;gap:1.75rem;grid-template-columns:repeat(6,1fr)}
+.aac-prev-board__item{padding:1.25rem;border-radius:1rem;background:rgba(248,245,240,0.6);border:1px solid rgba(0,0,0,0.05);display:flex;flex-direction:column;gap:0.45rem;transition:all 0.25s ease}
+.aac-prev-board__name{font-weight:600;color:var(--forest);letter-spacing:0.3px}
+.aac-prev-board__role{font-size:0.9rem;font-style:italic;color:#666}
+@media (max-width:1200px){.aac-prev-board__grid{grid-template-columns:repeat(4,1fr)}}
+@media (max-width:768px){.aac-prev-board__grid{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:640px){.aac-prev-board__grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:448px){.aac-prev-board__grid{grid-template-columns:repeat(1,1fr)}}

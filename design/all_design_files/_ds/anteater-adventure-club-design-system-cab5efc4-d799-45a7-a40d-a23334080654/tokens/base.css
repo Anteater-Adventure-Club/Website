@@ -1,0 +1,17 @@
+/* Element defaults: Tailwind v4 preflight (used by the site) + globals.css overrides */
+*,::before,::after{box-sizing:border-box;margin:0;padding:0;border:0 solid}
+body{font-family:var(--font-body);background:var(--tan);color:var(--black);margin:0;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;line-height:1.5}
+h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}
+h1{font-family:var(--font-display);font-size:var(--text-h1);letter-spacing:var(--tracking-h1)}
+h2{font-family:var(--font-display);font-size:var(--text-h2)}
+h3{font-family:var(--font-display);font-size:var(--text-h3)}
+p{line-height:var(--leading-body)}
+a{color:inherit;text-decoration:inherit}
+a:hover{color:inherit}
+ol,ul{list-style:none}
+img,svg{display:block;vertical-align:middle}
+img{max-width:100%;height:auto}
+button{font:inherit;color:inherit;background:transparent;cursor:pointer}
+strong{font-weight:bolder}
+.text-center{text-align:center}
+@media (max-width:896px){h1{font-size:var(--text-h1-mobile)}h2{font-size:var(--text-h2-mobile)}h3{font-size:var(--text-h3-mobile)}p{font-size:var(--text-sm)}}

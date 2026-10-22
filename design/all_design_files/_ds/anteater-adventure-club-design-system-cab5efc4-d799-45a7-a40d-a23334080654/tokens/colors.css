@@ -1,0 +1,75 @@
+:root{
+/* Brand base (verbatim from src/app/globals.css) */
+--tan:#f8f5f0;
+--forest:#1f4d3b;
+--forest-light:#2f6b53;
+--accent:#7da27f;
+--white:#ffffff;
+--black:#2a2a2a;
+--border:rgba(0,0,0,0.08);
+
+/* Neutrals seen across page CSS */
+--gray-nav:#333333;
+--gray-muted:#555555;
+--gray-subtitle:#4b4b4b;
+--gray-footer:#666666;
+--gray-status:#4b5563;
+--gray-hover:#f3f4f6;
+
+/* Glass surfaces */
+--glass-60:rgba(255,255,255,0.6);
+--glass-65:rgba(255,255,255,0.65);
+--glass-75:rgba(255,255,255,0.75);
+--glass-80:rgba(255,255,255,0.8);
+--glass-85:rgba(255,255,255,0.85);
+--tan-glass:rgba(248,245,240,0.6);
+--forest-tint:rgba(31,77,59,0.09);
+--scrim-popup:rgba(0,0,0,0.6);
+--scrim-menu:rgba(0,0,0,0.5);
+
+/* Calendar event types */
+--event-regular:#fef08a;
+--event-regular-hover:#fde047;
+--event-picnic:#bbf7d0;
+--event-picnic-hover:#79f1a3;
+--event-meeting:#bfdbfe;
+--event-meeting-hover:#68abfd;
+--today:#ef4444;
+--link-blue:#2563eb;
+--signup-blue:#85afff;
+
+/* Social brand buttons */
+--discord:#5865f2;
+--discord-hover:#4752c4;
+--instagram:#e1306c;
+--instagram-hover:#c13584;
+
+/* Officer popup pastel pairs (bg / title) */
+--officer-thomas-bg:#fdffd6;--officer-thomas:#d5e000;
+--officer-daron-bg:#dcd6ff;--officer-daron:#9785ff;
+--officer-nathan-bg:#BDEFDA;--officer-nathan:#4AD39A;
+--officer-smey-bg:#F7CAE6;--officer-smey:#EA71BB;
+--officer-gabe-bg:#F1A8A7;--officer-gabe:#E1403D;
+--officer-parker-bg:#FDC49B;--officer-parker:#FA710F;
+--officer-lokesh-bg:#ebf2ff;--officer-lokesh:#85afff;
+--officer-charlie-bg:#d6fcff;--officer-charlie:#00d1e0;
+--officer-eric-bg:#FFF7C2;--officer-eric:#FFDE0A;
+--officer-henkka-bg:#BCE0F0;--officer-henkka:#2D99C8;
+--officer-macey-bg:#CCF5E8;--officer-macey:#55DDB2;
+--officer-liam-bg:#B8B8FF;--officer-liam:#5C5CFF;
+--officer-kayla-bg:#F0DBFA;--officer-kayla:#C46FEB;
+--officer-sofia-bg:#eeffeb;--officer-sofia:#97ff85;
+
+/* Semantic aliases */
+--surface-page:var(--tan);
+--surface-card:var(--white);
+--surface-glass:var(--glass-65);
+--surface-brand:var(--forest);
+--text-body:var(--black);
+--text-muted:var(--gray-muted);
+--text-subtle:var(--gray-footer);
+--text-brand:var(--forest);
+--text-on-brand:var(--white);
+--border-subtle:var(--border);
+--border-strong:#333333;
+}

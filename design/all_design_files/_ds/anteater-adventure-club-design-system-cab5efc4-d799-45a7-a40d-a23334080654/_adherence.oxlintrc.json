@@ -1,0 +1,443 @@
+{
+  "plugins": [
+    "react",
+    "import"
+  ],
+  "rules": {
+    "react/forbid-elements": [
+      "warn",
+      {
+        "forbid": []
+      }
+    ],
+    "no-restricted-imports": [
+      "warn",
+      {
+        "patterns": [
+          {
+            "group": [
+              "components/board/**",
+              "components/core/**",
+              "components/events/**",
+              "components/membership/**",
+              "components/navigation/**",
+              "components/overlays/**",
+              "components/polaroid/**",
+              "ui_kits/website/**"
+            ],
+            "message": "Import design-system components from 'index.js', not component internals."
+          }
+        ]
+      }
+    ],
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "Literal[value=/#[0-9a-fA-F]{3,8}\\b/]",
+        "message": "Raw hex color — use a design-system color token via var()."
+      },
+      {
+        "selector": "Literal[value=/\\b\\d+px\\b/]",
+        "message": "Raw px value — use a design-system spacing token via var()."
+      },
+      {
+        "selector": "Literal[value=/font-family\\s*:\\s*(?!['\\\"]?(?:Lazydog|Chivo))/i]",
+        "message": "Font not provided by the design system. Available: Lazydog, Chivo."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='BenefitItem'] > JSXAttribute > JSXIdentifier[name!=/^(?:number|title|children|key|ref|className|style|children)$/]",
+        "message": "<BenefitItem> doesn't accept that prop. Declared props: number, title, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute > JSXIdentifier[name!=/^(?:variant|href|target|onClick|iconSrc|iconAlt|disabled|className|style|children|key|ref|className|style|children)$/]",
+        "message": "<Button> doesn't accept that prop. Declared props: variant, href, target, onClick, iconSrc, iconAlt, disabled, className, style, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute[name.name='variant'] > Literal[value!=/^(?:cta|outline|payment|discord|instagram)$/]",
+        "message": "<Button> variant must be one of 'cta' | 'outline' | 'payment' | 'discord' | 'instagram'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Footer'] > JSXAttribute > JSXIdentifier[name!=/^(?:year|tagline|key|ref|className|style|children)$/]",
+        "message": "<Footer> doesn't accept that prop. Declared props: year, tagline."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='GlassCard'] > JSXAttribute > JSXIdentifier[name!=/^(?:variant|as|className|style|children|key|ref|className|style|children)$/]",
+        "message": "<GlassCard> doesn't accept that prop. Declared props: variant, as, className, style, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='GlassCard'] > JSXAttribute[name.name='variant'] > Literal[value!=/^(?:panel|option)$/]",
+        "message": "<GlassCard> variant must be one of 'panel' | 'option'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='GlassCard'] > JSXAttribute[name.name='as'] > Literal[value!=/^(?:div|section|article)$/]",
+        "message": "<GlassCard> as must be one of 'div' | 'section' | 'article'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='NavItem'] > JSXAttribute > JSXIdentifier[name!=/^(?:href|label|key|ref|className|style|children)$/]",
+        "message": "<NavItem> doesn't accept that prop. Declared props: href, label."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Icon'] > JSXAttribute > JSXIdentifier[name!=/^(?:name|size|strokeWidth|className|style|onClick|key|ref|className|style|children)$/]",
+        "message": "<Icon> doesn't accept that prop. Declared props: name, size, strokeWidth, className, style, onClick."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Icon'] > JSXAttribute[name.name='name'] > Literal[value!=/^(?:menu|x)$/]",
+        "message": "<Icon> name must be one of 'menu' | 'x'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='PolaroidCard'] > JSXAttribute > JSXIdentifier[name!=/^(?:name|subtitle|imageSrc|onClick|rotate|width|style|key|ref|className|style|children)$/]",
+        "message": "<PolaroidCard> doesn't accept that prop. Declared props: name, subtitle, imageSrc, onClick, rotate, width, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='PolaroidGallery'] > JSXAttribute > JSXIdentifier[name!=/^(?:data|dataType|instagramIconSrc|style|key|ref|className|style|children)$/]",
+        "message": "<PolaroidGallery> doesn't accept that prop. Declared props: data, dataType, instagramIconSrc, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='PolaroidGallery'] > JSXAttribute[name.name='dataType'] > Literal[value!=/^(?:event|officer)$/]",
+        "message": "<PolaroidGallery> dataType must be one of 'event' | 'officer'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='PopupDatum'] > JSXAttribute > JSXIdentifier[name!=/^(?:id|name|imagePath|date|description|signUpLink|role|major|whyJoined|favoriteMemory|instagram|key|ref|className|style|children)$/]",
+        "message": "<PopupDatum> doesn't accept that prop. Declared props: id, name, imagePath, date, description, signUpLink, role, major, whyJoined, favoriteMemory, instagram."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='PreviousOfficer'] > JSXAttribute > JSXIdentifier[name!=/^(?:id|name|role|key|ref|className|style|children)$/]",
+        "message": "<PreviousOfficer> doesn't accept that prop. Declared props: id, name, role."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='PriceCard'] > JSXAttribute > JSXIdentifier[name!=/^(?:price|period|notes|style|key|ref|className|style|children)$/]",
+        "message": "<PriceCard> doesn't accept that prop. Declared props: price, period, notes, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='CalendarEvent'] > JSXAttribute > JSXIdentifier[name!=/^(?:id|name|date|description|signUpLink|type|key|ref|className|style|children)$/]",
+        "message": "<CalendarEvent> doesn't accept that prop. Declared props: id, name, date, description, signUpLink, type."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='CalendarEvent'] > JSXAttribute[name.name='type'] > Literal[value!=/^(?:regular|potlock picnic|weekly meeting)$/]",
+        "message": "<CalendarEvent> type must be one of 'regular' | 'potlock picnic' | 'weekly meeting'."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/index.js"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ],
+  "x-omelette": {
+    "components": {
+      "BenefitItem": {
+        "replaces": []
+      },
+      "Button": {
+        "replaces": []
+      },
+      "Footer": {
+        "replaces": []
+      },
+      "GlassCard": {
+        "replaces": []
+      },
+      "NavItem": {
+        "replaces": []
+      },
+      "Icon": {
+        "replaces": []
+      },
+      "PolaroidCard": {
+        "replaces": []
+      },
+      "PolaroidGallery": {
+        "replaces": []
+      },
+      "PopupDatum": {
+        "replaces": []
+      },
+      "PreviousOfficer": {
+        "replaces": []
+      },
+      "PriceCard": {
+        "replaces": []
+      },
+      "CalendarEvent": {
+        "replaces": []
+      }
+    },
+    "tokens": [
+      "--accent",
+      "--black",
+      "--blur-glass",
+      "--blur-glass-sm",
+      "--blur-header",
+      "--border",
+      "--border-strong",
+      "--border-subtle",
+      "--discord",
+      "--discord-hover",
+      "--dur-base",
+      "--dur-fast",
+      "--dur-page",
+      "--dur-slow",
+      "--ease-page",
+      "--ease-standard",
+      "--event-meeting",
+      "--event-meeting-hover",
+      "--event-picnic",
+      "--event-picnic-hover",
+      "--event-regular",
+      "--event-regular-hover",
+      "--font-body",
+      "--font-display",
+      "--forest",
+      "--forest-light",
+      "--forest-tint",
+      "--glass-60",
+      "--glass-65",
+      "--glass-75",
+      "--glass-80",
+      "--glass-85",
+      "--gray-footer",
+      "--gray-hover",
+      "--gray-muted",
+      "--gray-nav",
+      "--gray-status",
+      "--gray-subtitle",
+      "--header-height",
+      "--instagram",
+      "--instagram-hover",
+      "--leading-body",
+      "--link-blue",
+      "--officer-charlie",
+      "--officer-charlie-bg",
+      "--officer-daron",
+      "--officer-daron-bg",
+      "--officer-eric",
+      "--officer-eric-bg",
+      "--officer-gabe",
+      "--officer-gabe-bg",
+      "--officer-henkka",
+      "--officer-henkka-bg",
+      "--officer-kayla",
+      "--officer-kayla-bg",
+      "--officer-liam",
+      "--officer-liam-bg",
+      "--officer-lokesh",
+      "--officer-lokesh-bg",
+      "--officer-macey",
+      "--officer-macey-bg",
+      "--officer-nathan",
+      "--officer-nathan-bg",
+      "--officer-parker",
+      "--officer-parker-bg",
+      "--officer-smey",
+      "--officer-smey-bg",
+      "--officer-sofia",
+      "--officer-sofia-bg",
+      "--officer-thomas",
+      "--officer-thomas-bg",
+      "--outside-padding",
+      "--radius-2xl",
+      "--radius-3xl",
+      "--radius-lg",
+      "--radius-md",
+      "--radius-pill",
+      "--radius-sm",
+      "--radius-xl",
+      "--radius-xs",
+      "--scrim-menu",
+      "--scrim-popup",
+      "--shadow-cta",
+      "--shadow-detail",
+      "--shadow-lift",
+      "--shadow-lift-md",
+      "--shadow-lift-sm",
+      "--shadow-panel",
+      "--shadow-payment",
+      "--shadow-polaroid",
+      "--shadow-price",
+      "--signup-blue",
+      "--space-1",
+      "--space-10",
+      "--space-12",
+      "--space-16",
+      "--space-2",
+      "--space-3",
+      "--space-4",
+      "--space-5",
+      "--space-6",
+      "--space-7",
+      "--space-8",
+      "--surface-brand",
+      "--surface-card",
+      "--surface-glass",
+      "--surface-page",
+      "--tan",
+      "--tan-glass",
+      "--text-base",
+      "--text-body",
+      "--text-brand",
+      "--text-caption",
+      "--text-h1",
+      "--text-h1-mobile",
+      "--text-h2",
+      "--text-h2-mobile",
+      "--text-h3",
+      "--text-h3-mobile",
+      "--text-lg",
+      "--text-muted",
+      "--text-on-brand",
+      "--text-price",
+      "--text-sm",
+      "--text-subtle",
+      "--text-xs",
+      "--today",
+      "--tracking-h1",
+      "--weight-bold",
+      "--weight-regular",
+      "--weight-semibold",
+      "--white"
+    ],
+    "tokenKinds": {
+      "--tan": "color",
+      "--forest": "color",
+      "--forest-light": "color",
+      "--accent": "color",
+      "--white": "color",
+      "--black": "color",
+      "--border": "color",
+      "--gray-nav": "color",
+      "--gray-muted": "color",
+      "--gray-subtitle": "color",
+      "--gray-footer": "color",
+      "--gray-status": "color",
+      "--gray-hover": "color",
+      "--glass-60": "color",
+      "--glass-65": "color",
+      "--glass-75": "color",
+      "--glass-80": "color",
+      "--glass-85": "color",
+      "--tan-glass": "color",
+      "--forest-tint": "color",
+      "--scrim-popup": "color",
+      "--scrim-menu": "color",
+      "--event-regular": "color",
+      "--event-regular-hover": "color",
+      "--event-picnic": "color",
+      "--event-picnic-hover": "color",
+      "--event-meeting": "color",
+      "--event-meeting-hover": "color",
+      "--today": "color",
+      "--link-blue": "color",
+      "--signup-blue": "color",
+      "--discord": "color",
+      "--discord-hover": "color",
+      "--instagram": "color",
+      "--instagram-hover": "color",
+      "--officer-thomas-bg": "color",
+      "--officer-thomas": "color",
+      "--officer-daron-bg": "color",
+      "--officer-daron": "color",
+      "--officer-nathan-bg": "color",
+      "--officer-nathan": "color",
+      "--officer-smey-bg": "color",
+      "--officer-smey": "color",
+      "--officer-gabe-bg": "color",
+      "--officer-gabe": "color",
+      "--officer-parker-bg": "color",
+      "--officer-parker": "color",
+      "--officer-lokesh-bg": "color",
+      "--officer-lokesh": "color",
+      "--officer-charlie-bg": "color",
+      "--officer-charlie": "color",
+      "--officer-eric-bg": "color",
+      "--officer-eric": "color",
+      "--officer-henkka-bg": "color",
+      "--officer-henkka": "color",
+      "--officer-macey-bg": "color",
+      "--officer-macey": "color",
+      "--officer-liam-bg": "color",
+      "--officer-liam": "color",
+      "--officer-kayla-bg": "color",
+      "--officer-kayla": "color",
+      "--officer-sofia-bg": "color",
+      "--officer-sofia": "color",
+      "--surface-page": "color",
+      "--surface-card": "color",
+      "--surface-glass": "color",
+      "--surface-brand": "color",
+      "--text-body": "font",
+      "--text-muted": "font",
+      "--text-subtle": "font",
+      "--text-brand": "font",
+      "--text-on-brand": "font",
+      "--border-subtle": "color",
+      "--border-strong": "color",
+      "--font-display": "font",
+      "--font-body": "font",
+      "--text-h1": "font",
+      "--text-h2": "font",
+      "--text-h3": "font",
+      "--text-h1-mobile": "font",
+      "--text-h2-mobile": "font",
+      "--text-h3-mobile": "font",
+      "--text-price": "font",
+      "--text-lg": "font",
+      "--text-base": "font",
+      "--text-sm": "font",
+      "--text-xs": "font",
+      "--text-caption": "font",
+      "--leading-body": "font",
+      "--tracking-h1": "font",
+      "--weight-regular": "font",
+      "--weight-semibold": "font",
+      "--weight-bold": "font",
+      "--header-height": "spacing",
+      "--outside-padding": "spacing",
+      "--space-1": "spacing",
+      "--space-2": "spacing",
+      "--space-3": "spacing",
+      "--space-4": "spacing",
+      "--space-5": "spacing",
+      "--space-6": "spacing",
+      "--space-7": "spacing",
+      "--space-8": "spacing",
+      "--space-10": "spacing",
+      "--space-12": "spacing",
+      "--space-16": "spacing",
+      "--radius-xs": "radius",
+      "--radius-sm": "radius",
+      "--radius-md": "radius",
+      "--radius-lg": "radius",
+      "--radius-xl": "radius",
+      "--radius-2xl": "radius",
+      "--radius-3xl": "radius",
+      "--radius-pill": "radius",
+      "--shadow-polaroid": "shadow",
+      "--shadow-cta": "shadow",
+      "--shadow-payment": "shadow",
+      "--shadow-price": "shadow",
+      "--shadow-lift-sm": "shadow",
+      "--shadow-lift": "shadow",
+      "--shadow-lift-md": "shadow",
+      "--shadow-panel": "shadow",
+      "--shadow-detail": "shadow",
+      "--blur-glass-sm": "other",
+      "--blur-glass": "other",
+      "--blur-header": "other",
+      "--ease-standard": "other",
+      "--ease-page": "other",
+      "--dur-fast": "other",
+      "--dur-base": "other",
+      "--dur-slow": "other",
+      "--dur-page": "other"
+    },
+    "fontFamilies": [
+      "Chivo",
+      "Lazydog"
+    ]
+  }
+}
