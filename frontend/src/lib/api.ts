@@ -62,14 +62,19 @@ export async function request<T>(
   method = "GET",
   body?: unknown,
   signal?: AbortSignal,
+  headers?: Record<string, string>,
 ): Promise<T> {
   const form = body instanceof FormData;
   const response = await fetch(url, {
     method,
     credentials: "same-origin",
     signal,
-    headers:
-      body !== undefined && !form ? { "Content-Type": "application/json" } : {},
+    headers: {
+      ...(body !== undefined && !form
+        ? { "Content-Type": "application/json" }
+        : {}),
+      ...headers,
+    },
     body: body === undefined ? undefined : form ? body : JSON.stringify(body),
   });
   if (!response.ok) {
@@ -120,10 +125,15 @@ export function useAction<T = unknown>() {
   return useMutation<
     T,
     ApiError,
-    { url: string; method?: string; body?: unknown }
+    {
+      url: string;
+      method?: string;
+      body?: unknown;
+      headers?: Record<string, string>;
+    }
   >({
-    mutationFn: ({ url, method = "POST", body }) =>
-      request<T>(url, method, body),
+    mutationFn: ({ url, method = "POST", body, headers }) =>
+      request<T>(url, method, body, undefined, headers),
     onSuccess: () => cache.invalidateQueries(),
     onError: (error) => {
       if (error.status === 409) void cache.invalidateQueries();

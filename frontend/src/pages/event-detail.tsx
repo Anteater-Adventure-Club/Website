@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { Controller, useForm } from "react-hook-form";
 import {
@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import {
   clock,
+  ApiError,
   dateLabel,
   departureTime,
   eventURL,
@@ -45,6 +46,8 @@ import {
 } from "../components/ui";
 import { VehicleDialog } from "./members";
 import { MultipleSelectQuestion } from "../components/multiple-select-question";
+import { RetreatMembershipNotice } from "../components/retreat-membership-notice";
+import { logEventActivity } from "../lib/event-activity";
 import {
   DriverPassengers,
   isLiveDriverSignup,
@@ -54,10 +57,12 @@ function SignupForm({
   event,
   signup,
   hasMembershipBenefits,
+  membershipSubmitted,
 }: {
   event: Event;
   signup?: Schema<"SignupOwn">;
   hasMembershipBenefits: boolean;
+  membershipSubmitted: boolean;
 }) {
   const { session } = useIdentity();
   const cars = useAPI("Page_VehicleView_", "/api/me/vehicles");
@@ -79,6 +84,15 @@ function SignupForm({
   });
   const action = useAction();
   const [saved, setSaved] = useState(false);
+  const [lostSpot, setLostSpot] = useState(false);
+  const attempt = useRef<string | null>(null);
+  const invalidAttempt = useRef<string | null>(null);
+  function beginAttempt() {
+    const id = crypto.randomUUID();
+    attempt.current = id;
+    logEventActivity(event, "signup_attempt", id);
+    return id;
+  }
   const role = form.watch("role");
   const blocked = capacityBlocked(event, role, signup);
   const totalFull =
@@ -94,6 +108,55 @@ function SignupForm({
   const locked =
     signup?.checked_in_at ||
     (!signup?.editable && !!signup && !signup.cancelled);
+  const renderQuestion = (question: Schema<"Question">) =>
+    question.kind === "multiple-select" ? (
+      <Controller
+        key={question.id}
+        control={form.control}
+        name={`answers.${question.id}`}
+        defaultValue={[]}
+        render={({ field: { ref, ...field } }) => (
+          <MultipleSelectQuestion
+            question={question}
+            inputRef={ref}
+            {...field}
+          />
+        )}
+      />
+    ) : (
+      <label className="field" key={question.id}>
+        {question.label}
+        {!question.required && <small>Optional</small>}
+        {question.kind === "choice" || question.kind === "yes-no" ? (
+          <select
+            required={question.required}
+            {...form.register(`answers.${question.id}`)}
+          >
+            <option value="">Choose an answer</option>
+            {(question.kind === "yes-no"
+              ? ["yes", "no"]
+              : question.options || []
+            ).map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        ) : question.kind === "long" ? (
+          <textarea
+            required={question.required}
+            maxLength={2000}
+            {...form.register(`answers.${question.id}`)}
+          />
+        ) : (
+          <input
+            required={question.required}
+            maxLength={2000}
+            {...form.register(`answers.${question.id}`)}
+          />
+        )}
+      </label>
+    );
   if (signup?.checked_in_at) return <CheckedIn event={event} signup={signup} />;
   if (event.signup_status !== "open" || locked)
     return (
@@ -138,7 +201,22 @@ function SignupForm({
           {signup && !signup.cancelled ? "You’re signed up!" : "Sign up!"}
         </h2>
       </div>
-      {blocked && (
+      {lostSpot ? (
+        <div className="notice error retreat-membership-notice" role="alert">
+          <strong>Your spot wasn’t reserved</strong>
+          <p>The remaining places were taken before your signup was saved.</p>
+        </div>
+      ) : (
+        event.kind === "retreat" &&
+        !hasMembershipBenefits && (
+          <RetreatMembershipNotice
+            quarterId={event.quarter_id}
+            reserved={!!signup && !signup.cancelled}
+            submitted={membershipSubmitted}
+          />
+        )
+      )}
+      {blocked && !lostSpot && (
         <Message>
           {totalFull
             ? "This event is full. Check back for an opening."
@@ -158,8 +236,21 @@ function SignupForm({
         </Button>
       </div>
       <form
+        onClickCapture={(e) => {
+          const button = (e.target as HTMLElement).closest("button");
+          if (button?.type === "submit" && !button.disabled) beginAttempt();
+        }}
+        onInvalidCapture={() => {
+          const id = attempt.current || beginAttempt();
+          if (invalidAttempt.current !== id) {
+            invalidAttempt.current = id;
+            logEventActivity(event, "validation_failed", id);
+          }
+        }}
         onSubmit={form.handleSubmit(async (body) => {
+          const attemptId = attempt.current || beginAttempt();
           setSaved(false);
+          setLostSpot(false);
           const payload = {
             ...body,
             vehicle_id: body.role === "driver" ? Number(body.vehicle_id) : null,
@@ -170,9 +261,20 @@ function SignupForm({
               url: `/api/events/${event.id}/signup`,
               method: "PUT",
               body: payload,
+              headers: { "X-AAC-Attempt-ID": attemptId },
             })
             .then(() => setSaved(true))
-            .catch(() => {});
+            .catch((error: unknown) => {
+              if (
+                error instanceof ApiError &&
+                error.code === "signup_capacity" &&
+                (!signup || signup.cancelled)
+              )
+                setLostSpot(true);
+            })
+            .finally(() => {
+              attempt.current = null;
+            });
         })}
       >
         {contact && (
@@ -234,40 +336,41 @@ function SignupForm({
             </div>
           )}
         </fieldset>
-        {(hasMembershipBenefits || role !== "own") && (
-          <div
-            className={`signup-membership-note${hasMembershipBenefits ? " priority" : ""}`}
-            aria-live="polite"
-            aria-atomic="true"
-          >
-            {hasMembershipBenefits ? (
-              <>
-                <span className="signup-priority-icon" aria-hidden="true">
-                  <Crown size={21} strokeWidth={1.7} />
-                </span>
-                <div>
-                  <strong>Thanks for supporting AAC!</strong>
-                  {role === "ride" && (
-                    <p>You have priority seating for this event.</p>
-                  )}
-                  {role === "driver" && (
-                    <p>You’re eligible for gas reimbursements.</p>
-                  )}
-                </div>
-              </>
-            ) : (
-              <p>
-                {role === "driver"
-                  ? "Paid members can receive gas reimbursements. Interested?"
-                  : "Paid members receive priority seating. Interested?"}{" "}
-                <Link to={`/my-aac/membership?quarter=${event.quarter_id}`}>
-                  Become a member
-                </Link>
-                .
-              </p>
-            )}
-          </div>
-        )}
+        {event.kind !== "retreat" &&
+          (hasMembershipBenefits || role !== "own") && (
+            <div
+              className={`signup-membership-note${hasMembershipBenefits ? " priority" : ""}`}
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              {hasMembershipBenefits ? (
+                <>
+                  <span className="signup-priority-icon" aria-hidden="true">
+                    <Crown size={21} strokeWidth={1.7} />
+                  </span>
+                  <div>
+                    <strong>Thanks for supporting AAC!</strong>
+                    {role === "ride" && (
+                      <p>You have priority seating for this event.</p>
+                    )}
+                    {role === "driver" && (
+                      <p>You’re eligible for gas reimbursements.</p>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <p>
+                  {role === "driver"
+                    ? "Paid members can receive gas reimbursements. Interested?"
+                    : "Paid members receive priority seating. Interested?"}{" "}
+                  <Link to={`/my-aac/membership?quarter=${event.quarter_id}`}>
+                    Become a member
+                  </Link>
+                  .
+                </p>
+              )}
+            </div>
+          )}
         {role === "driver" && (
           <>
             <label className="field">
@@ -332,61 +435,30 @@ function SignupForm({
             </div>
           </>
         )}
-        {event.questions.map((question) =>
-          question.kind === "multiple-select" ? (
-            <Controller
-              key={question.id}
-              control={form.control}
-              name={`answers.${question.id}`}
-              defaultValue={[]}
-              render={({ field: { ref, ...field } }) => (
-                <MultipleSelectQuestion
-                  question={question}
-                  inputRef={ref}
-                  {...field}
-                />
-              )}
-            />
-          ) : (
-            <label className="field" key={question.id}>
-              {question.label}
-              {!question.required && <small>Optional</small>}
-              {question.kind === "choice" || question.kind === "yes-no" ? (
-                <select
-                  required={question.required}
-                  {...form.register(`answers.${question.id}`)}
-                >
-                  <option value="">Choose an answer</option>
-                  {(question.kind === "yes-no"
-                    ? ["yes", "no"]
-                    : question.options || []
-                  ).map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              ) : question.kind === "long" ? (
-                <textarea
-                  required={question.required}
-                  maxLength={2000}
-                  {...form.register(`answers.${question.id}`)}
-                />
-              ) : (
-                <input
-                  required={question.required}
-                  maxLength={2000}
-                  {...form.register(`answers.${question.id}`)}
-                />
-              )}
+        {event.kind === "retreat" ? (
+          <>
+            {event.questions.filter((q) => q.required).map(renderQuestion)}
+            <details className="signup-optional-questions">
+              <summary>Other retreat questions (optional)</summary>
+              <div className="signup-optional-fields">
+                {event.questions.filter((q) => !q.required).map(renderQuestion)}
+                <label className="field">
+                  Any questions, comments, or concerns?<small>Optional</small>
+                  <textarea maxLength={1000} {...form.register("notes")} />
+                </label>
+              </div>
+            </details>
+          </>
+        ) : (
+          <>
+            {event.questions.map(renderQuestion)}
+            <label className="field">
+              Any questions, comments, or concerns?<small>Optional</small>
+              <textarea maxLength={1000} {...form.register("notes")} />
             </label>
-          ),
+          </>
         )}
-        <label className="field">
-          Any questions, comments, or concerns?<small>Optional</small>
-          <textarea maxLength={1000} {...form.register("notes")} />
-        </label>
-        <Message error={action.error} />
+        {!lostSpot && <Message error={action.error} />}
         {saved && (
           <Message>
             <Check size={16} />
@@ -543,11 +615,13 @@ function CheckedIn({
 export function EventDetail() {
   const { id, slug } = useParams();
   const navigate = useNavigate();
-  const { session } = useIdentity();
+  const { session, loading: identityLoading } = useIdentity();
   const { quarter } = useQuarter();
   const membershipPaused = useMembershipPause(quarter);
   const event = useAPI("EventPublic", `/api/events/${id}`, {
-    poll: (data) => data?.signup_status === "open",
+    poll: (data) =>
+      data?.signup_status === "open" ||
+      (data?.signup_status === "not_open" && !!data.general_signup_opens_at),
   });
   const own = useAPI("Page_SignupOwn_", `/api/me/signups?event_id=${id}`, {
     enabled: !!session?.member,
@@ -562,6 +636,15 @@ export function EventDetail() {
     `/api/me/memberships/${event.data?.quarter_id}`,
     { enabled: !!session?.member && !!event.data },
   );
+  const viewed = useRef("");
+  useEffect(() => {
+    if (!event.data || identityLoading) return;
+    const key = `${event.data.id}:${session?.member?.id || "anonymous"}:${event.data.activity_logging}`;
+    if (viewed.current !== key) {
+      viewed.current = key;
+      logEventActivity(event.data, "page_view");
+    }
+  }, [event.data, identityLoading, session?.member?.id]);
   useEffect(() => {
     if (event.data && slug !== event.data.slug)
       navigate(eventURL(event.data), { replace: true });
@@ -580,6 +663,12 @@ export function EventDetail() {
     );
   const e = event.data;
   const signup = own.data?.items.find((s) => s.event_id === e.id);
+  const retreatRestricted =
+    e.kind === "retreat" &&
+    membership.data?.status !== "approved" &&
+    !e.general_signup_available &&
+    (!signup || signup.cancelled) &&
+    ["open", "not_open"].includes(e.signup_status);
   return (
     <div className="page event-page">
       <Link className="text-link" to="/events">
@@ -720,8 +809,32 @@ export function EventDetail() {
             <Failure error={own.error} retry={own.refetch} />
           ) : membership.error ? (
             <Failure error={membership.error} retry={membership.refetch} />
-          ) : e.kind === "retreat" &&
-            membership.data?.status !== "approved" &&
+          ) : retreatRestricted && e.general_signup_opens_at ? (
+            <Panel>
+              <div
+                className="notice info retreat-membership-notice"
+                role="status"
+              >
+                <strong>General retreat signups open soon</strong>
+                <p>
+                  General members can reserve a spot starting{" "}
+                  {dateLabel(e.general_signup_opens_at)} at{" "}
+                  {clock(e.general_signup_opens_at)} Pacific, without paying for
+                  membership first.
+                </p>
+                {membershipPaused && quarter?.membership_pause_ends_at && (
+                  <p>
+                    Membership payments remain paused until{" "}
+                    {clock(quarter.membership_pause_ends_at)}.
+                  </p>
+                )}
+              </div>
+              <p>
+                If you get a spot, become a paid member within 24 hours of
+                signing up to keep it. Officers will review unpaid reservations.
+              </p>
+            </Panel>
+          ) : retreatRestricted &&
             membershipPaused &&
             membership.data?.status !== "pending" &&
             quarter ? (
@@ -731,7 +844,7 @@ export function EventDetail() {
                 Retreat signups require approved membership for this quarter.
               </p>
             </Panel>
-          ) : e.kind === "retreat" && membership.data?.status !== "approved" ? (
+          ) : retreatRestricted ? (
             <Empty
               title="A weekend for members"
               action={
@@ -752,6 +865,7 @@ export function EventDetail() {
               event={e}
               signup={signup}
               hasMembershipBenefits={membership.data?.status === "approved"}
+              membershipSubmitted={membership.data?.status === "pending"}
             />
           )}
         </aside>

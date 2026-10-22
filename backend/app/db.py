@@ -14,6 +14,7 @@ def make_engine(url: str):
 
 def get_db(request: Request) -> Generator[Session, None, None]:
     with request.app.state.sessions() as db:
+        db.info["request_id"] = getattr(request.state, "request_id", None)
         try:
             yield db
             db.commit()

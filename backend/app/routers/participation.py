@@ -38,11 +38,12 @@ from ..services.participation import (
     save_signup,
     undo,
 )
+from ..services.event_activity import track_signup_request
 
 router = APIRouter(prefix="/api")
 
 
-@router.put("/events/{eid}/signup", response_model=SignupOwn)
+@router.put("/events/{eid}/signup", response_model=SignupOwn, dependencies=[Depends(track_signup_request)])
 def self_signup(eid: int, value: SignupWrite, user=Depends(member), db=Depends(get_db, scope="function")):
     e = operational_event(db, eid)
     s = save_signup(db, e, user, value)
@@ -50,7 +51,7 @@ def self_signup(eid: int, value: SignupWrite, user=Depends(member), db=Depends(g
     return signup_projection(db, s, True)
 
 
-@router.delete("/events/{eid}/signup")
+@router.delete("/events/{eid}/signup", dependencies=[Depends(track_signup_request)])
 def self_cancel(eid: int, user=Depends(member), db=Depends(get_db, scope="function")):
     e = operational_event(db, eid)
     s = db.scalar(select(Signup).where(Signup.event_id == eid, Signup.member_id == user.id))

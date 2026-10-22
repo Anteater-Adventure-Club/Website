@@ -1,6 +1,7 @@
 from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Annotated, Any, Generic, Literal, TypeVar
+from uuid import UUID
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, field_validator, model_validator
 
 Money = Annotated[Decimal, Field(ge=0, max_digits=12, decimal_places=2)]
@@ -201,6 +202,7 @@ class ReceiptView(DTO):
 class MembershipView(DTO):
     quarter_id: int
     status: str
+    retreat_membership_required: bool = False
     source: str | None = None
     student: bool = True
     method: str = ""
@@ -234,6 +236,8 @@ class EventWrite(Revision):
     starts_at: AwareDatetime
     ends_at: AwareDatetime
     signups_enabled: bool = True
+    general_signup_opens_at: AwareDatetime | None = None
+    activity_logging: bool = False
     signup_cap_total: int | None = Field(default=None, ge=0, le=2147483647)
     signup_cap_ride: int | None = Field(default=None, ge=0, le=2147483647)
     signup_cap_driver: int | None = Field(default=None, ge=0, le=2147483647)
@@ -252,6 +256,13 @@ class EventWrite(Revision):
 
     @model_validator(mode="after")
     def valid_ranges(self):
+        if self.general_signup_opens_at:
+            if self.kind != "retreat" or not self.signups_enabled:
+                raise ValueError("General-member reservations require a retreat with signups enabled")
+            if self.general_signup_opens_at >= (self.closes_at or self.starts_at):
+                raise ValueError("General-member opening must be before signups close")
+            if self.opens_at and self.general_signup_opens_at < self.opens_at:
+                raise ValueError("General-member opening must not be before the signup opening")
         if self.ends_at < self.starts_at:
             raise ValueError("End must follow start")
         if self.opens_at and self.closes_at and self.opens_at >= self.closes_at:
@@ -285,6 +296,9 @@ class EventPublic(DTO):
     ends_at: datetime
     state: str
     signups_enabled: bool
+    general_signup_opens_at: datetime | None
+    general_signup_available: bool
+    activity_logging: bool
     signup_cap_total: int | None
     signup_cap_ride: int | None
     signup_cap_driver: int | None
@@ -325,6 +339,11 @@ class SignupWrite(Revision):
     notes: str = Field(default="", max_length=1000)
     phone: str | None = Field(default=None, max_length=40)
     request_id: str | None = Field(default=None, max_length=80)
+
+
+class EventActivityWrite(DTO):
+    action: Literal["page_view", "signup_attempt", "validation_failed"]
+    attempt_id: UUID | None = None
 
 
 class CapacityOverride(DTO):

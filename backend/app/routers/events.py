@@ -1,8 +1,8 @@
 from datetime import date, datetime, timedelta
 from typing import Annotated
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request, Response
 from sqlalchemy import delete, select
-from ..auth import officer
+from ..auth import officer, session_member_id
 from ..db import get_db
 from ..domain import (
     PACIFIC,
@@ -17,7 +17,8 @@ from ..domain import (
     today,
     utcnow,
 )
-from ..models import AttendanceAction, Card, Event, Media, Recap, Series, Signup, Trip
+from ..models import AttendanceAction, Card, Event, Media, Member, Recap, Series, Signup, Trip
+from ..services.event_activity import emit, identity
 from ..projections import event_projection, events_projection
 from ..schemas import (
     SeriesView,
@@ -25,6 +26,7 @@ from ..schemas import (
     EventPrivate,
     EventPublic,
     EventWrite,
+    EventActivityWrite,
     Page,
     Revision,
     SeriesWrite,
@@ -49,6 +51,11 @@ def validate_event(db, value, existing=None):
     if value.photo_id:
         require(db, Media, value.photo_id, True)
     if existing:
+        general_opens = (value.general_signup_opens_at if "general_signup_opens_at" in value.model_fields_set
+                         else existing.general_signup_opens_at)
+        if general_opens and value.kind == "retreat" and value.signups_enabled:
+            if general_opens >= (value.closes_at or value.starts_at) or (value.opens_at and general_opens < value.opens_at):
+                fail(422, "general_signup_window", "General-member opening must fall inside the signup window.")
         if existing.quarter_id != value.quarter_id:
             fail(422, "quarter_change", "An existing event cannot move between quarters.")
         if existing.state in {"completed", "cancelled"}:
@@ -70,9 +77,11 @@ def validate_event(db, value, existing=None):
 
 def apply_event(e, value):
     for k, v in value.model_dump(exclude={"expected_revision"}).items():
-        if k.startswith("signup_cap_") and e.id is not None and k not in value.model_fields_set:
+        if (k.startswith("signup_cap_") or k in {"general_signup_opens_at", "activity_logging"}) and e.id is not None and k not in value.model_fields_set:
             continue
         setattr(e, k, v)
+    if e.kind != "retreat" or not e.signups_enabled:
+        e.general_signup_opens_at = None
     if not value.signups_enabled:
         e.questions = []
         e.opens_at = e.closes_at = e.arrival_at = e.departure_at = e.return_at = None
@@ -82,10 +91,16 @@ def apply_event(e, value):
 
 def inherit_signup_caps(value, defaults):
     """Older editors omit new limit fields; only explicit null clears a limit."""
-    for role in ("total", "ride", "driver", "own"):
-        field = f"signup_cap_{role}"
+    for field in [*(f"signup_cap_{role}" for role in ("total", "ride", "driver", "own")),
+                  "general_signup_opens_at", "activity_logging"]:
         if field not in value.model_fields_set:
-            setattr(value, field, defaults.get(field))
+            inherited = defaults.get(field, False if field == "activity_logging" else None)
+            if field == "general_signup_opens_at":
+                if value.kind != "retreat" or not value.signups_enabled:
+                    inherited = None
+                elif isinstance(inherited, str):
+                    inherited = datetime.fromisoformat(inherited)
+            setattr(value, field, inherited)
 
 
 def touch_series(db, e):
@@ -125,6 +140,20 @@ def public_event(eid: int, db=Depends(get_db, scope="function")):
     if e.state == "draft" or e.skipped:
         fail(404, "not_found", "This event could not be found.")
     return event_projection(db, e)
+
+
+@router.post("/events/{eid}/activity", status_code=204)
+def event_activity(eid: int, value: EventActivityWrite, request: Request, db=Depends(get_db, scope="function")):
+    e = require(db, Event, eid)
+    if e.state == "draft" or e.skipped:
+        fail(404, "not_found", "This event could not be found.")
+    if e.activity_logging:
+        mid = session_member_id(request)
+        user = db.get(Member, mid) if isinstance(mid, int) else None
+        emit("browser." + value.action, event_id=eid, **identity(user),
+             request_id=request.state.request_id,
+             attempt_id=str(value.attempt_id) if value.attempt_id else None, authoritative=False)
+    return Response(status_code=204)
 
 
 @router.get("/admin/events", response_model=Page[EventPrivate])
@@ -170,7 +199,14 @@ def edit_event(eid: int, value: EventWrite, user=Depends(officer), db=Depends(ge
     e = require(db, Event, eid, True)
     revision(e, value.expected_revision)
     validate_event(db, value, e)
+    activity_before = e.activity_logging
+    general_before = e.general_signup_opens_at
     apply_event(e, value)
+    audit(db, user, "event.reservation_settings", e.id, {
+        "activity_logging_before": activity_before, "activity_logging": e.activity_logging,
+        "general_signup_opens_at_before": general_before.isoformat() if general_before else None,
+        "general_signup_opens_at": e.general_signup_opens_at.isoformat() if e.general_signup_opens_at else None,
+    })
     e.exception = bool(e.series_id)
     e.revision += 1
     touch_series(db, e)
@@ -299,7 +335,7 @@ def duplicate(eid: int, value: DuplicateWrite, user=Depends(officer), db=Depends
     fields = {k: getattr(old, k) for k in EventWrite.model_fields if hasattr(old, k)}
     fields.update(quarter_id=value.quarter_id, starts_at=value.starts_at, ends_at=value.ends_at)
     delta = value.starts_at - old.starts_at
-    for field in ("opens_at", "closes_at", "arrival_at", "departure_at", "return_at"):
+    for field in ("opens_at", "closes_at", "general_signup_opens_at", "arrival_at", "departure_at", "return_at"):
         fields[field] = fields[field] + delta if fields[field] else None
     return create_event(EventWrite(**fields), user, db)
 
@@ -339,7 +375,7 @@ def occurrence_input(value, row):
     fields = value.event.model_dump()
     delta = row["starts_at"] - value.event.starts_at
     fields.update(starts_at=row["starts_at"], ends_at=row["ends_at"])
-    for field in ("opens_at", "closes_at", "arrival_at", "departure_at", "return_at"):
+    for field in ("opens_at", "closes_at", "general_signup_opens_at", "arrival_at", "departure_at", "return_at"):
         if fields[field]:
             fields[field] += delta
     return EventWrite(**fields)
@@ -393,7 +429,7 @@ def event_to_series(eid: int, value: SeriesWrite, user=Depends(officer), db=Depe
         fail(409, "already_recurring", "Edit this event's existing series instead.")
     require_unused_drafts(db, [e])
     validate_event(db, value.event, e)
-    inherit_signup_caps(value.event, {f"signup_cap_{role}": getattr(e, f"signup_cap_{role}") for role in ("total", "ride", "driver", "own")})
+    inherit_signup_caps(value.event, {field: getattr(e, field) for field in EventWrite.model_fields if hasattr(e, field)})
     if not series_dates(db, value):
         fail(422, "empty_series", "Choose a schedule with at least one date.")
     if db.scalar(select(Series.id).where(Series.request_id == value.request_id)):

@@ -148,20 +148,21 @@ for (const mode of ["visual", "content"] as const) {
       },
     ]);
     await page.goto("/my-aac/membership");
-    const phone = page.getByLabel("Contact phone number");
+    await page.getByRole("link", { name: "Go to Membership Signup" }).click();
+    const phone = page.getByLabel("What’s your contact phone number?");
     const dismiss = await keyboard(page, mode, phone);
     await phone.fill("9495550180");
     await inputReadable(phone);
-    await page.getByLabel("I have sent my payment or paid an officer.").check();
+    await page.getByLabel("I’ve sent my payment or paid an officer.").check();
     await submit(
       page,
-      page.getByRole("button", { name: "Submit payment details" }),
+      page.getByRole("button", { name: /Submit for approval/ }),
     );
     await expect(
-      page.getByRole("heading", { name: "Payment awaiting confirmation" }),
+      page.getByRole("heading", { name: "You’re all set for now!" }),
     ).toBeVisible();
     await dismiss();
-    await expect(page.locator(".membership-signup-form")).toHaveCount(0);
+    await expect(page.locator(".status-card form")).toHaveCount(0);
   });
 
   test(`K01 ${mode} profile typing, multiline Enter, submit and repeated dismissal`, async ({

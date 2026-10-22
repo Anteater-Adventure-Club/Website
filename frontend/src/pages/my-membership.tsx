@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { Link } from "react-router";
 import { Car, Check, Clock, Leaf, Tent, Vote, Wallet } from "lucide-react";
-import { dateLabel, money, pacificDate, useAction, useAPI } from "../lib/api";
+import { clock, dateLabel, money, pacificDate, useAPI } from "../lib/api";
 import type { Quarter, Schema } from "../lib/api";
 import { staticAssetURL } from "../lib/images";
 import { quarterURL, useIdentity, useQuarter } from "../lib/context";
@@ -10,12 +9,9 @@ import {
   useMembershipPause,
 } from "../components/membership-pause";
 import {
-  Button,
   Empty,
   Failure,
-  Field,
   Loading,
-  Message,
   PageHeading,
   Panel,
   Pill,
@@ -26,7 +22,7 @@ function MembershipBenefits() {
     [
       Tent,
       "Quarterly camping retreat",
-      "Retreat signups require approved membership.",
+      "Retreat attendance requires approved membership.",
     ],
     [
       Car,
@@ -86,178 +82,10 @@ function MembershipRates() {
   );
 }
 
-function PaymentInstructions({
-  settings,
-  method,
-  student,
-  quarter,
-}: {
-  settings: Schema<"SiteSettings">;
-  method: Schema<"MembershipSubmit">["method"];
-  student: boolean;
-  quarter: Quarter;
-}) {
-  const amount = student ? "$25" : "$30";
-  if (method === "cash") return <p>{settings.cash}</p>;
-  if (method === "venmo")
-    return settings.venmo ? (
-      <>
-        <p>
-          Send {amount} to {settings.venmo} and include your name and{" "}
-          {quarter.name}.
-        </p>
-        <a
-          href={`https://venmo.com/${encodeURIComponent(settings.venmo.replace(/^@/, ""))}`}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Open Venmo ↗
-        </a>
-      </>
-    ) : (
-      <p>Ask an officer for the club’s Venmo details before paying.</p>
-    );
-  return settings.zelle ? (
-    <>
-      <p>
-        Send {amount} to {settings.zelle}. Include your name and {quarter.name}.
-      </p>
-      {settings.zelle_name?.trim() && (
-        <strong className="zelle-recipient">
-          {settings.zelle_name.trim()}
-        </strong>
-      )}
-    </>
-  ) : (
-    <p>Ask an officer for the club’s Zelle details before paying.</p>
-  );
-}
-
-function MembershipSignup({ quarter }: { quarter: Quarter }) {
-  const { session } = useIdentity();
-  const settings = useAPI("SiteSettings", "/api/site-settings");
-  const action = useAction();
-  const [student, setStudent] = useState(true);
-  const [method, setMethod] =
-    useState<Schema<"MembershipSubmit">["method"]>("zelle");
-  const [paid, setPaid] = useState(false);
-  const [phone, setPhone] = useState<string>();
-  const contactPhone = phone ?? session?.member?.phone ?? "";
-  return (
-    <form
-      className="membership-signup-form"
-      onSubmit={async (event) => {
-        event.preventDefault();
-        if (!paid || !contactPhone.trim() || !settings.data || action.isPending)
-          return;
-        await action
-          .mutateAsync({
-            url: `/api/me/memberships/${quarter.id}`,
-            body: { student, method, phone: contactPhone.trim() },
-          })
-          .catch(() => {});
-      }}
-    >
-      <Field
-        label="Contact phone number"
-        type="tel"
-        autoComplete="tel"
-        required
-        maxLength={40}
-        hint="So officers can contact you about your membership."
-        value={contactPhone}
-        onChange={(event) => setPhone(event.target.value)}
-      />
-      <fieldset>
-        <legend>Choose your membership</legend>
-        <div className="membership-category-options">
-          {[true, false].map((isStudent) => (
-            <label className="membership-category" key={String(isStudent)}>
-              <input
-                type="radio"
-                name="category"
-                checked={student === isStudent}
-                onChange={() => {
-                  setStudent(isStudent);
-                  setPaid(false);
-                }}
-              />
-              <strong>{isStudent ? "UCI student" : "Non-student"}</strong>
-              <span className="membership-price">
-                {isStudent ? "$25" : "$30"} <small>/ quarter</small>
-              </span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
-      <fieldset>
-        <legend>Payment method</legend>
-        <div className="membership-payment-options">
-          {(["zelle", "venmo", "cash"] as const).map((value) => (
-            <label key={value}>
-              <input
-                type="radio"
-                name="method"
-                checked={method === value}
-                onChange={() => {
-                  setMethod(value);
-                  setPaid(false);
-                }}
-              />
-              {value === "cash"
-                ? "Cash at a meeting"
-                : value === "venmo"
-                  ? "Venmo"
-                  : "Zelle"}
-            </label>
-          ))}
-        </div>
-      </fieldset>
-      <div className="membership-payment-notice">
-        {settings.isPending ? (
-          <Loading />
-        ) : settings.error ? (
-          <Failure error={settings.error} retry={settings.refetch} />
-        ) : (
-          <PaymentInstructions
-            settings={settings.data}
-            method={method}
-            student={student}
-            quarter={quarter}
-          />
-        )}
-      </div>
-      <label className="check-field">
-        <input
-          type="checkbox"
-          required
-          checked={paid}
-          onChange={(event) => setPaid(event.target.checked)}
-        />
-        I have sent my payment or paid an officer.
-      </label>
-      <Message error={action.error} />
-      <Button
-        className="membership-submit"
-        disabled={
-          action.isPending ||
-          !paid ||
-          !contactPhone.trim() ||
-          !settings.data ||
-          !!settings.error
-        }
-      >
-        {action.isPending ? "Submitting…" : "Submit payment details"}
-      </Button>
-      <p className="membership-form-note">
-        Paid membership benefits apply after an officer confirms your payment.
-      </p>
-    </form>
-  );
-}
-
 function membershipLabel(status: Schema<"MembershipView">) {
   if (status.status === "pending") return "Pending confirmation";
+  if (status.retreat_membership_required && status.status !== "approved")
+    return "Pending";
   if (status.status !== "approved") return "General member";
   if (status.source === "exception") return "Paid member · Officer exception";
   return "Paid member";
@@ -423,9 +251,14 @@ export function MyMembership() {
     day: "numeric",
     year: "numeric",
   });
-  const Icon = approved ? Check : pending ? Clock : Leaf;
+  const awaitingSignup =
+    !approved && !pending && status.retreat_membership_required;
+  const Icon = approved ? Check : pending || awaitingSignup ? Clock : Leaf;
   return (
-    <div className="personal-membership">
+    <div
+      className="personal-membership"
+      data-membership-status={pending || awaitingSignup ? "pending" : undefined}
+    >
       <PageHeading
         title="Your membership"
         subtitle="Membership status, dues, and benefits."
@@ -456,8 +289,8 @@ export function MyMembership() {
           <h2>
             {approved
               ? "Paid Membership"
-              : pending
-                ? "Payment submitted"
+              : pending || awaitingSignup
+                ? "Pending membership"
                 : "General member"}
           </h2>
           <p className="membership-pass-name">{session?.member?.name}</p>
@@ -466,11 +299,13 @@ export function MyMembership() {
               ? `${expired ? "Benefits ended" : "Benefits through"} ${date}`
               : pending
                 ? "Waiting for officer confirmation"
-                : "Weekly activities are free"}
+                : awaitingSignup
+                  ? "Membership signup needed"
+                  : "Weekly activities are free"}
           </p>
           <div className="membership-pass-bottom">
             <div>
-              <Pill tone={pending ? "yellow" : "green"}>
+              <Pill tone={pending || awaitingSignup ? "yellow" : "green"}>
                 {membershipLabel(status)}
               </Pill>
               <p>
@@ -497,12 +332,12 @@ export function MyMembership() {
             <span className="membership-eyebrow muted">
               {pending
                 ? "Payment submitted"
-                : approved
+                : approved || awaitingSignup
                   ? "Your membership"
                   : "Membership dues"}
             </span>
             <h2>
-              {approved
+              {approved || awaitingSignup
                 ? "Membership details"
                 : pending
                   ? "Payment awaiting confirmation"
@@ -510,21 +345,70 @@ export function MyMembership() {
                     ? `${quarter.name} membership`
                     : `Pay dues for ${quarter.name}`}
             </h2>
-            {!approved && !pending ? (
+            {awaitingSignup ? (
+              <>
+                <dl className="membership-details">
+                  <div>
+                    <dt>Member</dt>
+                    <dd>{session?.member?.name}</dd>
+                  </div>
+                  <div>
+                    <dt>Quarter</dt>
+                    <dd>{quarter.name}</dd>
+                  </div>
+                  <div>
+                    <dt>Status</dt>
+                    <dd>Pending</dd>
+                  </div>
+                </dl>
+                <p className="muted">
+                  Complete your membership signup within 24 hours of reserving
+                  your retreat spot to keep it.
+                </p>
+                {membershipPaused && quarter.membership_pause_ends_at && (
+                  <p className="muted">
+                    Membership payments reopen{" "}
+                    {dateLabel(quarter.membership_pause_ends_at)} at{" "}
+                    {clock(quarter.membership_pause_ends_at)} Pacific.
+                  </p>
+                )}
+                <div className="actions">
+                  <Link
+                    className="button primary membership-signup-link"
+                    to={quarterURL("/membership", quarter.id)}
+                  >
+                    Go to Membership Signup
+                  </Link>
+                </div>
+              </>
+            ) : !approved && !pending ? (
               closed ? (
                 <p className="muted">
                   Membership submissions for this quarter are closed.
                 </p>
               ) : membershipPaused ? (
-                <MembershipPauseNotice quarter={quarter} />
+                <>
+                  <MembershipPauseNotice quarter={quarter} />
+                  <Link
+                    className="button primary"
+                    to={quarterURL("/membership", quarter.id)}
+                  >
+                    Go to Membership Signup
+                  </Link>
+                </>
               ) : (
                 <>
                   <p className="muted">
                     Weekly activities are free. To get paid membership benefits,
-                    pay the quarter’s dues and submit your payment details
-                    below.
+                    pay the quarter’s dues and submit your payment details on
+                    the membership signup page.
                   </p>
-                  <MembershipSignup key={quarter.id} quarter={quarter} />
+                  <Link
+                    className="button primary"
+                    to={quarterURL("/membership", quarter.id)}
+                  >
+                    Go to Membership Signup
+                  </Link>
                 </>
               )
             ) : (

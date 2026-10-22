@@ -8,7 +8,9 @@ from uuid import uuid4
 from contextlib import asynccontextmanager
 from alembic.config import Config
 from alembic.script import ScriptDirectory
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.exceptions import RequestValidationError
+from fastapi.exception_handlers import http_exception_handler, request_validation_exception_handler
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
@@ -18,6 +20,7 @@ from .config import Settings
 from .db import make_engine, session_factory
 from .schemas import SiteSettings
 from .routers import editorial, events, finance, google_sheets, imports, members, overview, participation, social
+from .services.event_activity import emit
 
 logger = logging.getLogger("aac.http")
 if not logger.handlers:
@@ -65,6 +68,7 @@ def create_app(settings=None, engine=None):
     async def boundaries(request: Request, call_next):
         start = time.monotonic()
         request_id = uuid4().hex
+        request.state.request_id = request_id
         response = None
         if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
             origin = request.headers.get("origin")
@@ -75,7 +79,15 @@ def create_app(settings=None, engine=None):
                 )
         if response is None:
             async with request.app.state.request_limit:
-                response = await call_next(request)
+                try:
+                    response = await call_next(request)
+                except Exception:
+                    if context := getattr(request.state, "event_activity", None):
+                        emit("signup.rejected", **context, status=500, reason="server_error", authoritative=False)
+                    raise
+        if response.status_code >= 400 and (context := getattr(request.state, "event_activity", None)):
+            emit("signup.rejected", **context, status=response.status_code,
+                 reason=getattr(request.state, "activity_reason", "request_rejected"), authoritative=False)
         response.headers["X-Request-ID"] = request_id
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
@@ -91,8 +103,19 @@ def create_app(settings=None, engine=None):
         )
         return response
 
+    @app.exception_handler(HTTPException)
+    async def http_error(request, exc):
+        request.state.activity_reason = exc.detail.get("code", "request_rejected") if isinstance(exc.detail, dict) else "request_rejected"
+        return await http_exception_handler(request, exc)
+
+    @app.exception_handler(RequestValidationError)
+    async def invalid_request(request, exc):
+        request.state.activity_reason = "validation_failed"
+        return await request_validation_exception_handler(request, exc)
+
     @app.exception_handler(IntegrityError)
     async def conflict(request, exc):
+        request.state.activity_reason = "record_conflict"
         return JSONResponse(
             {
                 "detail": {

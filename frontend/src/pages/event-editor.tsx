@@ -41,6 +41,9 @@ type EditorValues = {
   starts: string;
   ends: string;
   signups: boolean;
+  generalEnabled: boolean;
+  generalOpens: string;
+  activityLogging: boolean;
   opens: string;
   closes: string;
   arrival: string;
@@ -83,6 +86,9 @@ function Editor({
       starts: source ? pacificInput(source.starts_at) : `${day}T10:30`,
       ends: source ? pacificInput(source.ends_at) : `${day}T16:00`,
       signups: source?.signups_enabled ?? true,
+      generalEnabled: !!source?.general_signup_opens_at,
+      generalOpens: pacificInput(source?.general_signup_opens_at),
+      activityLogging: source?.activity_logging ?? false,
       signup_cap_total: source?.signup_cap_total?.toString() ?? "",
       signup_cap_ride: source?.signup_cap_ride?.toString() ?? "",
       signup_cap_driver: source?.signup_cap_driver?.toString() ?? "",
@@ -143,6 +149,13 @@ function Editor({
   const enabled = form.watch("signups");
   function eventBody(values: EditorValues): Schema<"EventWrite-Input"> {
     if (!qid) throw new Error("Create a quarter before saving an event.");
+    if (
+      values.signups &&
+      values.kind === "retreat" &&
+      values.generalEnabled &&
+      !values.generalOpens
+    )
+      throw new Error("Choose when general-member reservations open.");
     return {
       quarter_id: qid,
       name: values.name,
@@ -152,6 +165,11 @@ function Editor({
       starts_at: fromPacific(values.starts)!,
       ends_at: fromPacific(values.ends)!,
       signups_enabled: values.signups,
+      general_signup_opens_at:
+        values.signups && values.kind === "retreat" && values.generalEnabled
+          ? fromPacific(values.generalOpens)
+          : null,
+      activity_logging: values.activityLogging,
       signup_cap_total:
         values.signup_cap_total === "" ? null : Number(values.signup_cap_total),
       signup_cap_ride:
@@ -474,6 +492,50 @@ function Editor({
                     Blank opening means immediately on publication; blank
                     closing means event start.
                   </small>
+                  {form.watch("kind") === "retreat" && (
+                    <div className="stack general-reservation-settings">
+                      <h3>General-member reservations</h3>
+                      <label className="check-field">
+                        <input
+                          type="checkbox"
+                          {...form.register("generalEnabled")}
+                        />
+                        Let general members reserve before becoming paid members
+                      </label>
+                      {form.watch("generalEnabled") ? (
+                        <>
+                          <Field
+                            label="General members can sign up · Pacific"
+                            type="datetime-local"
+                            required={tab === "signups"}
+                            {...form.register("generalOpens")}
+                            hint="Paid members keep their earlier access. General members use the same remaining places."
+                          />
+                          <div className="notice info">
+                            <strong>
+                              Members will see a 24-hour membership reminder
+                            </strong>
+                            <p>
+                              Officers handle unpaid reservations manually.
+                              Spots are never removed automatically.
+                            </p>
+                          </div>
+                          <p className="muted">
+                            Membership payments stay on the quarter’s separate
+                            pause schedule.
+                          </p>
+                          <Link to={`/admin/settings?quarter=${qid}`}>
+                            Manage membership pause →
+                          </Link>
+                        </>
+                      ) : (
+                        <p className="muted">
+                          Only approved paid members can create new retreat
+                          reservations. Existing reservations remain saved.
+                        </p>
+                      )}
+                    </div>
+                  )}
                   <h3>Signup limits</h3>
                   <p className="muted">
                     Blank means unlimited; 0 closes new signups. Limits count
@@ -778,6 +840,15 @@ function Editor({
                 calendar.
               </p>
               <Message error={localError || action.error} />
+              <label className="check-field activity-logging-option">
+                <input type="checkbox" {...form.register("activityLogging")} />
+                <span>
+                  Log activity for this event
+                  <small className="muted">
+                    Record views and signup activity in Server’s API logs.
+                  </small>
+                </span>
+              </label>
               <div className="stack">
                 <Button disabled={saving}>
                   {saving ? "Saving…" : source ? "Save Changes" : "Save Draft"}

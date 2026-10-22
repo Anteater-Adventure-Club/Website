@@ -157,6 +157,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/events/{eid}/activity": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Event Activity */
+    post: operations["event_activity_api_events__eid__activity_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/admin/events": {
     parameters: {
       query?: never;
@@ -1868,6 +1885,16 @@ export interface components {
       /** Reason */
       reason: string;
     };
+    /** EventActivityWrite */
+    EventActivityWrite: {
+      /**
+       * Action
+       * @enum {string}
+       */
+      action: "page_view" | "signup_attempt" | "validation_failed";
+      /** Attempt Id */
+      attempt_id?: string | null;
+    };
     /** EventCost */
     EventCost: {
       /** Id */
@@ -1923,6 +1950,12 @@ export interface components {
       state: string;
       /** Signups Enabled */
       signups_enabled: boolean;
+      /** General Signup Opens At */
+      general_signup_opens_at: string | null;
+      /** General Signup Available */
+      general_signup_available: boolean;
+      /** Activity Logging */
+      activity_logging: boolean;
       /** Signup Cap Total */
       signup_cap_total: number | null;
       /** Signup Cap Ride */
@@ -2019,6 +2052,12 @@ export interface components {
       state: string;
       /** Signups Enabled */
       signups_enabled: boolean;
+      /** General Signup Opens At */
+      general_signup_opens_at: string | null;
+      /** General Signup Available */
+      general_signup_available: boolean;
+      /** Activity Logging */
+      activity_logging: boolean;
       /** Signup Cap Total */
       signup_cap_total: number | null;
       /** Signup Cap Ride */
@@ -2154,6 +2193,13 @@ export interface components {
        * @default true
        */
       signups_enabled: boolean;
+      /** General Signup Opens At */
+      general_signup_opens_at?: string | null;
+      /**
+       * Activity Logging
+       * @default false
+       */
+      activity_logging: boolean;
       /** Signup Cap Total */
       signup_cap_total?: number | null;
       /** Signup Cap Ride */
@@ -2236,6 +2282,13 @@ export interface components {
        * @default true
        */
       signups_enabled: boolean;
+      /** General Signup Opens At */
+      general_signup_opens_at?: string | null;
+      /**
+       * Activity Logging
+       * @default false
+       */
+      activity_logging: boolean;
       /** Signup Cap Total */
       signup_cap_total?: number | null;
       /** Signup Cap Ride */
@@ -2610,6 +2663,11 @@ export interface components {
       quarter_id: number;
       /** Status */
       status: string;
+      /**
+       * Retreat Membership Required
+       * @default false
+       */
+      retreat_membership_required: boolean;
       /** Source */
       source?: string | null;
       /**
@@ -3152,6 +3210,12 @@ export interface components {
       state: string;
       /** Signups Enabled */
       signups_enabled: boolean;
+      /** General Signup Opens At */
+      general_signup_opens_at: string | null;
+      /** General Signup Available */
+      general_signup_available: boolean;
+      /** Activity Logging */
+      activity_logging: boolean;
       /** Signup Cap Total */
       signup_cap_total: number | null;
       /** Signup Cap Ride */
@@ -3934,6 +3998,39 @@ export interface operations {
         content: {
           "application/json": components["schemas"]["EventPublic"];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  event_activity_api_events__eid__activity_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        eid: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["EventActivityWrite"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Validation Error */
       422: {

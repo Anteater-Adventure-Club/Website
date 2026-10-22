@@ -2,7 +2,8 @@ from datetime import timedelta
 from sqlalchemy import delete, func, select
 from ..domain import audit, fail, paid, require, revision, utcnow
 from ..models import Assignment, AttendanceAction, Card, DriverRegistration, Signup, Trip, Vehicle
-from ..projections import signup_window
+from ..projections import general_signup_available, signup_window
+from .event_activity import queue_signup_activity
 
 
 def capacity_violations(db, event, signup, role):
@@ -27,9 +28,12 @@ def capacity_violations(db, event, signup, role):
 def save_signup(db, event, member, value, officer=False, source="member", *, actor=None, capacity_override_reason=None):
     if not officer and signup_window(event) != "open":
         fail(409, "signup_closed", "Signups are not currently open.")
-    if event.kind == "retreat" and not paid(db, member.id, event.quarter_id):
-        fail(403, "paid_membership_required", "Approved paid membership is required for retreats.")
     s = db.scalar(select(Signup).where(Signup.event_id == event.id, Signup.member_id == member.id))
+    active = s is not None and not s.cancelled
+    if (event.kind == "retreat" and not active and not paid(db, member.id, event.quarter_id)
+            and not general_signup_available(event)):
+        fail(403, "paid_membership_required", "Approved paid membership is required for retreats.")
+    activity = "signup.updated" if active else "signup.restored" if s else "signup.created"
     if s:
         revision(s, value.expected_revision)
         if s.checked_in_at:
@@ -105,6 +109,7 @@ def save_signup(db, event, member, value, officer=False, source="member", *, act
             "reason": capacity_override_reason, "event_id": event.id,
             "member_id": member.id, "source": source, "limits": violations,
         })
+    queue_signup_activity(db, event, s, member, actor or member, activity, source=source)
     return s
 
 
@@ -118,6 +123,9 @@ def cancel_signup(db, s, event, actor, own=False):
         s.revision += 1
         event.revision += 1
         audit(db, actor, "signup.cancel", s.id)
+        if event.activity_logging:
+            from ..models import Member
+            queue_signup_activity(db, event, s, require(db, Member, s.member_id), actor, "signup.cancelled")
 
 
 def next_card(db, event, category):

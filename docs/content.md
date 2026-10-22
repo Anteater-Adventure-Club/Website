@@ -33,6 +33,27 @@ Lowering a limit preserves existing registrations. Members can still edit their 
 
 For a retreat priority period, open **Settings → Membership Signups** for the retreat's quarter. Set the pause start and reopening times in Pacific time and the message new members should see. Start the pause before retreat signups open. The pause blocks new dues submissions for that quarter, and the membership forms return automatically at the scheduled end. Pending submissions can still be approved, and approved members can register for retreat. Clear both pause dates and save to reopen early. Budget edits do not change this schedule.
 
+To offer remaining retreat places before requiring payment, enable **Let general members reserve before becoming paid members** under **Signups & Carpools** and set the Pacific opening time. Approved members retain their earlier access. General members become eligible at the configured time, within the ordinary signup window, and compete for the same total and transport limits. For example, 38 existing signups and a total limit of 48 leave 10 places; do not set the total limit to 10. This setting does not reopen membership payments, even for members who secure a place.
+
+Successful general-member reservations show a 24-hour membership reminder. **Your Membership** shows a yellow pending card and links to the existing membership signup page. A reservation alone does not create a payment submission. There is no automatic expiry, removal, or reminder job: officers review unpaid reservations and decide what to do. Turning off general-member reservations keeps existing signups editable within the normal signup window; cancelled signups need current eligibility and available capacity to be restored.
+
+## Event activity logging
+
+Every event kind has a compact **Log activity for this event** checkbox near the editor's save button. It is off by default and independent of retreat eligibility. Enable it before the opening rush, then save. Changing the setting affects subsequent activity; it does not reconstruct earlier visits.
+
+Records are written as JSON lines in **Server's API logs**, with `type: "event_activity"` and an event ID. They are not stored in a separate application database table or displayed in an activity dashboard. Retention and rotation follow the server's API log configuration; export the relevant time range if it needs to be retained.
+
+| Action | Meaning |
+| --- | --- |
+| `browser.page_view` | Event page rendered; signed-in member ID/name when available, otherwise anonymous |
+| `browser.signup_attempt` | Submit attempted in the browser |
+| `browser.validation_failed` | Browser validation prevented submission |
+| `signup.request` | Signup or cancellation request reached the API |
+| `signup.rejected` | API rejected the request, with HTTP status and reason code |
+| `signup.created`, `signup.updated`, `signup.restored`, `signup.cancelled` | Change committed to the database |
+
+Use `event_id` to filter, `member_id` to follow a signed-in person, and `attempt_id` / `request_id` to correlate requests. Only committed change records have `authoritative: true`; the roster remains the source of truth. Browser signals are best effort and can be lost, duplicated, or blocked. Requests blocked before the signup route, such as invalid-origin requests, remain in the ordinary HTTP logs. Names and IDs are included, but contact information, payment details, and question answers are excluded from these activity records.
+
 ## Board profiles
 
 Open **Officers & Board**, select the board year, and use **Add Board Profile** or edit an existing entry. Review the photo, role, biography, and **Show on the public board** setting. Reorder profiles in that screen and check `/board` afterward.

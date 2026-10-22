@@ -121,6 +121,14 @@ const privacySections: Section[] = [
             sign-in and administrative actions used to operate and protect the
             site.
           </li>
+          <li>
+            <strong>Event activity:</strong> for events with activity logging
+            enabled, we record page visits, signup attempts and outcomes, edits,
+            cancellations, and restorations in Server’s API logs. When signed
+            in, these records include your member ID and name. Anonymous visits
+            have no member identity. Activity logs do not contain your signup
+            answers, contact details, or payment details.
+          </li>
         </ul>
         <p>
           Information comes from you, Google sign-in, and club officers who

@@ -1535,6 +1535,74 @@ dialog::backdrop {
   color: #e8eccf;
   transform: rotate(-12deg);
 }
+.personal-membership[data-membership-status="pending"] .membership-pass {
+  background: #ffedb8;
+  color: #5f460e;
+  box-shadow: 0 12px 28px #5f460e17;
+}
+.personal-membership[data-membership-status="pending"]
+  .membership-pass::before {
+  border-color: #5f460e29;
+  box-shadow:
+    0 0 0 32px #5f460e0a,
+    0 0 0 64px #5f460e07;
+}
+.personal-membership[data-membership-status="pending"]
+  .membership-pass
+  .membership-eyebrow,
+.personal-membership[data-membership-status="pending"] .membership-pass-meta,
+.personal-membership[data-membership-status="pending"]
+  .membership-pass-bottom
+  p,
+.personal-membership[data-membership-status="pending"] .membership-pass-stamp {
+  color: #5f460e;
+}
+.personal-membership[data-membership-status="pending"] .membership-pass-bottom,
+.personal-membership[data-membership-status="pending"] .membership-pass-stamp {
+  border-color: #5f460e4d;
+}
+.personal-membership[data-membership-status="pending"]
+  .membership-pass
+  .pill.yellow {
+  background: #f5dc94;
+}
+.personal-membership[data-membership-status="pending"] .membership-signup-link {
+  background: #ffedb8;
+  border-color: #ffedb8;
+  color: #5f460e;
+}
+.retreat-membership-notice {
+  display: block;
+}
+.retreat-membership-notice > strong {
+  display: block;
+  margin-bottom: 0.4rem;
+}
+.retreat-membership-notice p {
+  margin: 0.4rem 0 0;
+}
+.retreat-membership-notice a {
+  display: inline-block;
+  margin-top: 0.6rem;
+}
+.signup-optional-questions summary {
+  min-height: 44px;
+  padding: 12px 0;
+  cursor: pointer;
+}
+.signup-optional-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.activity-logging-option {
+  font-size: 0.85rem;
+  margin: 1rem 0;
+}
+.activity-logging-option small {
+  display: block;
+}
 .personal-membership-benefits {
   display: grid;
   list-style: none;

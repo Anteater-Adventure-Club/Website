@@ -37,7 +37,7 @@ for (const view of [
   { name: "membership", route: "/my-aac/membership", role: "Member" },
   {
     name: "membership-signup",
-    route: "/my-aac/membership",
+    route: "/membership",
     role: "General Rider",
   },
   { name: "profile", route: "/my-aac/profile", role: "Driver" },

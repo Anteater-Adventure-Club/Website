@@ -168,6 +168,8 @@ class Event(Base):
     ends_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     state: Mapped[str] = mapped_column(String(20), default="draft")
     signups_enabled: Mapped[bool] = mapped_column(default=True)
+    general_signup_opens_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    activity_logging: Mapped[bool] = mapped_column(default=False, server_default="false")
     signup_cap_total: Mapped[int | None]
     signup_cap_ride: Mapped[int | None]
     signup_cap_driver: Mapped[int | None]

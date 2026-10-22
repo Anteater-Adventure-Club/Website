@@ -63,8 +63,15 @@ Choose additional suites for the affected behavior:
 | `npm run test:e2e:boundaries` | Narrow screens, breakpoints, orientation, focus, and simulated 200% reflow |
 | `npm run test:e2e:keyboard` | Mobile forms with simulated keyboard viewport changes |
 | `npm run test:e2e:search` | Officer person search |
+| `npx playwright test --config playwright.retreat.config.ts` | Retreat opening, reservation races, pending membership, payment instructions, and officer controls at desktop, laptop, tablet, and phone sizes |
 
 Keyboard simulation does not replace a check on a physical phone. Test output stays in ignored `artifacts/`.
+
+### Retreat concurrency benchmark
+
+`scripts/benchmark-retreat.py` starts a temporary local API and tests 75 simultaneous applicants for 10 remaining retreat places, five times with logging off and five with it on. It checks the database counts, paused membership payments, and each enabled event's logged views, attempts, requests, winners, and capacity rejections. It writes `artifacts/retreat-benchmark/results.json` and `api.log`.
+
+Use a freshly created, migrated, empty PostgreSQL database named `aac_retreat_benchmark_YYYYMMDDHHMMSS`, with a loopback connection URL. Set `DATABASE_URL` to that database, run Alembic migrations, then run `.venv/bin/python scripts/benchmark-retreat.py`. The script refuses other database names/hosts and databases containing members. Port 18001 must be free. Stop other test workloads while benchmarking. These are local API measurements, without production network, TLS, proxy, or browser rendering costs.
 
 The Google Sheets browser test uses synthetic API responses and only needs Vite:
 `npx playwright test google-sheets.spec.ts`. It covers column configuration,

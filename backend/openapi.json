@@ -269,6 +269,48 @@
         }
       }
     },
+    "/api/events/{eid}/activity": {
+      "post": {
+        "summary": "Event Activity",
+        "operationId": "event_activity_api_events__eid__activity_post",
+        "parameters": [
+          {
+            "name": "eid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Eid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventActivityWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/events": {
       "get": {
         "summary": "Admin Events",
@@ -5641,6 +5683,37 @@
         ],
         "title": "EligibilityWrite"
       },
+      "EventActivityWrite": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "page_view",
+              "signup_attempt",
+              "validation_failed"
+            ],
+            "title": "Action"
+          },
+          "attempt_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attempt Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "EventActivityWrite"
+      },
       "EventCost": {
         "properties": {
           "id": {
@@ -5750,6 +5823,26 @@
           "signups_enabled": {
             "type": "boolean",
             "title": "Signups Enabled"
+          },
+          "general_signup_opens_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "General Signup Opens At"
+          },
+          "general_signup_available": {
+            "type": "boolean",
+            "title": "General Signup Available"
+          },
+          "activity_logging": {
+            "type": "boolean",
+            "title": "Activity Logging"
           },
           "signup_cap_total": {
             "anyOf": [
@@ -5992,6 +6085,9 @@
           "ends_at",
           "state",
           "signups_enabled",
+          "general_signup_opens_at",
+          "general_signup_available",
+          "activity_logging",
           "signup_cap_total",
           "signup_cap_ride",
           "signup_cap_driver",
@@ -6085,6 +6181,26 @@
           "signups_enabled": {
             "type": "boolean",
             "title": "Signups Enabled"
+          },
+          "general_signup_opens_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "General Signup Opens At"
+          },
+          "general_signup_available": {
+            "type": "boolean",
+            "title": "General Signup Available"
+          },
+          "activity_logging": {
+            "type": "boolean",
+            "title": "Activity Logging"
           },
           "signup_cap_total": {
             "anyOf": [
@@ -6281,6 +6397,9 @@
           "ends_at",
           "state",
           "signups_enabled",
+          "general_signup_opens_at",
+          "general_signup_available",
+          "activity_logging",
           "signup_cap_total",
           "signup_cap_ride",
           "signup_cap_driver",
@@ -6523,6 +6642,23 @@
             "type": "boolean",
             "title": "Signups Enabled",
             "default": true
+          },
+          "general_signup_opens_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "General Signup Opens At"
+          },
+          "activity_logging": {
+            "type": "boolean",
+            "title": "Activity Logging",
+            "default": false
           },
           "signup_cap_total": {
             "anyOf": [
@@ -6783,6 +6919,23 @@
             "type": "boolean",
             "title": "Signups Enabled",
             "default": true
+          },
+          "general_signup_opens_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "General Signup Opens At"
+          },
+          "activity_logging": {
+            "type": "boolean",
+            "title": "Activity Logging",
+            "default": false
           },
           "signup_cap_total": {
             "anyOf": [
@@ -7924,6 +8077,11 @@
           "status": {
             "type": "string",
             "title": "Status"
+          },
+          "retreat_membership_required": {
+            "type": "boolean",
+            "title": "Retreat Membership Required",
+            "default": false
           },
           "source": {
             "anyOf": [
@@ -9451,6 +9609,26 @@
             "type": "boolean",
             "title": "Signups Enabled"
           },
+          "general_signup_opens_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "General Signup Opens At"
+          },
+          "general_signup_available": {
+            "type": "boolean",
+            "title": "General Signup Available"
+          },
+          "activity_logging": {
+            "type": "boolean",
+            "title": "Activity Logging"
+          },
           "signup_cap_total": {
             "anyOf": [
               {
@@ -9696,6 +9874,9 @@
           "ends_at",
           "state",
           "signups_enabled",
+          "general_signup_opens_at",
+          "general_signup_available",
+          "activity_logging",
           "signup_cap_total",
           "signup_cap_ride",
           "signup_cap_driver",

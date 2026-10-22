@@ -35,6 +35,7 @@ import {
   DriverPassengers,
   isLiveDriverSignup,
 } from "../components/driver-passengers";
+import { RetreatMembershipNotice } from "../components/retreat-membership-notice";
 
 const profileSchema = z.object({
   name: z.string().trim().min(1, "Your name is required").max(100),
@@ -446,6 +447,14 @@ export function MyOverview() {
               <p className="preserve-lines">
                 {query.data.next_event.description.slice(0, 220)}
               </p>
+              {query.data.next_event.kind === "retreat" &&
+                query.data.membership?.retreat_membership_required && (
+                  <RetreatMembershipNotice
+                    quarterId={query.data.next_event.quarter_id}
+                    reserved
+                    submitted={query.data.membership.status === "pending"}
+                  />
+                )}
               <div className="actions">
                 <Link
                   className="button primary"
@@ -483,7 +492,9 @@ export function MyOverview() {
               ? "Paid Member"
               : query.data.membership?.status === "pending"
                 ? "Pending Confirmation"
-                : "General Member"}
+                : query.data.membership?.retreat_membership_required
+                  ? "Pending Membership"
+                  : "General Member"}
           </Pill>
           <p className="section">
             Weekly activities are free. Paid membership adds priority carpool
@@ -573,6 +584,16 @@ export function MySignups() {
                     {s.event!.destination}
                   </p>
                   <p>{transportLabel(s)}</p>
+                  {s.event!.kind === "retreat" &&
+                    !s.paid &&
+                    !s.cancelled &&
+                    new Date(s.event!.ends_at) > new Date() &&
+                    s.event!.state === "published" && (
+                      <RetreatMembershipNotice
+                        quarterId={s.event!.quarter_id}
+                        reserved
+                      />
+                    )}
                   {s.role === "driver" && s.checked_in_at && !s.cancelled && (
                     <>
                       <DriverPassengers signup={s} compact />

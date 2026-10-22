@@ -9,14 +9,22 @@ from .schemas import EventPrivate, EventPublic, MembershipView, ReceiptView
 
 def membership_view(db, mid, qid):
     m = db.scalar(select(Membership).where(Membership.member_id == mid, Membership.quarter_id == qid))
+    retreat_required = not (m and m.status == "approved") and bool(db.scalar(
+        select(Signup.id).join(Event).where(
+            Signup.member_id == mid, Signup.cancelled.is_(False), Event.quarter_id == qid,
+            Event.kind == "retreat", Event.state == "published", Event.skipped.is_(False),
+            Event.ends_at > utcnow(),
+        ).limit(1)
+    ))
     if m is None:
-        return MembershipView(quarter_id=qid, status="general")
+        return MembershipView(quarter_id=qid, status="general", retreat_membership_required=retreat_required)
     receipts = db.scalars(
         select(Receipt).where(Receipt.membership_id == m.id).order_by(Receipt.created_at.desc())
     )
     return MembershipView(
         quarter_id=qid,
         status=m.status,
+        retreat_membership_required=retreat_required,
         source=m.source,
         student=m.student,
         method=m.method,
@@ -37,6 +45,11 @@ def signup_window(e):
     if n >= (e.closes_at or e.starts_at):
         return "closed"
     return "open"
+
+
+def general_signup_available(e):
+    return bool(e.kind == "retreat" and e.general_signup_opens_at
+                and utcnow() >= e.general_signup_opens_at and signup_window(e) == "open")
 
 
 def attendance_status(signup, event):
@@ -80,6 +93,7 @@ def events_projection(db, events, private=False):
         data.update(
             slug=slug(e.name),
             signup_status=signup_window(e),
+            general_signup_available=general_signup_available(e),
             signup_count=total.signup_count if total else 0,
             signup_counts_by_role={role: getattr(total, role) if total else 0 for role in ("ride", "driver", "own")},
             offered_seats=offered_seats,

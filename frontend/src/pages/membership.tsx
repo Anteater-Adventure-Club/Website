@@ -40,7 +40,7 @@ export function Membership() {
   const list = [
     [
       "Access to the quarterly camping retreat!",
-      "Get out of town and explore somewhere new with the club. Retreat signups require approved membership.",
+      "Get out of town and explore somewhere new with the club. Retreat attendance requires approved membership.",
     ],
     [
       "Priority carpool assignments",
@@ -288,7 +288,13 @@ export function Membership() {
                     </fieldset>
                     <div className="notice">
                       {method === "cash" ? (
-                        settings.data?.cash
+                        <>
+                          <p>{settings.data?.cash}</p>
+                          <p>
+                            Tell the officer your name and that you’re paying
+                            for {quarter.name} membership.
+                          </p>
+                        </>
                       ) : method === "venmo" ? (
                         settings.data?.venmo ? (
                           <>
@@ -313,6 +319,11 @@ export function Membership() {
                           Send {student ? "$25" : "$30"} to{" "}
                           {settings.data.zelle}. Include your name and{" "}
                           {quarter.name}.
+                          {settings.data.zelle_name?.trim() && (
+                            <strong className="zelle-recipient">
+                              {settings.data.zelle_name.trim()}
+                            </strong>
+                          )}
                         </>
                       ) : (
                         "Ask an officer for the club’s Zelle details before paying."
