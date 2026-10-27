@@ -21,6 +21,7 @@ from ..schemas import ImportApply, ImportWrite, MemberInput, SignupWrite, Import
 from ..services.import_parser import event_fields, read_rows
 from ..services.participation import save_signup
 from ..services.restrictions import enforce
+from ..services.approval import enforce_approval
 from ..domain import get_membership
 
 router = APIRouter(prefix="/api/admin/imports")
@@ -76,6 +77,7 @@ def preview(value: ImportWrite, request: Request, user=Depends(officer), db=Depe
             ):
                 action = "skip existing signup"
             if existing:
+                enforce_approval(db, existing.id)
                 if event and action != "skip existing signup":
                     enforce(db, existing.id, event=event)
                 membership = get_membership(db, existing.id, value.quarter_id)
@@ -83,9 +85,11 @@ def preview(value: ImportWrite, request: Request, user=Depends(officer), db=Depe
                     enforce(db, existing.id, membership=True)
             rows.append({"line": number, "action": action, **data})
         except HTTPException as exc:
-            if exc.detail.get("code") not in {"membership_restricted", "event_signup_restricted"}:
+            if exc.detail.get("code") not in {"membership_restricted", "event_signup_restricted", "approval_required"}:
                 raise
-            issues.append({"line": number, "message": "Active ban: lift the matching ban before importing this member."})
+            message = ("Club approval is required before importing this member." if exc.detail["code"] == "approval_required"
+                       else "Active ban: lift the matching ban before importing this member.")
+            issues.append({"line": number, "message": message})
         except (ValueError, ValidationError) as exc:
             issues.append({"line": number, "message": str(exc)[:500]})
     signature = hashlib.sha256(value.model_dump_json().encode()).hexdigest()
@@ -130,6 +134,7 @@ def apply(pid: str, value: ImportApply, user=Depends(officer), db=Depends(get_db
         m = existing or ensure_member(
             db, MemberInput(**{k: row[k] for k in ("name", "email", "phone", "student")})
         )
+        enforce_approval(db, m.id)
         created += existing is None
         reused += existing is not None
         if not m.phone:

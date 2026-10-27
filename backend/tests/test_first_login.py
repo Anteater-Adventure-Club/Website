@@ -142,7 +142,7 @@ def test_other_tab_read_during_first_login_preserves_state(google_flow, api, rea
     if read_path == "/api/session":
         assert read.json()["member"] is None
     response = google_flow.finish()
-    assert response.headers["location"] == "/my-aac/profile"
+    assert response.headers["location"] == ("/my-aac/application" if mode == "non_uci" else "/my-aac/profile")
     assert_signed_in(google_flow, api, email)
 
 
@@ -162,7 +162,7 @@ def test_expired_member_is_denied_without_losing_new_oauth_state(google_flow, ap
     assert read.status_code == status
     assert google_flow.client.get("/api/session").json()["member"] is None
     assert google_flow.client.get("/api/admin/overview").status_code == 401
-    assert google_flow.finish().headers["location"] == "/my-aac/profile"
+    assert google_flow.finish().headers["location"] == ("/my-aac/application" if mode == "non_uci" else "/my-aac/profile")
     assert_signed_in(google_flow, api, email)
 
 
@@ -239,11 +239,11 @@ def test_non_uci_requires_explicit_choice_and_reuses_existing_identity(google_fl
     assert "hd" not in authorization
     assert authorization["prompt"] == "select_account"
     google_flow.claim_overrides = {"email": NON_UCI_EMAIL}
-    assert google_flow.finish().headers["location"] == "/my-aac/profile"
+    assert google_flow.finish().headers["location"] == "/my-aac/application"
     member_id = assert_signed_in(google_flow, api, NON_UCI_EMAIL)
     google_flow.client.post("/api/auth/logout")
     google_flow.begin(mode="non_uci")
-    assert google_flow.finish().headers["location"] == "/my-aac/profile"
+    assert google_flow.finish().headers["location"] == "/my-aac/application"
     assert assert_signed_in(google_flow, api, NON_UCI_EMAIL) == member_id
     google_flow.client.post("/api/auth/logout")
     google_flow.begin()
@@ -344,3 +344,27 @@ def test_banned_member_can_sign_in_again(google_flow, api):
     assert google_flow.finish().status_code == 303
     assert assert_signed_in(google_flow, api) == mid
     assert google_flow.client.get("/api/me/restrictions").json()["items"]
+
+
+def test_uci_account_using_non_uci_button_still_has_access(google_flow):
+    google_flow.begin(mode="non_uci")
+    assert google_flow.finish().headers["location"] == "/my-aac/profile"
+    assert google_flow.client.get("/api/session").json()["member"]["approval_status"] == "approved"
+
+
+def test_denied_external_identity_remains_denied_on_next_login(google_flow, api):
+    google_flow.claim_overrides = {"email": NON_UCI_EMAIL}
+    google_flow.begin(mode="non_uci")
+    assert google_flow.finish().headers["location"] == "/my-aac/application"
+    client = google_flow.client
+    mid = client.get("/api/session").json()["member"]["id"]
+    form = client.get("/api/me/application").json()
+    body = {"form_revision": form["form_revision"], "answers": {"college_student": "no", "about": "I enjoy the outdoors", "why_join": "Meet people"}}
+    assert client.post("/api/me/application", json=body).status_code == 200
+    assert api.post(f"/api/admin/members/{mid}/application/decision", json={"decision": "denied"}).status_code == 200
+    assert client.post("/api/auth/logout").status_code == 200
+    google_flow.begin(mode="non_uci")
+    assert google_flow.finish().headers["location"] == "/my-aac/application"
+    assert client.get("/api/session").json()["member"]["id"] == mid
+    assert client.get("/api/me/application").json()["status"] == "denied"
+    assert client.post("/api/me/application", json=body).status_code == 409

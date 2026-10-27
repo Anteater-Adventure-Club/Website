@@ -1,3 +1,4 @@
+import { needsApproval } from "../lib/approval";
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { clock, dateLabel, useAPI } from "../lib/api";
@@ -37,7 +38,7 @@ export function useRestrictions() {
   const { session } = useIdentity();
   const cache = useQueryClient();
   const query = useAPI("Items_RestrictionView_", "/api/me/restrictions", {
-    enabled: !!session?.member,
+    enabled: !!session?.member && !needsApproval(session.member),
   });
   const expiry = query.data?.items
     .map((r) => r.expires_at)

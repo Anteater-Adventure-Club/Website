@@ -1,3 +1,4 @@
+import { needsApproval, approvalLabel } from "../lib/approval";
 import { useEffect, useRef, useState } from "react";
 import {
   Link,
@@ -69,12 +70,21 @@ export function Layout() {
   const membership = useAPI(
     "MembershipView",
     `/api/me/memberships/${quarter?.id}`,
-    { enabled: !!session?.member && !!quarter },
+    {
+      enabled: !!session?.member && !needsApproval(session.member) && !!quarter,
+    },
   );
   const settings = useAPI("SiteSettings", "/api/site-settings");
   const nav = [
     ...publicLinks,
-    ...(session?.member ? [["/my-aac", "My AAC"]] : []),
+    ...(session?.member
+      ? [
+          [
+            needsApproval(session.member) ? "/my-aac/application" : "/my-aac",
+            needsApproval(session.member) ? "Application" : "My AAC",
+          ],
+        ]
+      : []),
     ...(session?.officer ? [["/admin/overview", "Officer Tools"]] : []),
   ];
   async function logout() {
@@ -95,13 +105,18 @@ export function Layout() {
         <strong>{session?.member?.name}</strong>
         <small>{session?.member?.email}</small>
         <Pill>
-          {membership.data?.status === "approved"
-            ? "Paid Member"
-            : "General Member"}
-          {quarter && ` · ${quarter.name}`}
+          {needsApproval(session?.member)
+            ? approvalLabel(session!.member!.approval_status)
+            : membership.data?.status === "approved"
+              ? "Paid Member"
+              : "General Member"}
+          {quarter && !needsApproval(session?.member) && ` · ${quarter.name}`}
         </Pill>
       </div>
-      {memberLinks.map(([url, label]) => (
+      {(needsApproval(session?.member)
+        ? [["/my-aac/application", "Your application"]]
+        : memberLinks
+      ).map(([url, label]) => (
         <Link
           key={url}
           to={quarterURL(url, quarter?.id)}
@@ -243,7 +258,13 @@ export function Layout() {
   );
 }
 
-export function Guard({ officer = false }: { officer?: boolean }) {
+export function Guard({
+  officer = false,
+  allowUnapproved = false,
+}: {
+  officer?: boolean;
+  allowUnapproved?: boolean;
+}) {
   const { session, loading, error } = useIdentity();
   const location = useLocation();
   if (loading) return <Loading />;
@@ -255,6 +276,8 @@ export function Guard({ officer = false }: { officer?: boolean }) {
         to={`/sign-in?return_to=${encodeURIComponent(location.pathname + location.search)}`}
       />
     );
+  if (!allowUnapproved && needsApproval(session.member))
+    return <Navigate replace to="/my-aac/application" />;
   if (officer && !session.officer)
     return (
       <Empty

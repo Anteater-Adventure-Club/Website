@@ -1,3 +1,8 @@
+import { approvalLabel, needsApproval } from "../lib/approval";
+import {
+  ApplicationReview,
+  ApplicationSettings,
+} from "../components/application";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { useForm } from "react-hook-form";
@@ -36,6 +41,44 @@ import {
   SetupQuarter,
 } from "../components/officer-forms";
 
+function AttentionItems({
+  items,
+  quarterId,
+}: {
+  items: Schema<"AttentionItem">[];
+  quarterId?: number;
+}) {
+  return (
+    <section>
+      <h2>Needs your attention</h2>
+      <div className="stack">
+        {items.map((item, i) => (
+          <Link
+            className="panel attention-link"
+            key={i}
+            to={quarterURL(item.url, quarterId)}
+          >
+            <Pill tone={item.kind === "dues" ? "yellow" : "orange"}>
+              {item.count}
+            </Pill>
+            <span>{item.title}</span>
+            <ArrowRight size={18} />
+          </Link>
+        ))}
+        {!items.length && (
+          <Panel>
+            <h3>All set!</h3>
+            <p className="muted">
+              No pending applications, dues, drafts, paid-seat shortages, or
+              missing recaps.
+            </p>
+          </Panel>
+        )}
+      </div>
+    </section>
+  );
+}
+
 export function AdminOverview() {
   const { quarter } = useQuarter();
   const query = useAPI(
@@ -67,7 +110,10 @@ export function AdminOverview() {
         )}
       </PageHeading>
       {!quarter ? (
-        <SetupQuarter />
+        <>
+          <SetupQuarter />
+          <AttentionItems items={query.data.attention} />
+        </>
       ) : (
         <>
           <div className="stat-grid">
@@ -132,33 +178,10 @@ export function AdminOverview() {
                 )}
               </div>
             </section>
-            <section>
-              <h2>Needs your attention</h2>
-              <div className="stack">
-                {query.data.attention.map((item, i) => (
-                  <Link
-                    className="panel attention-link"
-                    key={i}
-                    to={quarterURL(item.url, quarter.id)}
-                  >
-                    <Pill tone={item.kind === "dues" ? "yellow" : "orange"}>
-                      {item.count}
-                    </Pill>
-                    <span>{item.title}</span>
-                    <ArrowRight size={18} />
-                  </Link>
-                ))}
-                {!query.data.attention.length && (
-                  <Panel>
-                    <h3>All set!</h3>
-                    <p className="muted">
-                      No pending dues, drafts, paid-seat shortages, or missing
-                      recaps.
-                    </p>
-                  </Panel>
-                )}
-              </div>
-            </section>
+            <AttentionItems
+              items={query.data.attention}
+              quarterId={quarter.id}
+            />
           </div>
         </>
       )}
@@ -499,6 +522,7 @@ export function Settings() {
           New Quarter
         </Button>
       </PageHeading>
+      <ApplicationSettings />
       {query.data.items.length ? (
         <div className="stack">
           {query.data.items.map((q) => (
@@ -761,10 +785,12 @@ function DuesDialog({
 function MemberDetailDialog({
   memberId,
   quarterId,
+  applicationOnly = false,
   onClose,
 }: {
   memberId: number;
   quarterId?: number;
+  applicationOnly?: boolean;
   onClose: () => void;
 }) {
   const query = useAPI(
@@ -783,6 +809,17 @@ function MemberDetailDialog({
         <Loading />
       ) : query.error ? (
         <Failure error={query.error} retry={query.refetch} />
+      ) : applicationOnly ? (
+        <>
+          <p className="muted">{query.data.member.email}</p>
+          {query.data.bans?.some((ban) => ban.status === "active") && (
+            <Message>
+              This member has active bans. Approving the application does not
+              lift those restrictions.
+            </Message>
+          )}
+          <ApplicationReview person={query.data.member} />
+        </>
       ) : (
         <>
           <div className="details-grid">
@@ -807,11 +844,12 @@ function MemberDetailDialog({
                 ` · ending ${query.data.member.payout_phone_suffix}`}
             </p>
           </div>
+          <ApplicationReview person={query.data.member} />
           <MemberBans person={query.data.member} />
           <hr />
           <div className="section-heading">
             <h3>Membership · {quarter?.name || "No quarter"}</h3>
-            {quarter?.state === "open" && (
+            {quarter?.state === "open" && !needsApproval(query.data.member) && (
               <Button variant="secondary" onClick={() => setDues(true)}>
                 Record / Correct Dues
               </Button>
@@ -828,7 +866,9 @@ function MemberDetailDialog({
           >
             {query.data.membership?.source === "exception"
               ? "Exception · $0"
-              : query.data.membership?.status || "general"}
+              : query.data.membership?.status === "pending"
+                ? "Pending (Membership)"
+                : query.data.membership?.status || "general"}
           </Pill>
           {query.data.membership?.reason && (
             <p className="notice">{query.data.membership.reason}</p>
@@ -919,6 +959,7 @@ export function Members() {
   const [add, setAdd] = useState(false);
   const [importing, setImporting] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
+  const [reviewApplication, setReviewApplication] = useState(false);
   const [dues, setDues] = useState<Schema<"MemberListRow"> | null>(null);
   function filter(value: string) {
     const next = new URLSearchParams(params);
@@ -987,7 +1028,7 @@ export function Members() {
               <thead>
                 <tr>
                   <th>Member</th>
-                  <th>Membership</th>
+                  <th>Status</th>
                   <th>Submitted / method</th>
                   <th>Actions</th>
                 </tr>
@@ -1001,25 +1042,37 @@ export function Members() {
                         <small>{row.member.email || "No email saved"}</small>
                       </div>
                     </td>
-                    <td data-label="Membership">
+                    <td data-label="Status">
                       <div className="membership-statuses">
-                        <Pill
-                          tone={
-                            row.membership?.status === "approved"
-                              ? "solid"
-                              : row.membership?.status === "pending"
-                                ? "yellow"
-                                : "green"
-                          }
-                        >
-                          {row.membership?.source === "exception"
-                            ? "Exception"
-                            : row.membership?.status === "approved"
-                              ? "Paid Member"
-                              : row.membership?.status === "pending"
-                                ? "Pending"
-                                : "General"}
-                        </Pill>
+                        {needsApproval(row.member) ? (
+                          <Pill
+                            tone={
+                              row.member.approval_status === "denied"
+                                ? "orange"
+                                : "yellow"
+                            }
+                          >
+                            {approvalLabel(row.member.approval_status)}
+                          </Pill>
+                        ) : (
+                          <Pill
+                            tone={
+                              row.membership?.status === "approved"
+                                ? "solid"
+                                : row.membership?.status === "pending"
+                                  ? "yellow"
+                                  : "green"
+                            }
+                          >
+                            {row.membership?.source === "exception"
+                              ? "Exception"
+                              : row.membership?.status === "approved"
+                                ? "Paid Member"
+                                : row.membership?.status === "pending"
+                                  ? "Pending (Membership)"
+                                  : "General"}
+                          </Pill>
+                        )}
                         {(row.bans || []).length > 0 && (
                           <Pill tone="yellow">
                             {row.bans!.every((ban) => ban.expires_at)
@@ -1031,11 +1084,21 @@ export function Members() {
                     </td>
                     <td data-label="Submitted">
                       <div>
-                        {row.membership?.submitted_at
-                          ? dateLabel(row.membership.submitted_at)
+                        {(
+                          needsApproval(row.member)
+                            ? row.application_submitted_at
+                            : row.membership?.submitted_at
+                        )
+                          ? dateLabel(
+                              (needsApproval(row.member)
+                                ? row.application_submitted_at
+                                : row.membership?.submitted_at)!,
+                            )
                           : "—"}
                         <small>
-                          {row.membership?.method || "No payment submitted"}
+                          {needsApproval(row.member)
+                            ? "Club application"
+                            : row.membership?.method || "No payment submitted"}
                         </small>
                       </div>
                     </td>
@@ -1043,20 +1106,35 @@ export function Members() {
                       <div className="actions">
                         <Button
                           variant="quiet"
-                          onClick={() => setSelected(row.member.id)}
+                          onClick={() => {
+                            setReviewApplication(false);
+                            setSelected(row.member.id);
+                          }}
                         >
                           Details
                         </Button>
-                        {quarter?.state === "open" && (
+                        {row.member.approval_status === "pending" && (
                           <Button
                             variant="secondary"
-                            onClick={() => setDues(row)}
+                            onClick={() => {
+                              setReviewApplication(true);
+                              setSelected(row.member.id);
+                            }}
                           >
-                            {row.membership?.status === "pending"
-                              ? "Confirm Dues"
-                              : "Record Dues"}
+                            Review application
                           </Button>
                         )}
+                        {quarter?.state === "open" &&
+                          !needsApproval(row.member) && (
+                            <Button
+                              variant="secondary"
+                              onClick={() => setDues(row)}
+                            >
+                              {row.membership?.status === "pending"
+                                ? "Confirm Dues"
+                                : "Record Dues"}
+                            </Button>
+                          )}
                       </div>
                     </td>
                   </tr>
@@ -1105,6 +1183,7 @@ export function Members() {
       {selected && (
         <MemberDetailDialog
           memberId={selected}
+          applicationOnly={reviewApplication}
           quarterId={quarter?.id}
           onClose={() => setSelected(null)}
         />

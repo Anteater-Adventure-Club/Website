@@ -1,3 +1,4 @@
+import { needsApproval } from "../lib/approval";
 import { useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router";
 import {
@@ -607,8 +608,15 @@ export function SignIn() {
           </div>
         )}
         {session?.member ? (
-          <Link className="button primary" to="/my-aac">
-            Continue to My AAC
+          <Link
+            className="button primary"
+            to={
+              needsApproval(session.member) ? "/my-aac/application" : "/my-aac"
+            }
+          >
+            {needsApproval(session.member)
+              ? "View your application"
+              : "Continue to My AAC"}
           </Link>
         ) : (
           <>
@@ -627,6 +635,9 @@ export function SignIn() {
             >
               I don't have a UCI email
             </a>
+            <small className="muted">
+              New non-UCI members complete an application for officer approval.
+            </small>
           </>
         )}
         <Link className="text-link" to="/events">

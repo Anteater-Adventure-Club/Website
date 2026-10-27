@@ -24,12 +24,7 @@ def fail(status, code, message, **extra):
 
 def require(db, model, identity, lock=False):
     obj = (
-        db.scalar(
-            select(model)
-            .where(model.id == identity)
-            .with_for_update()
-            .execution_options(populate_existing=True)
-        )
+        db.get(model, identity, with_for_update=True, populate_existing=True)
         if lock
         else db.get(model, identity)
     )

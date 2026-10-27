@@ -157,6 +157,202 @@
         }
       }
     },
+    "/api/me/application": {
+      "get": {
+        "summary": "Own Application",
+        "operationId": "own_application_api_me_application_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Submit",
+        "operationId": "submit_api_me_application_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationSubmit"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/application-form": {
+      "get": {
+        "summary": "Read Form",
+        "operationId": "read_form_api_admin_application_form_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationFormView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Save Form",
+        "operationId": "save_form_api_admin_application_form_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationFormWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationFormView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/members/{mid}/application": {
+      "get": {
+        "summary": "Review",
+        "operationId": "review_api_admin_members__mid__application_get",
+        "parameters": [
+          {
+            "name": "mid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Mid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/members/{mid}/application/decision": {
+      "post": {
+        "summary": "Decide",
+        "operationId": "decide_api_admin_members__mid__application_decision_post",
+        "parameters": [
+          {
+            "name": "mid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Mid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationDecision"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/events": {
       "get": {
         "summary": "Public Events",
@@ -4980,6 +5176,203 @@
         ],
         "title": "AdminOverview"
       },
+      "ApplicationDecision": {
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "approved",
+              "denied"
+            ],
+            "title": "Decision"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Message",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "decision"
+        ],
+        "title": "ApplicationDecision"
+      },
+      "ApplicationFormView": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/Question"
+            },
+            "type": "array",
+            "title": "Questions"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "revision",
+          "questions"
+        ],
+        "title": "ApplicationFormView"
+      },
+      "ApplicationFormWrite": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "title": "Expected Revision"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/Question"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Questions"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision",
+          "questions"
+        ],
+        "title": "ApplicationFormWrite"
+      },
+      "ApplicationSubmit": {
+        "properties": {
+          "form_revision": {
+            "type": "integer",
+            "title": "Form Revision"
+          },
+          "answers": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Answers"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "form_revision",
+          "answers"
+        ],
+        "title": "ApplicationSubmit"
+      },
+      "ApplicationView": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "required",
+              "pending",
+              "approved",
+              "denied"
+            ],
+            "title": "Status"
+          },
+          "form_revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Form Revision"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/Question"
+            },
+            "type": "array",
+            "title": "Questions"
+          },
+          "answers": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Answers"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "reviewed_by": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed By"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "ApplicationView"
+      },
       "AssignedCar": {
         "properties": {
           "driver_name": {
@@ -8223,6 +8616,18 @@
       },
       "MemberDetail": {
         "properties": {
+          "application_submitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Application Submitted At"
+          },
           "member": {
             "$ref": "#/components/schemas/MemberPrivate"
           },
@@ -8348,6 +8753,18 @@
       },
       "MemberListRow": {
         "properties": {
+          "application_submitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Application Submitted At"
+          },
           "member": {
             "$ref": "#/components/schemas/MemberPrivate"
           },
@@ -8440,6 +8857,16 @@
           "payout_phone_suffix": {
             "type": "string",
             "title": "Payout Phone Suffix"
+          },
+          "approval_status": {
+            "type": "string",
+            "enum": [
+              "required",
+              "pending",
+              "approved",
+              "denied"
+            ],
+            "title": "Approval Status"
           }
         },
         "additionalProperties": false,
@@ -8456,7 +8883,8 @@
           "driving_preferences",
           "payout_method",
           "payout_destination",
-          "payout_phone_suffix"
+          "payout_phone_suffix",
+          "approval_status"
         ],
         "title": "MemberPrivate"
       },
@@ -9815,6 +10243,7 @@
             "enum": [
               "text",
               "long",
+              "email",
               "choice",
               "multiple-select",
               "yes-no"
@@ -9837,6 +10266,29 @@
             "maxItems": 30,
             "title": "Options",
             "default": []
+          },
+          "max_words": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Words"
+          },
+          "show_when": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuestionCondition"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -9919,6 +10371,25 @@
           "totals"
         ],
         "title": "QuestionAnswers"
+      },
+      "QuestionCondition": {
+        "properties": {
+          "question_id": {
+            "type": "string",
+            "title": "Question Id"
+          },
+          "equals": {
+            "type": "string",
+            "title": "Equals"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "question_id",
+          "equals"
+        ],
+        "title": "QuestionCondition"
       },
       "RecapContent": {
         "properties": {

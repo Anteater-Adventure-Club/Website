@@ -15,8 +15,12 @@ router = APIRouter(prefix="/api/admin")
 @router.get("/overview", response_model=AdminOverview)
 def overview(quarter_id: int | None = None, user=Depends(officer), db=Depends(get_db, scope="function")):
     q = default_quarter(db, quarter_id)
+    approvals = db.scalar(select(func.count()).select_from(Member).where(Member.approval_status == "pending"))
+    pending_url = f"/admin/members?quarter={q.id}&status=pending" if q else "/admin/members?status=pending"
+    attention = ([{"kind": "approval", "count": approvals, "title": "New members waiting for approval",
+                   "url": pending_url}] if approvals else [])
     if q is None:
-        return {"quarter_id": None, "statistics": {}, "events": [], "attention": []}
+        return {"quarter_id": None, "statistics": {"pending_approval": approvals}, "events": [], "attention": attention}
     events = list(
         db.scalars(
             select(Event).where(Event.quarter_id == q.id, Event.skipped.is_(False)).order_by(Event.starts_at)
@@ -32,14 +36,13 @@ def overview(quarter_id: int | None = None, user=Depends(officer), db=Depends(ge
     pending = sum(m.status == "pending" for m in memberships)
     published_recaps = set(db.scalars(select(Recap.event_id).where(Recap.published.is_not(None))))
     projections = events_projection(db, events, True)
-    attention = []
     if pending:
         attention.append(
             {
                 "kind": "dues",
                 "count": pending,
                 "title": "Dues waiting for approval",
-                "url": f"/admin/members?quarter={q.id}&status=pending",
+                "url": pending_url,
             }
         )
     draft_series = {}
@@ -91,6 +94,7 @@ def overview(quarter_id: int | None = None, user=Depends(officer), db=Depends(ge
             "paid": sum(m.status == "approved" and m.source != "exception" for m in memberships),
             "exceptions": sum(m.status == "approved" and m.source == "exception" for m in memberships),
             "pending": pending,
+            "pending_approval": approvals,
             "dues_collected": str(collected),
             "budget": money["budget"],
             "allocated": money["totals"]["allocated"] if money["totals"] is not None else None,

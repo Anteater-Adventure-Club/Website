@@ -7,6 +7,12 @@ import { Guard, Layout, Workspace } from "./components/layout";
 import { Home } from "./pages/home";
 import { readHomeBootstrap } from "./lib/home-bootstrap";
 
+const ApplicationPage = lazy(() =>
+  import("./components/application").then((m) => ({
+    default: m.ApplicationPage,
+  })),
+);
+
 const Board = lazy(() =>
   import("./pages/public").then((m) => ({ default: m.Board })),
 );
@@ -120,6 +126,12 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 <Route path="privacy" element={<PrivacyPolicy />} />
                 <Route path="terms" element={<TermsOfService />} />
                 <Route path="sign-in" element={<SignIn />} />
+                <Route element={<Guard allowUnapproved />}>
+                  <Route
+                    path="my-aac/application"
+                    element={<ApplicationPage />}
+                  />
+                </Route>
                 <Route element={<Guard />}>
                   <Route element={<Workspace />}>
                     <Route path="my-aac" element={<MyOverview />} />

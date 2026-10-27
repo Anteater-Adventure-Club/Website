@@ -38,6 +38,29 @@ class Member(Base):
     payout_destination: Mapped[str] = mapped_column(String(200), default="")
     payout_phone_suffix: Mapped[str] = mapped_column(String(4), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    approval_status: Mapped[str] = mapped_column(String(20), default="approved", server_default="approved", index=True)
+    __table_args__ = (
+        CheckConstraint("approval_status IN ('required','pending','approved','denied')", name="ck_member_approval"),
+    )
+
+
+class FormDefinition(Base):
+    __tablename__ = "form_definitions"
+    key: Mapped[str] = mapped_column(String(80), primary_key=True)
+    questions: Mapped[list] = mapped_column(JSON)
+    revision: Mapped[int] = mapped_column(default=1)
+
+
+class ApprovalApplication(Base):
+    __tablename__ = "approval_applications"
+    member_id: Mapped[int] = mapped_column(ForeignKey("members.id"), primary_key=True)
+    form_revision: Mapped[int]
+    questions: Mapped[list] = mapped_column(JSON)
+    answers: Mapped[dict] = mapped_column(JSON)
+    submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reviewed_by: Mapped[int | None] = mapped_column(ForeignKey("members.id"))
+    message: Mapped[str] = mapped_column(String(1000), default="")
 
 
 class Identity(Base):

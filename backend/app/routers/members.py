@@ -1,6 +1,6 @@
 from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, Query, Request
-from sqlalchemy import func, select
+from sqlalchemy import false, func, or_, select
 from ..auth import limited, member, officer, uci_email
 from ..db import get_db
 from ..domain import (
@@ -17,10 +17,11 @@ from ..domain import (
     today,
     utcnow,
 )
-from ..models import Audit, Event, Member, MemberBan, Membership, Officer, Receipt, Signup, Vehicle
+from ..models import ApprovalApplication, Audit, Event, Member, MemberBan, Membership, Officer, Receipt, Signup, Vehicle
 from ..projections import event_projection, membership_view, signups_projection
 from ..person_search import ranked_page
 from ..services.restrictions import active_clause, ban_view, enforce
+from ..services.approval import enforce_approval
 from ..schemas import (
     Items,
     OfficerView,
@@ -155,6 +156,7 @@ def membership_signup_settings(
 
 @router.post("/admin/members/{mid}/memberships/{qid}/decision", response_model=MembershipView)
 def decide_dues(mid: int, qid: int, value: MembershipDecision, user=Depends(officer), db=Depends(get_db, scope="function")):
+    enforce_approval(db, mid)
     open_quarter(db, qid)
     require(db, Member, mid)
     m = ensure_membership(db, mid, qid)
@@ -231,12 +233,18 @@ def member_list(
     if ban_status != "all":
         banned = select(MemberBan.id).where(MemberBan.member_id == Member.id, *active_clause()).exists()
         query = query.where(banned if ban_status == "active" else ~banned)
-    if q and status != "all":
+    if status == "pending":
+        dues_pending = (select(Membership.id).where(
+            Membership.member_id == Member.id, Membership.quarter_id == q.id, Membership.status == "pending",
+        ).exists()) if q else false()
+        approval_pending = Member.approval_status == "pending"
+        query = query.where(or_(approval_pending, dues_pending))
+    elif q and status != "all":
         query = query.outerjoin(
             Membership, (Membership.member_id == Member.id) & (Membership.quarter_id == q.id)
         )
         if status == "general":
-            query = query.where((Membership.id.is_(None)) | (Membership.status == "general"))
+            query = query.where(Member.approval_status == "approved", (Membership.id.is_(None)) | (Membership.status == "general"))
         elif status == "exception":
             query = query.where(Membership.source == "exception", Membership.status == "approved")
         elif status == "paid":
@@ -248,10 +256,13 @@ def member_list(
     ids = [m.id for m in result["items"]]
     for ban in db.scalars(select(MemberBan).where(MemberBan.member_id.in_(ids), *active_clause())):
         bans_by_member.setdefault(ban.member_id, []).append(ban_view(ban))
+    submitted = dict(db.execute(select(ApprovalApplication.member_id, ApprovalApplication.submitted_at)
+                                .where(ApprovalApplication.member_id.in_(ids))).all())
     result["items"] = [
         {
             "member": MemberPrivate.model_validate(m),
             "bans": bans_by_member.get(m.id, []),
+            "application_submitted_at": submitted.get(m.id),
             "membership": membership_view(db, m.id, q.id) if q else None,
         }
         for m in result["items"]

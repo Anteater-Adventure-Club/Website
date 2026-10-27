@@ -137,6 +137,9 @@ jobs:
       - name: Member bans and restriction journeys
         run: npm run test:e2e:bans
         working-directory: frontend
+      - name: External member applications and officer review
+        run: npm run test:e2e:approvals
+        working-directory: frontend
       - name: Layout boundaries, orientation and keyboard focus
         run: npm run test:e2e:boundaries
         working-directory: frontend
@@ -166,6 +169,7 @@ jobs:
           name: browser-failure-evidence
           path: |
             artifacts/restrictions-and-bans
+            artifacts/external-member-approval
             artifacts/test-results
             artifacts/playwright-results.json
             artifacts/journey-results.json

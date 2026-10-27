@@ -284,12 +284,12 @@ test("temporary ban, cancellation, general membership, member restrictions, and 
   await expect(page.locator('td[data-label="Member"] .pill')).toHaveCount(0);
   await expect(
     page
-      .locator('td[data-label="Membership"] .pill')
+      .locator('td[data-label="Status"] .pill')
       .filter({ hasText: /^Temp banned$/ }),
   ).toHaveCount(1);
   await expect(
     page
-      .locator('td[data-label="Membership"] .pill')
+      .locator('td[data-label="Status"] .pill')
       .filter({ hasText: /^Banned$/ }),
   ).toHaveCount(2);
   await capture(page, info.project.name, "04-banned-members");

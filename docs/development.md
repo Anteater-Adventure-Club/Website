@@ -133,3 +133,8 @@ This replaces the nine JPEGs in [assets/readme](../assets/readme/) using the loc
 | Readiness fails after pulling changes | Apply migrations to the database selected by the API, and separately to the test database. |
 | Fixture views redirect to sign-in or lose photos | Check cookie age, the fixture session secret, and the shared media path; stop the API and reseed if sessions expired. |
 | Build reports a stale asset manifest | Run `npm run assets:manifest` in `frontend/` after [preparing assets](content.md#static-assets). |
+## External member approval previews
+
+With the isolated browser-fixture API and Vite running, run `npm run test:e2e:approvals` from `frontend/`. The suite uses `E2E_PYTHON` (or the repository’s `.venv/bin/python`) to run the guarded `scripts/seed-approval-review.py` seeder against `aac_browser`. It checks application submission, conditional fields, word limits, both officer decisions, permanent denial, questionnaire editing, and live approval updates. It also runs accessibility and overflow checks and captures phone (390 × 844), tablet (834 × 1112), and desktop (1440 × 900) previews under `artifacts/external-member-approval/screens/`.
+
+To leave populated examples for manual review, rerun `.venv/bin/python scripts/seed-approval-review.py` with the browser-fixture environment. The fixture JSON includes `Applicant`, `Approval pending`, `Approval denied`, `Approval approved`, and `officer` session cookies. Applicant states are at `/my-aac/application`; officer review is at `/admin/members?status=pending` and questionnaire settings are at `/admin/settings`. These fixtures reset only the guarded disposable browser database.
