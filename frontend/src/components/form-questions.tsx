@@ -255,6 +255,9 @@ export function QuestionEditor({
     <div className="stack question-list">
       {questions.map((q, index) => {
         const frozen = frozenIds.has(q.id);
+        const hasDependents = questions.some(
+          (p) => p.show_when?.question_id === q.id,
+        );
         const parents = questions
           .slice(0, index)
           .filter((p) => p.kind === "yes-no" || p.kind === "choice");
@@ -296,7 +299,7 @@ export function QuestionEditor({
               Answer type
               <select
                 value={q.kind || "text"}
-                disabled={frozen}
+                disabled={frozen || hasDependents}
                 onChange={(e) =>
                   change(q.id, {
                     kind: e.target.value as FormQuestion["kind"],
@@ -419,20 +422,17 @@ export function QuestionEditor({
                 type="button"
                 variant="quiet"
                 aria-label={`Remove question ${q.label}`}
-                disabled={
-                  frozen ||
-                  questions.some((p) => p.show_when?.question_id === q.id)
-                }
+                disabled={frozen || hasDependents}
                 onClick={() => onChange(questions.filter((p) => p.id !== q.id))}
               >
                 <Trash2 size={16} />
                 Remove
               </Button>
             </div>
-            {questions.some((p) => p.show_when?.question_id === q.id) && (
+            {hasDependents && (
               <small className="muted">
                 Other questions depend on this one. Remove their conditions
-                before removing it.
+                before changing its answer type or removing it.
               </small>
             )}
           </Panel>

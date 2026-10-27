@@ -277,6 +277,17 @@ test("application, officer review, final denial, and configurable questions", as
     page.getByRole("button", { name: "Save questions" }),
   ).toBeVisible();
   await capture(page, info.project.name, "question-editor");
+  const parentType = page
+    .getByRole("combobox", { name: "Answer type", exact: true })
+    .first();
+  await expect(parentType).toBeDisabled();
+  for (const condition of await page
+    .getByRole("combobox", { name: "Show this question", exact: true })
+    .all()) {
+    await condition.selectOption("");
+  }
+  await expect(parentType).toBeEnabled();
+  await parentType.selectOption("text");
   await page
     .getByRole("textbox", { name: "Question", exact: true })
     .nth(4)

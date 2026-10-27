@@ -6,6 +6,7 @@ import {
   cleanAnswers,
   compatibleAnswers,
   FormQuestions,
+  QuestionEditor,
   visibleQuestions,
   wordCount,
 } from "./form-questions";
@@ -37,6 +38,76 @@ const questions: FormQuestion[] = [
     max_words: 250,
   },
 ];
+
+function Editor({
+  initial = questions,
+  frozenIds = new Set<string>(),
+}: {
+  initial?: FormQuestion[];
+  frozenIds?: Set<string>;
+}) {
+  const [value, setValue] = useState(initial);
+  return (
+    <>
+      <QuestionEditor
+        questions={value}
+        onChange={setValue}
+        frozenIds={frozenIds}
+      />
+      <output>{JSON.stringify(value)}</output>
+    </>
+  );
+}
+
+it("keeps a conditional parent’s type locked until every dependent condition is removed", () => {
+  render(
+    <Editor
+      initial={[
+        ...questions,
+        {
+          id: "school",
+          label: "School",
+          kind: "text",
+          required: true,
+          options: [],
+          show_when: { question_id: "student", equals: "yes" },
+        },
+      ]}
+    />,
+  );
+  const parentType = screen.getAllByLabelText(
+    "Answer type",
+  )[0] as HTMLSelectElement;
+  expect(parentType.disabled).toBe(true);
+  expect(
+    screen.getByText(/before changing its answer type or removing it/),
+  ).toBeTruthy();
+  const conditions = screen.getAllByLabelText("Show this question");
+  fireEvent.change(conditions[0], { target: { value: "" } });
+  expect(parentType.disabled).toBe(true);
+  fireEvent.change(conditions[2], { target: { value: "" } });
+  expect(parentType.disabled).toBe(false);
+  fireEvent.change(parentType, { target: { value: "text" } });
+  const saved = JSON.parse(screen.getByRole("status").textContent!);
+  expect(saved[0].kind).toBe("text");
+  expect(saved.every((q: FormQuestion) => !q.show_when)).toBe(true);
+  expect(
+    screen.queryByText(/before changing its answer type or removing it/),
+  ).toBeNull();
+});
+
+it("preserves frozen question types after their dependent conditions are removed", () => {
+  render(<Editor frozenIds={new Set(["student"])} />);
+  fireEvent.change(screen.getAllByLabelText("Show this question")[0], {
+    target: { value: "" },
+  });
+  expect(
+    (screen.getAllByLabelText("Answer type")[0] as HTMLSelectElement).disabled,
+  ).toBe(true);
+  expect(
+    (screen.getAllByLabelText("Answer type")[1] as HTMLSelectElement).disabled,
+  ).toBe(false);
+});
 
 function Form() {
   const [answers, setAnswers] = useState<FormAnswersValue>({});
