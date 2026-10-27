@@ -360,8 +360,11 @@ def test_denied_external_identity_remains_denied_on_next_login(google_flow, api)
     mid = client.get("/api/session").json()["member"]["id"]
     form = client.get("/api/me/application").json()
     body = {"form_revision": form["form_revision"], "answers": {"college_student": "no", "about": "I enjoy the outdoors", "why_join": "Meet people"}}
-    assert client.post("/api/me/application", json=body).status_code == 200
-    assert api.post(f"/api/admin/members/{mid}/application/decision", json={"decision": "denied"}).status_code == 200
+    submitted = client.post("/api/me/application", json=body)
+    assert submitted.status_code == 200
+    assert api.post(f"/api/admin/members/{mid}/application/decision", json={
+        "decision": "denied", "expected_submitted_at": submitted.json()["submitted_at"],
+    }).status_code == 200
     assert client.post("/api/auth/logout").status_code == 200
     google_flow.begin(mode="non_uci")
     assert google_flow.finish().headers["location"] == "/my-aac/application"

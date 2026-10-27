@@ -353,6 +353,55 @@
         }
       }
     },
+    "/api/admin/members/{mid}/application/reopen": {
+      "post": {
+        "summary": "Reopen",
+        "operationId": "reopen_api_admin_members__mid__application_reopen_post",
+        "parameters": [
+          {
+            "name": "mid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Mid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationReopen"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/events": {
       "get": {
         "summary": "Public Events",
@@ -5191,12 +5240,18 @@
             "maxLength": 1000,
             "title": "Message",
             "default": ""
+          },
+          "expected_submitted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expected Submitted At"
           }
         },
         "additionalProperties": false,
         "type": "object",
         "required": [
-          "decision"
+          "decision",
+          "expected_submitted_at"
         ],
         "title": "ApplicationDecision"
       },
@@ -5246,50 +5301,8 @@
         ],
         "title": "ApplicationFormWrite"
       },
-      "ApplicationSubmit": {
+      "ApplicationHistoryView": {
         "properties": {
-          "form_revision": {
-            "type": "integer",
-            "title": "Form Revision"
-          },
-          "answers": {
-            "additionalProperties": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
-                }
-              ]
-            },
-            "type": "object",
-            "title": "Answers"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "form_revision",
-          "answers"
-        ],
-        "title": "ApplicationSubmit"
-      },
-      "ApplicationView": {
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "required",
-              "pending",
-              "approved",
-              "denied"
-            ],
-            "title": "Status"
-          },
           "form_revision": {
             "anyOf": [
               {
@@ -5364,6 +5377,165 @@
             "type": "string",
             "title": "Message",
             "default": ""
+          },
+          "reopened_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Reopened At"
+          },
+          "reopened_by": {
+            "type": "integer",
+            "title": "Reopened By"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "reopened_at",
+          "reopened_by"
+        ],
+        "title": "ApplicationHistoryView"
+      },
+      "ApplicationReopen": {
+        "properties": {
+          "expected_submitted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expected Submitted At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_submitted_at"
+        ],
+        "title": "ApplicationReopen"
+      },
+      "ApplicationSubmit": {
+        "properties": {
+          "form_revision": {
+            "type": "integer",
+            "title": "Form Revision"
+          },
+          "answers": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Answers"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "form_revision",
+          "answers"
+        ],
+        "title": "ApplicationSubmit"
+      },
+      "ApplicationView": {
+        "properties": {
+          "form_revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Form Revision"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/Question"
+            },
+            "type": "array",
+            "title": "Questions"
+          },
+          "answers": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Answers"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "reviewed_by": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed By"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": ""
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "required",
+              "pending",
+              "approved",
+              "denied"
+            ],
+            "title": "Status"
+          },
+          "previous_applications": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationHistoryView"
+            },
+            "type": "array",
+            "title": "Previous Applications"
           }
         },
         "additionalProperties": false,

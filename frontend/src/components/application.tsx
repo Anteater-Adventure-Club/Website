@@ -67,7 +67,7 @@ export function ApplicationPage() {
   const { session } = useIdentity();
   const cache = useQueryClient();
   const query = useAPI("ApplicationView", "/api/me/application", {
-    poll: (data) => data?.status === "pending",
+    poll: (data) => data?.status === "pending" || data?.status === "denied",
   });
   useEffect(() => {
     if (query.data && session?.member?.approval_status !== query.data.status) {
@@ -118,7 +118,7 @@ export function ApplicationPage() {
             ? "No UCI email? Tell us a little about yourself. Our officers review new applications before welcoming members into the club."
             : application.status === "pending"
               ? "Your application is with our officers. Check back here for their decision. You’re welcome to explore our public events while you wait."
-              : "This decision is final. Another application cannot be submitted, but you can continue browsing our public pages."}
+              : "You can continue browsing our public pages. You can only submit another application if an officer allows reapplication."}
         </p>
       </div>
       <Panel>
@@ -178,6 +178,54 @@ export function ApplicationPage() {
   );
 }
 
+export function AllowReapplicationDialog({
+  person,
+  submittedAt,
+  onClose,
+}: {
+  person: Person;
+  submittedAt: string;
+  onClose: () => void;
+}) {
+  const action = useAction();
+  return (
+    <Dialog title="Allow reapplication?" onClose={onClose}>
+      <p>
+        <strong>{person.name}</strong> will be able to submit a new application
+        using the current questions. Their previous application and denial
+        reason will be kept.
+      </p>
+      <p>
+        They will still need officer approval before joining club activities.
+      </p>
+      <Message error={action.error} />
+      <div className="actions section">
+        <Button
+          variant="secondary"
+          disabled={action.isPending}
+          onClick={onClose}
+        >
+          Cancel
+        </Button>
+        <Button
+          disabled={action.isPending}
+          onClick={() =>
+            void action
+              .mutateAsync({
+                url: `/api/admin/members/${person.id}/application/reopen`,
+                body: { expected_submitted_at: submittedAt },
+              })
+              .then(onClose)
+              .catch(() => {})
+          }
+        >
+          {action.isPending ? "Allowing…" : "Allow reapplication"}
+        </Button>
+      </div>
+    </Dialog>
+  );
+}
+
 export function ApplicationReview({ person }: { person: Person }) {
   const query = useAPI(
     "ApplicationView",
@@ -189,13 +237,21 @@ export function ApplicationReview({ person }: { person: Person }) {
   if (query.isPending) return <Loading />;
   if (query.error) return <Failure error={query.error} retry={query.refetch} />;
   const application = query.data;
-  if (application.status === "approved" && !application.submitted_at)
+  if (
+    application.status === "approved" &&
+    !application.submitted_at &&
+    !application.previous_applications?.length
+  )
     return null;
   async function decide(decision: "approved" | "denied") {
     await action
       .mutateAsync({
         url: `/api/admin/members/${person.id}/application/decision`,
-        body: decision === "denied" ? { decision, message } : { decision },
+        body: {
+          decision,
+          expected_submitted_at: application.submitted_at,
+          ...(decision === "denied" ? { message } : {}),
+        },
       })
       .then(() => setDeny(false))
       .catch(() => {});
@@ -221,7 +277,11 @@ export function ApplicationReview({ person }: { person: Person }) {
           />
         </>
       ) : (
-        <p>This person has not submitted their application yet.</p>
+        <p>
+          {application.previous_applications?.length
+            ? "A new application has not been submitted yet."
+            : "This person has not submitted their application yet."}
+        </p>
       )}
       {application.status === "denied" && application.message && (
         <div className="notice">
@@ -253,7 +313,7 @@ export function ApplicationReview({ person }: { person: Person }) {
         <Dialog title="Deny this application?" onClose={() => setDeny(false)}>
           <p>
             {person.name} will not be able to join club activities or submit
-            another application. This decision is final.
+            another application unless an officer allows reapplication.
           </p>
           <label className="field">
             Reason for denial <small>Optional · shown to the applicant</small>
@@ -281,6 +341,30 @@ export function ApplicationReview({ person }: { person: Person }) {
             </Button>
           </div>
         </Dialog>
+      )}
+      {!!application.previous_applications?.length && (
+        <details className="section">
+          <summary>
+            Previous applications ({application.previous_applications.length})
+          </summary>
+          {application.previous_applications.map((previous) => (
+            <section className="section" key={previous.submitted_at}>
+              <h4>Denied application · {dateLabel(previous.submitted_at!)}</h4>
+              <p className="muted">
+                {previous.reviewed_at &&
+                  `Denied ${dateLabel(previous.reviewed_at)} · `}
+                Reapplication allowed {dateLabel(previous.reopened_at)}
+              </p>
+              {previous.message && (
+                <p className="notice preserve-lines">{previous.message}</p>
+              )}
+              <FormAnswers
+                questions={previous.questions || []}
+                answers={previous.answers || {}}
+              />
+            </section>
+          ))}
+        </details>
       )}
     </section>
   );

@@ -3,7 +3,7 @@ from datetime import timedelta
 from app.domain import today
 import pytest
 from sqlalchemy import func, select
-from app.models import ApprovalApplication, Event, Member
+from app.models import ApprovalApplication, ApprovalApplicationHistory, Audit, Event, Member
 from app.schemas import ApplicationFormWrite
 from app.services.forms import validate_answers
 from conftest import cookie, event, person, quarter
@@ -27,6 +27,13 @@ def submission(api, student=False):
     if student:
         answers.update(college_email="student@example.edu", school="Example College", grade="2nd year")
     return {"form_revision": view["form_revision"], "answers": answers}
+
+
+def decide(api, mid, **value):
+    current = api.get(f"/api/admin/members/{mid}/application").json()
+    return api.post(f"/api/admin/members/{mid}/application/decision", json={
+        "expected_submitted_at": current["submitted_at"], **value,
+    })
 
 
 def assert_member_access_blocked(api, q, e):
@@ -58,7 +65,7 @@ def test_application_lifecycle_and_independent_dues(api, student):
     assert_member_access_blocked(api, q, e)
     assert api.post("/api/me/application", json=value).status_code == 409
     as_member(api, 1)
-    result = api.post(f"/api/admin/members/{mid}/application/decision", json={"decision": "approved", "message": "Welcome!"})
+    result = decide(api, mid, decision="approved", message="Welcome!")
     assert result.status_code == 200, result.text
     assert result.json()["reviewed_by"] == 1
     as_member(api, mid)
@@ -79,8 +86,8 @@ def test_denied_application_cannot_be_reopened_by_import_or_member_add(api):
     assert api.post("/api/me/application", json=value).status_code == 200
     as_member(api, 1)
     reason = "We cannot approve this application because it does not meet our membership criteria."
-    assert api.post(f"/api/admin/members/{mid}/application/decision", json={"decision": "denied", "message": reason}).status_code == 200
-    assert api.post(f"/api/admin/members/{mid}/application/decision", json={"decision": "approved"}).status_code == 409
+    assert decide(api, mid, decision="denied", message=reason).status_code == 200
+    assert decide(api, mid, decision="approved").status_code == 409
     reused = api.post("/api/admin/members", json={"name": "New name", "email": "applicant@example.com"})
     assert reused.json()["approval_status"] == "denied"
     assert api.post(f"/api/admin/events/{e['id']}/signups", json={"member_id": mid, "role": "own"}).status_code == 403
@@ -189,7 +196,7 @@ def test_approval_does_not_lift_bans(api):
     as_member(api, mid)
     api.post("/api/me/application", json=submission(api))
     as_member(api, 1)
-    api.post(f"/api/admin/members/{mid}/application/decision", json={"decision": "approved"})
+    decide(api, mid, decision="approved")
     as_member(api, mid)
     assert api.get("/api/me/profile").status_code == 200
     assert api.put(f"/api/events/{e['id']}/signup", json={"role": "own"}).json()["detail"]["code"] == "event_signup_restricted"
@@ -207,7 +214,7 @@ def test_concurrent_submit_and_decisions(api):
         assert db.scalar(select(func.count()).select_from(ApprovalApplication)) == 1
     as_member(api, 1)
     with ThreadPoolExecutor(max_workers=2) as pool:
-        responses = list(pool.map(lambda decision: api.post(f"/api/admin/members/{mid}/application/decision", json={"decision": decision}), ["approved", "denied"]))
+        responses = list(pool.map(lambda decision: decide(api, mid, decision=decision), ["approved", "denied"]))
     assert sorted(r.status_code for r in responses) == [200, 409]
 
 
@@ -223,6 +230,107 @@ def test_application_privacy_and_trusted_creation(api):
     assert created.json()["approval_status"] == "approved"
     api.cookies.clear()
     assert api.get("/api/me/application").status_code == 401
+
+
+def test_officer_reapplication_preserves_history_and_requires_fresh_review(api):
+    q = quarter(api)
+    e = event(api, q)
+    other = person(api)
+    mid = applicant(api)
+    api.post(f"/api/admin/members/{mid}/bans", json={
+        "all_events": True, "reason": "Independent restriction", "request_id": "reapply-ban",
+    })
+    as_member(api, mid)
+    first = api.post("/api/me/application", json=submission(api)).json()
+    as_member(api, 1)
+    assert decide(api, mid, decision="denied", message="Original denial reason").status_code == 200
+    reopen_url = f"/api/admin/members/{mid}/application/reopen"
+    original = {"expected_submitted_at": first["submitted_at"]}
+    for identity in [mid, other["id"]]:
+        as_member(api, identity)
+        assert api.post(reopen_url, json=original).status_code == 403
+    api.cookies.clear()
+    assert api.post(reopen_url, json=original).status_code == 401
+    as_member(api, 1)
+    form = api.get("/api/admin/application-form").json()
+    form["questions"].append({"id": "new", "label": "Anything new?", "kind": "text", "required": True})
+    api.put("/api/admin/application-form", json={"expected_revision": form["revision"], "questions": form["questions"]})
+    reopened = api.post(reopen_url, json=original)
+    assert reopened.status_code == 200, reopened.text
+    assert reopened.json()["status"] == "required"
+    assert reopened.json()["answers"] == {}
+    assert reopened.json()["submitted_at"] is None
+    previous = reopened.json()["previous_applications"][0]
+    assert previous["questions"] == first["questions"]
+    assert previous["answers"] == first["answers"]
+    assert previous["message"] == "Original denial reason"
+    assert previous["reviewed_by"] == previous["reopened_by"] == 1
+    assert api.post(reopen_url, json=original).status_code == 409
+    as_member(api, mid)
+    assert api.get("/api/session").json()["member"]["approval_status"] == "required"
+    own = api.get("/api/me/application").json()
+    assert own["form_revision"] == form["revision"] + 1
+    assert own["previous_applications"] == []
+    assert_member_access_blocked(api, q, e)
+    assert api.post("/api/me/application", json={"form_revision": first["form_revision"], "answers": first["answers"]}).status_code == 409
+    body = submission(api)
+    body["answers"]["new"] = "I have more experience now."
+    second_response = api.post("/api/me/application", json=body)
+    assert second_response.status_code == 200, second_response.text
+    second = second_response.json()
+    assert second["status"] == "pending"
+    assert second["reviewed_at"] is None
+    assert second["message"] == ""
+    assert_member_access_blocked(api, q, e)
+    as_member(api, 1)
+    assert mid in {r["member"]["id"] for r in api.get("/api/admin/members?status=pending").json()["items"]}
+    stale = api.post(f"/api/admin/members/{mid}/application/decision", json={**original, "decision": "approved"})
+    assert stale.status_code == 409
+    assert decide(api, mid, decision="denied", message="Second denial reason").status_code == 200
+    assert api.post(reopen_url, json=original).status_code == 409
+    assert api.post(reopen_url, json={"expected_submitted_at": second["submitted_at"]}).status_code == 200
+    history = api.get(f"/api/admin/members/{mid}/application").json()["previous_applications"]
+    assert [h["message"] for h in history] == ["Second denial reason", "Original denial reason"]
+    as_member(api, mid)
+    assert api.post("/api/me/application", json=body).status_code == 200
+    as_member(api, 1)
+    assert decide(api, mid, decision="approved").status_code == 200
+    with api.app.state.sessions() as db:
+        records = list(db.scalars(select(Audit).where(Audit.action == "application.reopen")))
+        assert len(records) == 2
+        assert all(record.actor_id == 1 and set(record.data) == {"history_id"} for record in records)
+    as_member(api, mid)
+    assert api.get("/api/me/profile").status_code == 200
+    assert api.put(f"/api/events/{e['id']}/signup", json={"role": "own"}).json()["detail"]["code"] == "event_signup_restricted"
+
+
+def test_concurrent_reopening_allows_one_new_submission(api):
+    mid = applicant(api)
+    as_member(api, mid)
+    submitted = api.post("/api/me/application", json=submission(api)).json()
+    as_member(api, 1)
+    decide(api, mid, decision="denied")
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        responses = list(pool.map(lambda _: api.post(f"/api/admin/members/{mid}/application/reopen", json={
+            "expected_submitted_at": submitted["submitted_at"],
+        }), range(2)))
+    assert sorted(r.status_code for r in responses) == [200, 409]
+    with api.app.state.sessions() as db:
+        assert db.scalar(select(func.count()).select_from(ApprovalApplicationHistory)) == 1
+        assert db.get(ApprovalApplication, mid) is None
+    as_member(api, mid)
+    value = submission(api)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        responses = list(pool.map(lambda _: api.post("/api/me/application", json=value), range(2)))
+    assert sorted(r.status_code for r in responses) == [200, 409]
+
+
+@pytest.mark.parametrize("status", ["required", "pending", "approved"])
+def test_reapplication_only_available_for_denied_members(api, status):
+    mid = applicant(api, status)
+    assert api.post(f"/api/admin/members/{mid}/application/reopen", json={
+        "expected_submitted_at": "2026-10-27T12:00:00Z",
+    }).status_code == 409
 
 
 def test_shared_validator_preserves_import_optional_answers():

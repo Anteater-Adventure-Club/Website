@@ -1,9 +1,13 @@
 from fastapi import APIRouter, Depends, Request
+from sqlalchemy import select
 from ..auth import authenticated_member, limited, officer
 from ..db import get_db
 from ..domain import audit, fail, require, utcnow
-from ..models import ApprovalApplication, FormDefinition, Member
-from ..schemas import ApplicationDecision, ApplicationFormView, ApplicationFormWrite, ApplicationSubmit, ApplicationView
+from ..models import ApprovalApplication, ApprovalApplicationHistory, FormDefinition, Member
+from ..schemas import (
+    ApplicationDecision, ApplicationFormView, ApplicationFormWrite, ApplicationReopen,
+    ApplicationSubmissionView, ApplicationSubmit, ApplicationView,
+)
 from ..services.forms import validate_answers
 
 router = APIRouter(prefix="/api")
@@ -11,18 +15,22 @@ FORM_KEY = "external-members"
 
 
 def application_view(db, user, *, admin=False):
+    previous = list(db.scalars(select(ApprovalApplicationHistory)
+                              .where(ApprovalApplicationHistory.member_id == user.id)
+                              .order_by(ApprovalApplicationHistory.id.desc()))) if admin else []
+    result = {"status": user.approval_status, "previous_applications": previous}
     record = db.get(ApprovalApplication, user.id)
     if record:
-        result = {k: getattr(record, k) for k in ApplicationView.model_fields if k != "status"}
+        result.update({k: getattr(record, k) for k in ApplicationSubmissionView.model_fields})
         if not admin:
             result["reviewed_by"] = None
         if user.approval_status != "denied":
             result["message"] = ""
-        return {"status": user.approval_status, **result}
+        return result
     if user.approval_status == "required":
         form = require(db, FormDefinition, FORM_KEY)
-        return {"status": "required", "form_revision": form.revision, "questions": form.questions}
-    return {"status": user.approval_status}
+        return {**result, "form_revision": form.revision, "questions": form.questions}
+    return result
 
 
 @router.get("/me/application", response_model=ApplicationView)
@@ -75,8 +83,30 @@ def decide(mid: int, value: ApplicationDecision, user=Depends(officer), db=Depen
     if target.approval_status != "pending":
         fail(409, "application_decided", "This application is no longer awaiting a decision. Refresh to see its status.")
     record = require(db, ApprovalApplication, mid, True)
+    if record.submitted_at != value.expected_submitted_at:
+        fail(409, "application_changed", "This application has changed. Refresh before making a decision.")
     target.approval_status = value.decision
     record.reviewed_at, record.reviewed_by = utcnow(), user.id
     record.message = value.message.strip() if value.decision == "denied" else ""
     audit(db, user, "application.decision", mid, {"decision": value.decision})
+    return application_view(db, target, admin=True)
+
+
+@router.post("/admin/members/{mid}/application/reopen", response_model=ApplicationView)
+def reopen(mid: int, value: ApplicationReopen, user=Depends(officer), db=Depends(get_db, scope="function")):
+    target = require(db, Member, mid, True)
+    if target.approval_status != "denied":
+        fail(409, "application_changed", "Only a denied application can be reopened. Refresh to see its status.")
+    record = require(db, ApprovalApplication, mid, True)
+    if record.submitted_at != value.expected_submitted_at:
+        fail(409, "application_changed", "This application has changed. Refresh before allowing reapplication.")
+    previous = ApprovalApplicationHistory(
+        member_id=mid, reopened_by=user.id,
+        **{k: getattr(record, k) for k in ApplicationSubmissionView.model_fields},
+    )
+    db.add(previous)
+    db.delete(record)
+    target.approval_status = "required"
+    db.flush()
+    audit(db, user, "application.reopen", mid, {"history_id": previous.id})
     return application_view(db, target, admin=True)

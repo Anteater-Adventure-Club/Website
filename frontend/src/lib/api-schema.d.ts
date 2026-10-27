@@ -193,6 +193,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/admin/members/{mid}/application/reopen": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Reopen */
+    post: operations["reopen_api_admin_members__mid__application_reopen_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/events": {
     parameters: {
       query?: never;
@@ -1701,6 +1718,11 @@ export interface components {
        * @default
        */
       message: string;
+      /**
+       * Expected Submitted At
+       * Format: date-time
+       */
+      expected_submitted_at: string;
     };
     /** ApplicationFormView */
     ApplicationFormView: {
@@ -1716,22 +1738,8 @@ export interface components {
       /** Questions */
       questions: components["schemas"]["Question"][];
     };
-    /** ApplicationSubmit */
-    ApplicationSubmit: {
-      /** Form Revision */
-      form_revision: number;
-      /** Answers */
-      answers: {
-        [key: string]: string | string[];
-      };
-    };
-    /** ApplicationView */
-    ApplicationView: {
-      /**
-       * Status
-       * @enum {string}
-       */
-      status: "required" | "pending" | "approved" | "denied";
+    /** ApplicationHistoryView */
+    ApplicationHistoryView: {
       /** Form Revision */
       form_revision?: number | null;
       /** Questions */
@@ -1751,6 +1759,59 @@ export interface components {
        * @default
        */
       message: string;
+      /**
+       * Reopened At
+       * Format: date-time
+       */
+      reopened_at: string;
+      /** Reopened By */
+      reopened_by: number;
+    };
+    /** ApplicationReopen */
+    ApplicationReopen: {
+      /**
+       * Expected Submitted At
+       * Format: date-time
+       */
+      expected_submitted_at: string;
+    };
+    /** ApplicationSubmit */
+    ApplicationSubmit: {
+      /** Form Revision */
+      form_revision: number;
+      /** Answers */
+      answers: {
+        [key: string]: string | string[];
+      };
+    };
+    /** ApplicationView */
+    ApplicationView: {
+      /** Form Revision */
+      form_revision?: number | null;
+      /** Questions */
+      questions?: components["schemas"]["Question"][];
+      /** Answers */
+      answers?: {
+        [key: string]: string | string[];
+      };
+      /** Submitted At */
+      submitted_at?: string | null;
+      /** Reviewed At */
+      reviewed_at?: string | null;
+      /** Reviewed By */
+      reviewed_by?: number | null;
+      /**
+       * Message
+       * @default
+       */
+      message: string;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "required" | "pending" | "approved" | "denied";
+      /** Previous Applications */
+      previous_applications?: components["schemas"]["ApplicationHistoryView"][];
     };
     /** AssignedCar */
     AssignedCar: {
@@ -4472,6 +4533,41 @@ export interface operations {
     requestBody: {
       content: {
         "application/json": components["schemas"]["ApplicationDecision"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApplicationView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  reopen_api_admin_members__mid__application_reopen_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        mid: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ApplicationReopen"];
       };
     };
     responses: {

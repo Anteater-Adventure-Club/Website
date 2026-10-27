@@ -2,6 +2,7 @@ import { approvalLabel, needsApproval } from "../lib/approval";
 import {
   ApplicationReview,
   ApplicationSettings,
+  AllowReapplicationDialog,
 } from "../components/application";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router";
@@ -966,6 +967,8 @@ export function Members() {
   const [importing, setImporting] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
   const [reviewApplication, setReviewApplication] = useState(false);
+  const [reapplication, setReapplication] =
+    useState<Schema<"MemberListRow"> | null>(null);
   const [dues, setDues] = useState<Schema<"MemberListRow"> | null>(null);
   function filter(value: string) {
     const next = new URLSearchParams(params);
@@ -1130,6 +1133,15 @@ export function Members() {
                             Review application
                           </Button>
                         )}
+                        {row.member.approval_status === "denied" && (
+                          <Button
+                            variant="secondary"
+                            disabled={!row.application_submitted_at}
+                            onClick={() => setReapplication(row)}
+                          >
+                            Allow reapplication
+                          </Button>
+                        )}
                         {quarter?.state === "open" &&
                           !needsApproval(row.member) && (
                             <Button
@@ -1180,6 +1192,13 @@ export function Members() {
         </Empty>
       )}
       {add && <PersonDialog onClose={() => setAdd(false)} />}
+      {reapplication && (
+        <AllowReapplicationDialog
+          person={reapplication.member}
+          submittedAt={reapplication.application_submitted_at!}
+          onClose={() => setReapplication(null)}
+        />
+      )}
       {importing && quarter && (
         <ImportDialog
           quarterId={quarter.id}

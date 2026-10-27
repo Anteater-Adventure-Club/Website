@@ -302,6 +302,113 @@ test("application, officer review, final denial, and configurable questions", as
   ).toBeVisible();
 });
 
+test("officers can allow reapplication while preserving the denied submission", async ({
+  page,
+  context,
+}, info) => {
+  await identity(context, "officer");
+  await page.goto("/admin/members");
+  await page
+    .getByRole("textbox", { name: "Search members" })
+    .fill("Sam Taylor");
+  const row = page.getByRole("row").filter({ hasText: "Sam Taylor" });
+  await expect(
+    row.getByText("Application denied", { exact: true }),
+  ).toBeVisible();
+  await capture(page, info.project.name, "allow-reapplication");
+  await row
+    .getByRole("button", { name: "Allow reapplication", exact: true })
+    .click();
+  const dialog = page.getByRole("dialog", {
+    name: "Allow reapplication?",
+    exact: true,
+  });
+  await expect(dialog).toBeVisible();
+  await capture(page, info.project.name, "allow-reapplication-dialog");
+  await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(
+    row.getByText("Application denied", { exact: true }),
+  ).toBeVisible();
+
+  const applicantContext = await context
+    .browser()!
+    .newContext({ baseURL: origin });
+  try {
+    await identity(applicantContext, "Approval denied");
+    const applicantPage = await applicantContext.newPage();
+    await applicantPage.goto("/my-aac/application");
+    await expect(
+      applicantPage.getByRole("heading", {
+        name: "Your application was not approved",
+      }),
+    ).toBeVisible();
+    await row
+      .getByRole("button", { name: "Allow reapplication", exact: true })
+      .click();
+    await dialog
+      .getByRole("button", { name: "Allow reapplication", exact: true })
+      .click();
+    await expect(dialog).toHaveCount(0);
+    await expect(
+      row.getByText("Application required", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      row.getByRole("button", { name: "Allow reapplication", exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      applicantPage.getByRole("heading", {
+        name: "Your next adventure starts here",
+      }),
+    ).toBeVisible();
+  } finally {
+    await applicantContext.close();
+  }
+
+  await identity(context, "Approval denied");
+  await page.goto("/my-aac/profile");
+  await expect(page).toHaveURL(/\/my-aac\/application$/);
+  await expect(
+    page.getByLabel("Tell us a little bit about yourself.", { exact: true }),
+  ).toHaveValue("");
+  await page
+    .getByLabel("Are you currently a college student?")
+    .selectOption("no");
+  await page
+    .getByLabel("Tell us a little bit about yourself.", { exact: true })
+    .fill("I have started volunteering on trail maintenance days.");
+  await page
+    .getByLabel("Why do you want to join Adventure Club?", { exact: true })
+    .fill("I would like to meet other hikers and help with club activities.");
+  await capture(page, info.project.name, "reapplication-form");
+  await page
+    .getByRole("button", { name: "Submit application", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Thanks for introducing yourself!" }),
+  ).toBeVisible();
+  const forbidden = await page.request.get("/api/me/profile");
+  expect(forbidden.status()).toBe(403);
+
+  await identity(context, "officer");
+  await page.goto("/admin/members?status=pending");
+  await row
+    .getByRole("button", { name: "Review application", exact: true })
+    .click();
+  await expect(
+    page.getByText("I have started volunteering on trail maintenance days.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page.getByText("Previous applications (1)", { exact: true }).click();
+  await expect(
+    page.getByText(
+      "Thank you for taking the time to introduce yourself. We’re unable to approve your application.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await capture(page, info.project.name, "reapplication-history");
+});
+
 test("an approval arriving while the applicant waits redirects to My AAC", async ({
   page,
   context,
@@ -312,6 +419,9 @@ test("an approval arriving while the applicant waits redirects to My AAC", async
     page.getByRole("heading", { name: "Thanks for introducing yourself!" }),
   ).toBeVisible();
   const mid = fixture.people["Approval pending"].id;
+  const application = await (
+    await page.request.get("/api/me/application")
+  ).json();
   // A separate HTTP client models the officer without changing the applicant's cookie jar.
   const response = await fetch(
     `${origin}/api/admin/members/${mid}/application/decision`,
@@ -322,7 +432,10 @@ test("an approval arriving while the applicant waits redirects to My AAC", async
         Origin: origin,
         Cookie: `aac_session=${fixture.cookies.officer}`,
       },
-      body: JSON.stringify({ decision: "approved" }),
+      body: JSON.stringify({
+        decision: "approved",
+        expected_submitted_at: application.submitted_at,
+      }),
     },
   );
   expect(response.status).toBe(200);

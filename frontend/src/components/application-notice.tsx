@@ -23,7 +23,7 @@ export function ApplicationNotice() {
           ? "New members without a UCI email need officer approval before joining club activities. Tell us a little about yourself to get started."
           : status === "pending"
             ? "An officer will review your answers. You can browse events while you wait; signups and membership become available after approval."
-            : "You can still browse public pages. This decision is final, and another application cannot be submitted."}
+            : "You can still browse public pages. You can only submit another application if an officer allows reapplication."}
       </p>
       <Link className="button primary" to="/my-aac/application">
         {status === "required" ? "Start application" : "View application"}

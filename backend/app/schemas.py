@@ -279,10 +279,14 @@ class ApplicationSubmit(DTO):
 class ApplicationDecision(DTO):
     decision: Literal["approved", "denied"]
     message: str = Field(default="", max_length=1000)
+    expected_submitted_at: AwareDatetime
 
 
-class ApplicationView(DTO):
-    status: Literal["required", "pending", "approved", "denied"]
+class ApplicationReopen(DTO):
+    expected_submitted_at: AwareDatetime
+
+
+class ApplicationSubmissionView(DTO):
     form_revision: int | None = None
     questions: list[Question] = Field(default_factory=list)
     answers: dict[str, str | list[str]] = Field(default_factory=dict)
@@ -290,6 +294,16 @@ class ApplicationView(DTO):
     reviewed_at: datetime | None = None
     reviewed_by: int | None = None
     message: str = ""
+
+
+class ApplicationHistoryView(ApplicationSubmissionView):
+    reopened_at: datetime
+    reopened_by: int
+
+
+class ApplicationView(ApplicationSubmissionView):
+    status: Literal["required", "pending", "approved", "denied"]
+    previous_applications: list[ApplicationHistoryView] = Field(default_factory=list)
 
 
 class EventWrite(Revision):

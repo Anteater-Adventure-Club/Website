@@ -63,6 +63,21 @@ class ApprovalApplication(Base):
     message: Mapped[str] = mapped_column(String(1000), default="")
 
 
+class ApprovalApplicationHistory(Base):
+    __tablename__ = "approval_application_history"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    member_id: Mapped[int] = mapped_column(ForeignKey("members.id"), index=True)
+    form_revision: Mapped[int]
+    questions: Mapped[list] = mapped_column(JSON)
+    answers: Mapped[dict] = mapped_column(JSON)
+    submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reviewed_by: Mapped[int | None] = mapped_column(ForeignKey("members.id"))
+    message: Mapped[str] = mapped_column(String(1000))
+    reopened_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    reopened_by: Mapped[int] = mapped_column(ForeignKey("members.id"))
+
+
 class Identity(Base):
     __tablename__ = "identities"
     id: Mapped[int] = mapped_column(primary_key=True)
