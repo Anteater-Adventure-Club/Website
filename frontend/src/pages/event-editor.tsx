@@ -1,7 +1,8 @@
+import { QuestionEditor } from "../components/form-questions";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useForm } from "react-hook-form";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import {
   dateLabel,
   eventURL,
@@ -287,11 +288,6 @@ function Editor({
     } finally {
       setSaving(false);
     }
-  }
-  function changeQuestion(id: string, value: Partial<Schema<"Question">>) {
-    setQuestions((old) =>
-      old.map((q) => (q.id === id ? { ...q, ...value } : q)),
-    );
   }
   const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const weekControls = (
@@ -611,113 +607,12 @@ function Editor({
                       questions must be optional.
                     </Message>
                   ) : null}
-                  {questions.map((question) => (
-                    <Panel className="question-editor" key={question.id}>
-                      <Field
-                        label="Question"
-                        value={question.label}
-                        maxLength={200}
-                        required
-                        disabled={frozenIds.has(question.id)}
-                        onChange={(e) =>
-                          changeQuestion(question.id, { label: e.target.value })
-                        }
-                      />
-                      <label className="field">
-                        Answer type
-                        <select
-                          value={question.kind || "text"}
-                          disabled={frozenIds.has(question.id)}
-                          onChange={(e) =>
-                            changeQuestion(question.id, {
-                              kind: e.target
-                                .value as Schema<"Question">["kind"],
-                              options:
-                                e.target.value === "choice" ||
-                                e.target.value === "multiple-select"
-                                  ? question.options?.length
-                                    ? question.options
-                                    : ["Option 1", "Option 2"]
-                                  : [],
-                            })
-                          }
-                        >
-                          <option value="text">Short text</option>
-                          <option value="long">Long text</option>
-                          <option value="choice">Multiple choice</option>
-                          <option value="multiple-select">
-                            Multiple select
-                          </option>
-                          <option value="yes-no">Yes / No</option>
-                        </select>
-                      </label>
-                      {(question.kind === "choice" ||
-                        question.kind === "multiple-select") && (
-                        <label className="field">
-                          Choices · one per line
-                          <textarea
-                            disabled={frozenIds.has(question.id)}
-                            value={question.options?.join("\n") || ""}
-                            onChange={(e) =>
-                              changeQuestion(question.id, {
-                                options: e.target.value.split("\n"),
-                              })
-                            }
-                          />
-                        </label>
-                      )}
-                      <div className="toolbar">
-                        <label className="check-field">
-                          <input
-                            type="checkbox"
-                            checked={question.required || false}
-                            disabled={
-                              frozenIds.has(question.id) || !!roster.data?.total
-                            }
-                            onChange={(e) =>
-                              changeQuestion(question.id, {
-                                required: e.target.checked,
-                              })
-                            }
-                          />
-                          Required
-                        </label>
-                        <Button
-                          type="button"
-                          variant="quiet"
-                          aria-label={`Remove question ${question.label}`}
-                          disabled={frozenIds.has(question.id)}
-                          onClick={() =>
-                            setQuestions((old) =>
-                              old.filter((q) => q.id !== question.id),
-                            )
-                          }
-                        >
-                          <Trash2 size={16} />
-                          Remove
-                        </Button>
-                      </div>
-                    </Panel>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() =>
-                      setQuestions((old) => [
-                        ...old,
-                        {
-                          id: crypto.randomUUID(),
-                          label: "",
-                          kind: "text",
-                          required: false,
-                          options: [],
-                        },
-                      ])
-                    }
-                  >
-                    <Plus size={16} />
-                    Add Question
-                  </Button>
+                  <QuestionEditor
+                    questions={questions}
+                    onChange={setQuestions}
+                    frozenIds={frozenIds}
+                    optionalOnly={!!roster.data?.total}
+                  />
                 </>
               ) : (
                 <Empty title="No signups needed">

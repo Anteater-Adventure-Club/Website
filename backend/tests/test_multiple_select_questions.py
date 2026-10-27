@@ -65,7 +65,7 @@ def test_member_multiple_select_round_trip_and_edit_with_existing_answer_types(a
         {"id": "ready", "label": "Ready?", "kind": "yes-no"},
     ]
     e = event(api, quarter(api), questions=questions)
-    assert e["questions"][0] == questions[0]
+    assert e["questions"][0] == {**questions[0], "max_words": None, "show_when": None}
     m = person(api)
     api.cookies.set("aac_session", cookie(m["id"]))
     answers = {"activities": ["Swimming"], "experience": "New", "note": "Hello", "ready": "yes"}

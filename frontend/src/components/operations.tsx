@@ -7,7 +7,7 @@ import type { Person, Schema } from "../lib/api";
 import { Button, Dialog, Empty, Field, Message, Panel, Pill } from "./ui";
 import { useSearchQuery } from "../lib/search-query";
 import { CapacityOverride, SignupCapacity } from "./signup-capacity";
-import { MultipleSelectQuestion } from "./multiple-select-question";
+import { FormQuestions } from "./form-questions";
 
 type ParticipantForm = {
   name: string;
@@ -626,47 +626,17 @@ export function AddParticipantDialog({
                 />
               </>
             )}
-            {event.questions.map((q) =>
-              q.kind === "multiple-select" ? (
-                <Controller
-                  key={q.id}
-                  control={form.control}
-                  name={`answers.${q.id}`}
-                  defaultValue={[]}
-                  render={({ field: { ref, ...field } }) => (
-                    <MultipleSelectQuestion
-                      question={q}
-                      inputRef={ref}
-                      {...field}
-                    />
-                  )}
+            <Controller
+              control={form.control}
+              name="answers"
+              render={({ field }) => (
+                <FormQuestions
+                  questions={event.questions}
+                  answers={field.value}
+                  onChange={field.onChange}
                 />
-              ) : (
-                <label className="field" key={q.id}>
-                  {q.label}
-                  {q.kind === "choice" || q.kind === "yes-no" ? (
-                    <select
-                      required={q.required}
-                      {...form.register(`answers.${q.id}`)}
-                    >
-                      <option value="">Choose an answer</option>
-                      {(q.kind === "yes-no"
-                        ? ["yes", "no"]
-                        : q.options || []
-                      ).map((option) => (
-                        <option key={option}>{option}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <textarea
-                      required={q.required}
-                      maxLength={2000}
-                      {...form.register(`answers.${q.id}`)}
-                    />
-                  )}
-                </label>
-              ),
-            )}
+              )}
+            />
             <label className="field">
               Notes
               <textarea maxLength={1000} {...form.register("notes")} />

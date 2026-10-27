@@ -50,7 +50,9 @@ import {
   Polaroid,
 } from "../components/ui";
 import { VehicleDialog } from "./members";
-import { MultipleSelectQuestion } from "../components/multiple-select-question";
+import { FormQuestions } from "../components/form-questions";
+import { ApplicationNotice } from "../components/application-notice";
+import { needsApproval } from "../lib/approval";
 import { RetreatMembershipNotice } from "../components/retreat-membership-notice";
 import { logEventActivity } from "../lib/event-activity";
 import {
@@ -113,55 +115,20 @@ function SignupForm({
   const locked =
     signup?.checked_in_at ||
     (!signup?.editable && !!signup && !signup.cancelled);
-  const renderQuestion = (question: Schema<"Question">) =>
-    question.kind === "multiple-select" ? (
-      <Controller
-        key={question.id}
-        control={form.control}
-        name={`answers.${question.id}`}
-        defaultValue={[]}
-        render={({ field: { ref, ...field } }) => (
-          <MultipleSelectQuestion
-            question={question}
-            inputRef={ref}
-            {...field}
-          />
-        )}
-      />
-    ) : (
-      <label className="field" key={question.id}>
-        {question.label}
-        {!question.required && <small>Optional</small>}
-        {question.kind === "choice" || question.kind === "yes-no" ? (
-          <select
-            required={question.required}
-            {...form.register(`answers.${question.id}`)}
-          >
-            <option value="">Choose an answer</option>
-            {(question.kind === "yes-no"
-              ? ["yes", "no"]
-              : question.options || []
-            ).map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        ) : question.kind === "long" ? (
-          <textarea
-            required={question.required}
-            maxLength={2000}
-            {...form.register(`answers.${question.id}`)}
-          />
-        ) : (
-          <input
-            required={question.required}
-            maxLength={2000}
-            {...form.register(`answers.${question.id}`)}
-          />
-        )}
-      </label>
-    );
+  const renderQuestions = (filter?: "required" | "optional") => (
+    <Controller
+      control={form.control}
+      name="answers"
+      render={({ field }) => (
+        <FormQuestions
+          questions={event.questions}
+          answers={field.value}
+          onChange={field.onChange}
+          filter={filter}
+        />
+      )}
+    />
+  );
   if (signup?.checked_in_at) return <CheckedIn event={event} signup={signup} />;
   if (event.signup_status !== "open" || locked)
     return (
@@ -442,11 +409,11 @@ function SignupForm({
         )}
         {event.kind === "retreat" ? (
           <>
-            {event.questions.filter((q) => q.required).map(renderQuestion)}
+            {renderQuestions("required")}
             <details className="signup-optional-questions">
               <summary>Other retreat questions (optional)</summary>
               <div className="signup-optional-fields">
-                {event.questions.filter((q) => !q.required).map(renderQuestion)}
+                {renderQuestions("optional")}
                 <label className="field">
                   Any questions, comments, or concerns?<small>Optional</small>
                   <textarea maxLength={1000} {...form.register("notes")} />
@@ -456,7 +423,7 @@ function SignupForm({
           </>
         ) : (
           <>
-            {event.questions.map(renderQuestion)}
+            {renderQuestions()}
             <label className="field">
               Any questions, comments, or concerns?<small>Optional</small>
               <textarea maxLength={1000} {...form.register("notes")} />
@@ -630,7 +597,7 @@ export function EventDetail() {
       (data?.signup_status === "not_open" && !!data.general_signup_opens_at),
   });
   const own = useAPI("Page_SignupOwn_", `/api/me/signups?event_id=${id}`, {
-    enabled: !!session?.member,
+    enabled: !!session?.member && !needsApproval(session.member),
     poll: (data) =>
       data?.items.some(isLiveDriverSignup) ||
       (!!event.data &&
@@ -640,7 +607,10 @@ export function EventDetail() {
   const membership = useAPI(
     "MembershipView",
     `/api/me/memberships/${event.data?.quarter_id}`,
-    { enabled: !!session?.member && !!event.data },
+    {
+      enabled:
+        !!session?.member && !needsApproval(session.member) && !!event.data,
+    },
   );
   const viewed = useRef("");
   useEffect(() => {
@@ -787,7 +757,9 @@ export function EventDetail() {
           )}
         </article>
         <aside>
-          {!e.signups_enabled ? (
+          {needsApproval(session?.member) ? (
+            <ApplicationNotice />
+          ) : !e.signups_enabled ? (
             <Panel>
               <h2>Come along!</h2>
               <p>

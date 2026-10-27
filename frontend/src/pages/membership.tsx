@@ -1,3 +1,5 @@
+import { ApplicationNotice } from "../components/application-notice";
+import { needsApproval } from "../lib/approval";
 import { RestrictionNotice, useRestrictions } from "../components/restrictions";
 import { useState } from "react";
 import { Link } from "react-router";
@@ -29,7 +31,9 @@ export function Membership() {
   const membership = useAPI(
     "MembershipView",
     `/api/me/memberships/${quarter?.id}`,
-    { enabled: !!session?.member && !!quarter },
+    {
+      enabled: !!session?.member && !needsApproval(session.member) && !!quarter,
+    },
   );
   const settings = useAPI("SiteSettings", "/api/site-settings");
   const action = useAction();
@@ -118,271 +122,296 @@ export function Membership() {
           </Panel>
         </div>
         <aside>
-          {membershipPaused && quarter && !session?.member && (
-            <MembershipPauseNotice quarter={quarter} />
-          )}
-          {session?.member && status?.status === "approved" && (
-            <RestrictionNotice
-              items={restrictions.items.filter((r) => r.membership)}
-            />
-          )}
-          <Panel className="status-card">
-            {loading || identityLoading ? (
-              <Loading />
-            ) : !session?.member ? (
-              <>
-                <h2>Come along!</h2>
-                <p>
-                  Sign in to join events and manage your membership. Use your
-                  UCI Google account if you have one.
-                </p>
-                <Link
-                  className="button primary heading-button"
-                  to="/sign-in?return_to=%2Fmembership"
-                >
-                  Sign in to join
-                </Link>
-              </>
-            ) : !quarter ? (
-              <>
-                <h2>A new adventure is coming</h2>
-                <p>
-                  Dues will open when the club’s next quarter is ready. Weekly
-                  activities are free.
-                </p>
-                <Link className="button primary" to="/events">
-                  Explore Events
-                </Link>
-              </>
-            ) : membership.isPending || restrictions.isPending ? (
-              <Loading />
-            ) : membership.error ? (
-              <Failure error={membership.error} retry={membership.refetch} />
-            ) : restrictions.error ? (
-              <Failure
-                error={restrictions.error}
-                retry={restrictions.refetch}
-              />
-            ) : status?.status !== "approved" &&
-              restrictions.membershipRestricted ? (
-              <>
+          {needsApproval(session?.member) ? (
+            <ApplicationNotice />
+          ) : (
+            <>
+              {membershipPaused && quarter && !session?.member && (
+                <MembershipPauseNotice quarter={quarter} />
+              )}
+              {session?.member && status?.status === "approved" && (
                 <RestrictionNotice
                   items={restrictions.items.filter((r) => r.membership)}
                 />
-                {status?.status === "pending" && (
-                  <p>
-                    Your existing submission is on hold. An officer can review
-                    and reject it, or approve it after the restriction ends.
-                  </p>
-                )}
-              </>
-            ) : status?.status === "approved" ? (
-              <>
-                <Pill tone="solid">
-                  Paid Member
-                  {status.source === "exception" ? " · Exception" : ""}
-                </Pill>
-                <h2>You’re part of the adventure!</h2>
-                <p>
-                  You have paid membership benefits for {quarter.name}, through{" "}
-                  {dateLabel(quarter.ends_on, {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                  .
-                </p>
-                {status.source === "exception" && (
-                  <p className="muted">
-                    Your membership was approved through an officer exception.
-                    No payment receipt is required.
-                  </p>
-                )}
-                {status.source === "imported" && (
-                  <p className="muted">
-                    Membership is approved; your payment history wasn’t
-                    provided.
-                  </p>
-                )}
-                <Link className="button primary heading-button" to="/events">
-                  Explore Events!
-                </Link>
-              </>
-            ) : status?.status === "pending" ? (
-              <>
-                <Pill tone="yellow">Pending confirmation</Pill>
-                <h2>You’re all set for now!</h2>
-                <p>
-                  Your {status.student ? "$25" : "$30"} membership is waiting
-                  for an officer to confirm your payment. You can sign up for
-                  regular events as a general member meanwhile.
-                </p>
-                <dl>
-                  <div>
-                    <dt>Category</dt>
-                    <dd>
-                      {status.student ? "Student · $25" : "Non-student · $30"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Paid by</dt>
-                    <dd>{status.method}</dd>
-                  </div>
-                  {status.submitted_at && (
-                    <div>
-                      <dt>Submitted</dt>
-                      <dd>{dateLabel(status.submitted_at)}</dd>
-                    </div>
-                  )}
-                </dl>
-                <Link className="button primary heading-button" to="/events">
-                  Explore Events!
-                </Link>
-              </>
-            ) : (
-              <>
-                <h2>Join for {quarter.name}!</h2>
-                {quarter.state !== "open" ? (
-                  <p>Membership submissions for this quarter are closed.</p>
-                ) : membershipPaused ? (
-                  <MembershipPauseNotice quarter={quarter} />
-                ) : (
-                  <form
-                    onSubmit={async (e) => {
-                      e.preventDefault();
-                      await action
-                        .mutateAsync({
-                          url: `/api/me/memberships/${quarter.id}`,
-                          body: { student, method, phone: contactPhone.trim() },
-                        })
-                        .catch(() => {});
-                    }}
-                  >
-                    <Field
-                      label="What’s your contact phone number?"
-                      type="tel"
-                      autoComplete="tel"
-                      required
-                      maxLength={40}
-                      value={contactPhone}
-                      onChange={(e) => setPhone(e.target.value)}
-                    />
-                    <fieldset>
-                      <legend>Membership</legend>
-                      <div className="segmented">
-                        <button
-                          type="button"
-                          aria-pressed={student}
-                          onClick={() => setStudent(true)}
-                        >
-                          Student · $25
-                        </button>
-                        <button
-                          type="button"
-                          aria-pressed={!student}
-                          onClick={() => setStudent(false)}
-                        >
-                          Non-student · $30
-                        </button>
-                      </div>
-                    </fieldset>
-                    <fieldset>
-                      <legend>Paid by</legend>
-                      <div className="stack">
-                        {(["zelle", "venmo", "cash"] as const).map((value) => (
-                          <label className="check-field" key={value}>
-                            <input
-                              type="radio"
-                              checked={method === value}
-                              onChange={() => {
-                                setMethod(value);
-                                setPaid(false);
-                              }}
-                              name="method"
-                            />
-                            {value === "cash"
-                              ? "Cash at a meeting"
-                              : value === "venmo"
-                                ? settings.data?.venmo
-                                  ? `Venmo · ${settings.data.venmo}`
-                                  : "Venmo"
-                                : "Zelle"}
-                          </label>
-                        ))}
-                      </div>
-                    </fieldset>
-                    <div className="notice">
-                      {method === "cash" ? (
-                        <>
-                          <p>{settings.data?.cash}</p>
-                          <p>
-                            Tell the officer your name and that you’re paying
-                            for {quarter.name} membership.
-                          </p>
-                        </>
-                      ) : method === "venmo" ? (
-                        settings.data?.venmo ? (
-                          <>
-                            <p>
-                              Send {student ? "$25" : "$30"} to{" "}
-                              {settings.data.venmo} and include your name and{" "}
-                              {quarter.name}.
-                            </p>
-                            <a
-                              href={`https://venmo.com/${encodeURIComponent(settings.data.venmo.replace(/^@/, ""))}`}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              Open Venmo ↗
-                            </a>
-                          </>
-                        ) : (
-                          "Ask an officer for the club’s Venmo details before paying."
-                        )
-                      ) : settings.data?.zelle ? (
-                        <>
-                          Send {student ? "$25" : "$30"} to{" "}
-                          {settings.data.zelle}. Include your name and{" "}
-                          {quarter.name}.
-                          {settings.data.zelle_name?.trim() && (
-                            <strong className="zelle-recipient">
-                              {settings.data.zelle_name.trim()}
-                            </strong>
-                          )}
-                        </>
-                      ) : (
-                        "Ask an officer for the club’s Zelle details before paying."
-                      )}
-                    </div>
-                    <label className="check-field">
-                      <input
-                        type="checkbox"
-                        required
-                        checked={paid}
-                        onChange={(e) => setPaid(e.target.checked)}
-                      />
-                      I’ve sent my payment or paid an officer.
-                    </label>
-                    <Message error={action.error} />
-                    <Button
-                      className="heading-button"
-                      disabled={
-                        action.isPending || !paid || !contactPhone.trim()
-                      }
+              )}
+              <Panel className="status-card">
+                {loading || identityLoading ? (
+                  <Loading />
+                ) : !session?.member ? (
+                  <>
+                    <h2>Come along!</h2>
+                    <p>
+                      Sign in to join events and manage your membership. Use
+                      your UCI Google account if you have one.
+                    </p>
+                    <Link
+                      className="button primary heading-button"
+                      to="/sign-in?return_to=%2Fmembership"
                     >
-                      {action.isPending
-                        ? "Submitting…"
-                        : `I paid ${student ? "$25" : "$30"} · Submit for approval`}
-                    </Button>
-                    <small className="muted">
-                      An officer confirms payments. Pending members keep general
-                      membership benefits until approved.
-                    </small>
-                  </form>
+                      Sign in to join
+                    </Link>
+                  </>
+                ) : !quarter ? (
+                  <>
+                    <h2>A new adventure is coming</h2>
+                    <p>
+                      Dues will open when the club’s next quarter is ready.
+                      Weekly activities are free.
+                    </p>
+                    <Link className="button primary" to="/events">
+                      Explore Events
+                    </Link>
+                  </>
+                ) : membership.isPending || restrictions.isPending ? (
+                  <Loading />
+                ) : membership.error ? (
+                  <Failure
+                    error={membership.error}
+                    retry={membership.refetch}
+                  />
+                ) : restrictions.error ? (
+                  <Failure
+                    error={restrictions.error}
+                    retry={restrictions.refetch}
+                  />
+                ) : status?.status !== "approved" &&
+                  restrictions.membershipRestricted ? (
+                  <>
+                    <RestrictionNotice
+                      items={restrictions.items.filter((r) => r.membership)}
+                    />
+                    {status?.status === "pending" && (
+                      <p>
+                        Your existing submission is on hold. An officer can
+                        review and reject it, or approve it after the
+                        restriction ends.
+                      </p>
+                    )}
+                  </>
+                ) : status?.status === "approved" ? (
+                  <>
+                    <Pill tone="solid">
+                      Paid Member
+                      {status.source === "exception" ? " · Exception" : ""}
+                    </Pill>
+                    <h2>You’re part of the adventure!</h2>
+                    <p>
+                      You have paid membership benefits for {quarter.name},
+                      through{" "}
+                      {dateLabel(quarter.ends_on, {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                      .
+                    </p>
+                    {status.source === "exception" && (
+                      <p className="muted">
+                        Your membership was approved through an officer
+                        exception. No payment receipt is required.
+                      </p>
+                    )}
+                    {status.source === "imported" && (
+                      <p className="muted">
+                        Membership is approved; your payment history wasn’t
+                        provided.
+                      </p>
+                    )}
+                    <Link
+                      className="button primary heading-button"
+                      to="/events"
+                    >
+                      Explore Events!
+                    </Link>
+                  </>
+                ) : status?.status === "pending" ? (
+                  <>
+                    <Pill tone="yellow">Pending confirmation</Pill>
+                    <h2>You’re all set for now!</h2>
+                    <p>
+                      Your {status.student ? "$25" : "$30"} membership is
+                      waiting for an officer to confirm your payment. You can
+                      sign up for regular events as a general member meanwhile.
+                    </p>
+                    <dl>
+                      <div>
+                        <dt>Category</dt>
+                        <dd>
+                          {status.student
+                            ? "Student · $25"
+                            : "Non-student · $30"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Paid by</dt>
+                        <dd>{status.method}</dd>
+                      </div>
+                      {status.submitted_at && (
+                        <div>
+                          <dt>Submitted</dt>
+                          <dd>{dateLabel(status.submitted_at)}</dd>
+                        </div>
+                      )}
+                    </dl>
+                    <Link
+                      className="button primary heading-button"
+                      to="/events"
+                    >
+                      Explore Events!
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <h2>Join for {quarter.name}!</h2>
+                    {quarter.state !== "open" ? (
+                      <p>Membership submissions for this quarter are closed.</p>
+                    ) : membershipPaused ? (
+                      <MembershipPauseNotice quarter={quarter} />
+                    ) : (
+                      <form
+                        onSubmit={async (e) => {
+                          e.preventDefault();
+                          await action
+                            .mutateAsync({
+                              url: `/api/me/memberships/${quarter.id}`,
+                              body: {
+                                student,
+                                method,
+                                phone: contactPhone.trim(),
+                              },
+                            })
+                            .catch(() => {});
+                        }}
+                      >
+                        <Field
+                          label="What’s your contact phone number?"
+                          type="tel"
+                          autoComplete="tel"
+                          required
+                          maxLength={40}
+                          value={contactPhone}
+                          onChange={(e) => setPhone(e.target.value)}
+                        />
+                        <fieldset>
+                          <legend>Membership</legend>
+                          <div className="segmented">
+                            <button
+                              type="button"
+                              aria-pressed={student}
+                              onClick={() => setStudent(true)}
+                            >
+                              Student · $25
+                            </button>
+                            <button
+                              type="button"
+                              aria-pressed={!student}
+                              onClick={() => setStudent(false)}
+                            >
+                              Non-student · $30
+                            </button>
+                          </div>
+                        </fieldset>
+                        <fieldset>
+                          <legend>Paid by</legend>
+                          <div className="stack">
+                            {(["zelle", "venmo", "cash"] as const).map(
+                              (value) => (
+                                <label className="check-field" key={value}>
+                                  <input
+                                    type="radio"
+                                    checked={method === value}
+                                    onChange={() => {
+                                      setMethod(value);
+                                      setPaid(false);
+                                    }}
+                                    name="method"
+                                  />
+                                  {value === "cash"
+                                    ? "Cash at a meeting"
+                                    : value === "venmo"
+                                      ? settings.data?.venmo
+                                        ? `Venmo · ${settings.data.venmo}`
+                                        : "Venmo"
+                                      : "Zelle"}
+                                </label>
+                              ),
+                            )}
+                          </div>
+                        </fieldset>
+                        <div className="notice">
+                          {method === "cash" ? (
+                            <>
+                              <p>{settings.data?.cash}</p>
+                              <p>
+                                Tell the officer your name and that you’re
+                                paying for {quarter.name} membership.
+                              </p>
+                            </>
+                          ) : method === "venmo" ? (
+                            settings.data?.venmo ? (
+                              <>
+                                <p>
+                                  Send {student ? "$25" : "$30"} to{" "}
+                                  {settings.data.venmo} and include your name
+                                  and {quarter.name}.
+                                </p>
+                                <a
+                                  href={`https://venmo.com/${encodeURIComponent(settings.data.venmo.replace(/^@/, ""))}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  Open Venmo ↗
+                                </a>
+                              </>
+                            ) : (
+                              "Ask an officer for the club’s Venmo details before paying."
+                            )
+                          ) : settings.data?.zelle ? (
+                            <>
+                              Send {student ? "$25" : "$30"} to{" "}
+                              {settings.data.zelle}. Include your name and{" "}
+                              {quarter.name}.
+                              {settings.data.zelle_name?.trim() && (
+                                <strong className="zelle-recipient">
+                                  {settings.data.zelle_name.trim()}
+                                </strong>
+                              )}
+                            </>
+                          ) : (
+                            "Ask an officer for the club’s Zelle details before paying."
+                          )}
+                        </div>
+                        <label className="check-field">
+                          <input
+                            type="checkbox"
+                            required
+                            checked={paid}
+                            onChange={(e) => setPaid(e.target.checked)}
+                          />
+                          I’ve sent my payment or paid an officer.
+                        </label>
+                        <Message error={action.error} />
+                        <Button
+                          className="heading-button"
+                          disabled={
+                            action.isPending || !paid || !contactPhone.trim()
+                          }
+                        >
+                          {action.isPending
+                            ? "Submitting…"
+                            : `I paid ${student ? "$25" : "$30"} · Submit for approval`}
+                        </Button>
+                        <small className="muted">
+                          An officer confirms payments. Pending members keep
+                          general membership benefits until approved.
+                        </small>
+                      </form>
+                    )}
+                  </>
                 )}
-              </>
-            )}
-          </Panel>
+              </Panel>
+            </>
+          )}
         </aside>
       </div>
     </div>

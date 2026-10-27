@@ -5,6 +5,8 @@ from ..models import Assignment, AttendanceAction, Card, DriverRegistration, Sig
 from ..projections import general_signup_available, signup_window
 from .event_activity import queue_signup_activity
 from .restrictions import enforce
+from .approval import enforce_approval
+from .forms import validate_answers
 
 
 def capacity_violations(db, event, signup, role):
@@ -27,6 +29,7 @@ def capacity_violations(db, event, signup, role):
 
 
 def save_signup(db, event, member, value, officer=False, source="member", *, actor=None, capacity_override_reason=None):
+    enforce_approval(db, member.id)
     if not officer and signup_window(event) != "open":
         fail(409, "signup_closed", "Signups are not currently open.")
     s = db.scalar(select(Signup).where(Signup.event_id == event.id, Signup.member_id == member.id))
@@ -71,31 +74,7 @@ def save_signup(db, event, member, value, officer=False, source="member", *, act
             is None
         ):
             db.add(DriverRegistration(quarter_id=event.quarter_id, member_id=member.id))
-    definitions = {q["id"]: q for q in event.questions}
-    if any(k not in definitions for k in value.answers):
-        fail(422, "answer_invalid", "An answer does not match the event questions.")
-    for q in event.questions:
-        if q["kind"] == "multiple-select":
-            answer = value.answers.get(q["id"], [])
-            if (
-                not isinstance(answer, list)
-                or len(answer) != len(set(answer))
-                or any(option not in q["options"] for option in answer)
-            ):
-                fail(422, "answer_invalid", "Choose from the available answers.", field=q["id"])
-            if source != "import" and q["required"] and not answer:
-                fail(422, "answer_required", "Complete the required questions.", field=q["id"])
-            continue
-        answer = value.answers.get(q["id"], "")
-        if not isinstance(answer, str) or len(answer) > 2000:
-            fail(422, "answer_invalid", "An answer does not match the event questions.", field=q["id"])
-        answer = answer.strip()
-        if source != "import" and q["required"] and not answer:
-            fail(422, "answer_required", "Complete the required questions.", field=q["id"])
-        if answer and q["kind"] == "choice" and answer not in q["options"]:
-            fail(422, "answer_invalid", "Choose one of the available answers.", field=q["id"])
-        if answer and q["kind"] == "yes-no" and answer not in {"yes", "no"}:
-            fail(422, "answer_invalid", "Choose yes or no.", field=q["id"])
+    answers = validate_answers(event.questions, value.answers, require_answers=source != "import")
     if s is None:
         s = Signup(event_id=event.id, member_id=member.id, role=value.role)
         db.add(s)
@@ -104,7 +83,7 @@ def save_signup(db, event, member, value, officer=False, source="member", *, act
         s.revision += 1
     s.role, s.vehicle_id, s.vehicle = value.role, value.vehicle_id if snapshot else None, snapshot
     s.seats = value.seats if snapshot else 0
-    s.answers, s.notes, s.source, s.cancelled = value.answers, value.notes, source, False
+    s.answers, s.notes, s.source, s.cancelled = answers, value.notes, source, False
     event.revision += 1
     db.flush()
     if violations:

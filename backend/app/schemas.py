@@ -72,6 +72,7 @@ class MemberPrivate(DTO):
     payout_method: str
     payout_destination: str
     payout_phone_suffix: str
+    approval_status: Literal["required", "pending", "approved", "denied"]
 
 
 class VehicleWrite(DTO):
@@ -211,20 +212,84 @@ class MembershipView(DTO):
     receipts: list[ReceiptView] = []
 
 
+class QuestionCondition(DTO):
+    question_id: str
+    equals: str
+
+
 class Question(DTO):
     id: Annotated[str, Field(min_length=1, max_length=80, pattern=r"^[a-zA-Z0-9_-]+$")]
     label: Annotated[str, Field(min_length=1, max_length=200)]
-    kind: Literal["text", "long", "choice", "multiple-select", "yes-no"] = "text"
+    kind: Literal["text", "long", "email", "choice", "multiple-select", "yes-no"] = "text"
     required: bool = False
     options: list[Annotated[str, Field(min_length=1, max_length=100)]] = Field(default=[], max_length=30)
+    max_words: int | None = Field(default=None, ge=1, le=2000)
+    show_when: QuestionCondition | None = None
 
     @model_validator(mode="after")
     def choices_valid(self):
+        self.label = self.label.strip()
+        if not self.label:
+            raise ValueError("Enter a question label")
+        if self.max_words is not None and self.kind not in {"text", "long"}:
+            raise ValueError("Word limits apply only to text questions")
         if self.kind in {"choice", "multiple-select"} and (
             len(self.options) < 2 or len(set(self.options)) != len(self.options)
         ):
             raise ValueError("Choice questions need at least two distinct options")
         return self
+
+
+def validate_questions(questions):
+    previous = {}
+    for q in questions:
+        if q.id in previous:
+            raise ValueError("Question IDs must be unique")
+        if q.show_when:
+            parent = previous.get(q.show_when.question_id)
+            if parent is None or parent.kind not in {"choice", "yes-no"}:
+                raise ValueError("Conditions must reference an earlier yes/no or multiple-choice question")
+            choices = ["yes", "no"] if parent.kind == "yes-no" else parent.options
+            if q.show_when.equals not in choices:
+                raise ValueError("Choose a valid answer for the visibility condition")
+        previous[q.id] = q
+    return questions
+
+
+class ApplicationFormWrite(DTO):
+    expected_revision: int
+    questions: list[Question] = Field(min_length=1, max_length=20)
+
+    @field_validator("questions")
+    @classmethod
+    def valid_questions(cls, value):
+        return validate_questions(value)
+
+
+class ApplicationFormView(DTO):
+    revision: int
+    questions: list[Question]
+
+
+class ApplicationSubmit(DTO):
+    form_revision: int
+    answers: dict[str, str | list[str]]
+
+
+class ApplicationDecision(DTO):
+    decision: Literal["approved", "denied"]
+    message: str = Field(default="", max_length=1000)
+
+
+class ApplicationView(DTO):
+    status: Literal["required", "pending", "approved", "denied"]
+    form_revision: int | None = None
+    questions: list[Question] = Field(default_factory=list)
+    answers: dict[str, str | list[str]] = Field(default_factory=dict)
+    submitted_at: datetime | None = None
+    reviewed_at: datetime | None = None
+    reviewed_by: int | None = None
+    message: str = ""
 
 
 class EventWrite(Revision):
@@ -273,8 +338,7 @@ class EventWrite(Revision):
             raise ValueError("Arrival must be before departure")
         if self.departure_at and self.return_at and self.departure_at > self.return_at:
             raise ValueError("Return must follow departure")
-        if len({q.id for q in self.questions}) != len(self.questions):
-            raise ValueError("Question IDs must be unique")
+        validate_questions(self.questions)
         return self
 
 
@@ -672,6 +736,7 @@ class BanPreview(DTO):
 
 
 class MemberListRow(DTO):
+    application_submitted_at: datetime | None = None
     member: MemberPrivate
     membership: MembershipView | None
     bans: list[BanView] = Field(default_factory=list)

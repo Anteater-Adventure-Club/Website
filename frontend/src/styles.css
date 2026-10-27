@@ -3880,3 +3880,104 @@ dialog::backdrop {
     justify-content: flex-end;
   }
 }
+/* Shared questionnaires and account admission. */
+.application-page {
+  max-width: 820px;
+}
+.application-heading {
+  text-align: center;
+  margin: 1rem auto 2rem;
+  max-width: 660px;
+}
+.application-heading h1 {
+  font-size: clamp(2rem, 5vw, 3.4rem);
+}
+.application-heading p {
+  line-height: 1.65;
+}
+.application-icon {
+  display: inline-flex;
+  padding: 1rem;
+  border-radius: 50%;
+  background: #e6eddf;
+  color: #39563c;
+}
+.application-heading .eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.application-identity {
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid #d9ddcf;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.application-identity small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.form-question {
+  margin-bottom: 1.25rem;
+}
+.form-question > label {
+  font-weight: 600;
+}
+.form-question > label small {
+  display: block;
+  font-weight: 400;
+}
+.form-field-error {
+  color: #9c352b;
+}
+.application-submit {
+  border-top: 1px solid #d9ddcf;
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+.application-answers {
+  margin: 1rem 0;
+}
+.application-answers > div {
+  padding: 1rem 0;
+  border-bottom: 1px solid #d9ddcf;
+}
+.application-answers dt {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.application-answers dd {
+  margin: 0;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.application-review {
+  padding: 1.25rem;
+  background: #f6f7ef;
+  border-radius: 12px;
+}
+.question-list .question-editor {
+  min-width: 0;
+}
+.question-list select {
+  max-width: 100%;
+}
+@media (max-width: 600px) {
+  .application-page {
+    padding-inline: 1rem;
+  }
+  .application-heading {
+    margin-top: 0.5rem;
+  }
+  .application-review {
+    padding: 0.85rem;
+  }
+  .application-submit .button {
+    width: 100%;
+  }
+  .question-list .panel {
+    padding: 1rem;
+  }
+}

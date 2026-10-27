@@ -152,3 +152,14 @@ For changes to preview artwork or bundled assets, update the template version in
 - Page metadata: inspect the raw public page HTML through Nginx without a session cookie; Vite alone does not render metadata for crawlers.
 
 Run the [production proxy checks](development.md#production-proxy-checks) after changing metadata, branding, or asset delivery.
+## External member applications
+
+New Google signups without a UCI email must complete an application before using member tools, signing up for events, or submitting dues. Existing member records are grandfathered in, including imported members who have not signed in. New members deliberately added by officers or imported from a roster are admitted automatically. Adding or importing an existing applicant does not override their application status.
+
+Until an application is approved, direct visits to any My AAC member tab redirect to the application page. This covers Overview, My Signups, Membership, Profile & Cars, and Reimbursements. Member APIs and event signups also reject these accounts, while public pages remain available. Pending payment confirmation is separate and does not impose this application restriction.
+
+Open **Settings → External Member Application → Edit application questions** to change the questionnaire. It uses the same question editor and validation as event forms, including email fields, word limits, and conditions based on an earlier yes/no or multiple-choice answer. Submitted applications retain their original questions and answers. An applicant filling an older version must review the updated questions before submitting.
+
+Review submissions in **Members → Pending**, or follow the dashboard’s **New members waiting for approval** link. The Pending view includes both applications labeled **Pending (Approval)** and payment confirmations labeled **Pending (Membership)**, with no additional pending filters. Applications are independent of quarters and remain reviewable even without an open quarter.
+
+Officers can approve or deny a submitted application. Approvals take applicants directly to the normal **My AAC** pages, including when approval arrives while their application page is open. There is no approval message or acknowledgment step. When denying an application, officers can include a reason that remains visible on the applicant’s application page. Answers lock after submission, and decisions are final: denied accounts cannot apply again. Email notifications and follow-up conversations are not included. Approval does not grant paid membership or lift any bans. College information is self-reported and does not change dues pricing.

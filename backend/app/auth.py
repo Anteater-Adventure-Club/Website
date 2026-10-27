@@ -8,7 +8,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy import select, text
 from .db import get_db
 from .domain import advisory, audit, fail, utcnow
-from .models import Identity, Marker, Member, Officer, RateLimit
+from .models import FormDefinition, Identity, Marker, Member, Officer, RateLimit
 from .schemas import MemberPrivate, SessionView
 
 router = APIRouter(prefix="/api")
@@ -42,12 +42,19 @@ def session_member_id(request: Request):
     return request.session.get("member_id")
 
 
-def member(request: Request, db=Depends(get_db, scope="function")):
+def authenticated_member(request: Request, db=Depends(get_db, scope="function")):
     mid = session_member_id(request)
     value = db.get(Member, mid) if isinstance(mid, int) else None
     if value is None:
         fail(401, "sign_in_required", "Sign in to continue.")
     return value
+
+
+def member(user=Depends(authenticated_member), db=Depends(get_db, scope="function")):
+    from .services.approval import enforce_approval
+
+    enforce_approval(db, user.id)
+    return user
 
 
 def officer(user=Depends(member), db=Depends(get_db, scope="function")):
@@ -86,7 +93,13 @@ def limited(request, db, action, limit=30):
 
 def bootstrap(db, settings):
     advisory(db, 700)
+    if db.get(FormDefinition, "external-members") is None:
+        from .services.forms import external_member_questions
+
+        db.add(FormDefinition(key="external-members", questions=external_member_questions()))
+        db.flush()
     if db.get(Marker, "officer_bootstrap"):
+        db.commit()
         return
     for email in settings.initial_officers.split(","):
         email = email.strip().lower()
@@ -202,13 +215,16 @@ async def callback(request: Request, db=Depends(get_db, scope="function")):
                 "This email is already linked to another account. Contact an officer.",
             )
         if user is None:
-            user = Member(email=email, name=info.get("name", email.split("@")[0])[:100])
+            user = Member(email=email, name=info.get("name", email.split("@")[0])[:100],
+                          approval_status="approved" if uci_email(email) else "required")
             db.add(user)
             db.flush()
         elif user.name == email.split("@")[0]:
             user.name = info.get("name", user.name)[:100]
         db.add(Identity(member_id=user.id, issuer=issuer, subject=info["sub"]))
     destination = safe_return(flow.get("return_to"))
+    if user.approval_status != "approved":
+        destination = "/my-aac/application"
     request.session.clear()
     request.session["member_id"] = user.id
     request.session["login_at"] = int(utcnow().timestamp())

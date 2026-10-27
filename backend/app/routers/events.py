@@ -40,6 +40,8 @@ Offset = Annotated[int, Query(ge=0)]
 
 
 def validate_event(db, value, existing=None):
+    from ..schemas import Question
+
     q = open_quarter(db, value.quarter_id)
     if not (
         q.starts_on
@@ -67,7 +69,7 @@ def validate_event(db, value, existing=None):
             fail(409, "participation_exists", "Signups cannot be disabled after participation exists.")
         if participated:
             new = {q.id: q.model_dump() for q in value.questions}
-            if any(new.get(q["id"]) != q for q in existing.questions):
+            if any(new.get(q["id"]) != Question.model_validate(q).model_dump() for q in existing.questions):
                 fail(409, "questions_locked", "Existing questions are frozen after the first signup.")
             old = {q["id"] for q in existing.questions}
             if any(q.required and q.id not in old for q in value.questions):

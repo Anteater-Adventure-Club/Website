@@ -138,6 +138,7 @@ export function useAction<T = unknown>() {
     onError: (error) => {
       if (
         error.status === 409 ||
+        error.code === "approval_required" ||
         error.code === "membership_restricted" ||
         error.code === "event_signup_restricted"
       )

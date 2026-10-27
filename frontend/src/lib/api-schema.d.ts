@@ -123,6 +123,76 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/me/application": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Own Application */
+    get: operations["own_application_api_me_application_get"];
+    put?: never;
+    /** Submit */
+    post: operations["submit_api_me_application_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/application-form": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Read Form */
+    get: operations["read_form_api_admin_application_form_get"];
+    /** Save Form */
+    put: operations["save_form_api_admin_application_form_put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/members/{mid}/application": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Review */
+    get: operations["review_api_admin_members__mid__application_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/members/{mid}/application/decision": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Decide */
+    post: operations["decide_api_admin_members__mid__application_decision_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/events": {
     parameters: {
       query?: never;
@@ -1619,6 +1689,69 @@ export interface components {
       /** Attention */
       attention: components["schemas"]["AttentionItem"][];
     };
+    /** ApplicationDecision */
+    ApplicationDecision: {
+      /**
+       * Decision
+       * @enum {string}
+       */
+      decision: "approved" | "denied";
+      /**
+       * Message
+       * @default
+       */
+      message: string;
+    };
+    /** ApplicationFormView */
+    ApplicationFormView: {
+      /** Revision */
+      revision: number;
+      /** Questions */
+      questions: components["schemas"]["Question"][];
+    };
+    /** ApplicationFormWrite */
+    ApplicationFormWrite: {
+      /** Expected Revision */
+      expected_revision: number;
+      /** Questions */
+      questions: components["schemas"]["Question"][];
+    };
+    /** ApplicationSubmit */
+    ApplicationSubmit: {
+      /** Form Revision */
+      form_revision: number;
+      /** Answers */
+      answers: {
+        [key: string]: string | string[];
+      };
+    };
+    /** ApplicationView */
+    ApplicationView: {
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "required" | "pending" | "approved" | "denied";
+      /** Form Revision */
+      form_revision?: number | null;
+      /** Questions */
+      questions?: components["schemas"]["Question"][];
+      /** Answers */
+      answers?: {
+        [key: string]: string | string[];
+      };
+      /** Submitted At */
+      submitted_at?: string | null;
+      /** Reviewed At */
+      reviewed_at?: string | null;
+      /** Reviewed By */
+      reviewed_by?: number | null;
+      /**
+       * Message
+       * @default
+       */
+      message: string;
+    };
     /** AssignedCar */
     AssignedCar: {
       /** Driver Name */
@@ -2722,6 +2855,8 @@ export interface components {
     };
     /** MemberDetail */
     MemberDetail: {
+      /** Application Submitted At */
+      application_submitted_at?: string | null;
       member: components["schemas"]["MemberPrivate"];
       membership: components["schemas"]["MembershipView"] | null;
       /** Bans */
@@ -2761,6 +2896,8 @@ export interface components {
     };
     /** MemberListRow */
     MemberListRow: {
+      /** Application Submitted At */
+      application_submitted_at?: string | null;
       member: components["schemas"]["MemberPrivate"];
       membership: components["schemas"]["MembershipView"] | null;
       /** Bans */
@@ -2792,6 +2929,11 @@ export interface components {
       payout_destination: string;
       /** Payout Phone Suffix */
       payout_phone_suffix: string;
+      /**
+       * Approval Status
+       * @enum {string}
+       */
+      approval_status: "required" | "pending" | "approved" | "denied";
     };
     /** MembershipBenefitView */
     MembershipBenefitView: {
@@ -3244,7 +3386,7 @@ export interface components {
        * @default text
        * @enum {string}
        */
-      kind: "text" | "long" | "choice" | "multiple-select" | "yes-no";
+      kind: "text" | "long" | "email" | "choice" | "multiple-select" | "yes-no";
       /**
        * Required
        * @default false
@@ -3255,6 +3397,9 @@ export interface components {
        * @default []
        */
       options: string[];
+      /** Max Words */
+      max_words?: number | null;
+      show_when?: components["schemas"]["QuestionCondition"] | null;
     };
     /** QuestionAnswerRow */
     QuestionAnswerRow: {
@@ -3279,6 +3424,13 @@ export interface components {
           [key: string]: number;
         };
       };
+    };
+    /** QuestionCondition */
+    QuestionCondition: {
+      /** Question Id */
+      question_id: string;
+      /** Equals */
+      equals: string;
     };
     /** RecapContent */
     RecapContent: {
@@ -4167,6 +4319,178 @@ export interface operations {
         };
         content: {
           "application/json": unknown;
+        };
+      };
+    };
+  };
+  own_application_api_me_application_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApplicationView"];
+        };
+      };
+    };
+  };
+  submit_api_me_application_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ApplicationSubmit"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApplicationView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  read_form_api_admin_application_form_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApplicationFormView"];
+        };
+      };
+    };
+  };
+  save_form_api_admin_application_form_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ApplicationFormWrite"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApplicationFormView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  review_api_admin_members__mid__application_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        mid: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApplicationView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  decide_api_admin_members__mid__application_decision_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        mid: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ApplicationDecision"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApplicationView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };
