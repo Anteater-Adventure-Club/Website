@@ -4,6 +4,7 @@ from ..domain import audit, fail, paid, require, revision, utcnow
 from ..models import Assignment, AttendanceAction, Card, DriverRegistration, Signup, Trip, Vehicle
 from ..projections import general_signup_available, signup_window
 from .event_activity import queue_signup_activity
+from .restrictions import enforce
 
 
 def capacity_violations(db, event, signup, role):
@@ -30,6 +31,8 @@ def save_signup(db, event, member, value, officer=False, source="member", *, act
         fail(409, "signup_closed", "Signups are not currently open.")
     s = db.scalar(select(Signup).where(Signup.event_id == event.id, Signup.member_id == member.id))
     active = s is not None and not s.cancelled
+    if not active:
+        enforce(db, member.id, event=event)
     if (event.kind == "retreat" and not active and not paid(db, member.id, event.quarter_id)
             and not general_signup_available(event)):
         fail(403, "paid_membership_required", "Approved paid membership is required for retreats.")

@@ -38,11 +38,12 @@ export function useKeyboardViewport() {
       const actions = sheet?.querySelector<HTMLElement>(".sticky-actions");
       // The action row can wrap on narrow phones. Its real height, plus the
       // sheet's bottom padding, must remain clear of the focused field.
-      const actionClearance = actions
-        ? actions.getBoundingClientRect().height +
-          (parseFloat(getComputedStyle(sheet!).paddingBottom) || 0) +
-          12
-        : 12;
+      const actionClearance =
+        actions && getComputedStyle(actions).position === "sticky"
+          ? actions.getBoundingClientRect().height +
+            (parseFloat(getComputedStyle(sheet!).paddingBottom) || 0) +
+            12
+          : 12;
       const top = Math.max(viewport!.offsetTop, sheetBox?.top ?? 0) + 12;
       const bottom =
         Math.min(

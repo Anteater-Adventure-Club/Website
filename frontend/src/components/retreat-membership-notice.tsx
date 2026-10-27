@@ -1,3 +1,4 @@
+import { RestrictionNotice, useRestrictions } from "./restrictions";
 import { Link } from "react-router";
 import { clock, dateLabel, useAPI } from "../lib/api";
 import { quarterURL, useQuarter } from "../lib/context";
@@ -12,6 +13,7 @@ export function RetreatMembershipNotice({
   reserved?: boolean;
   submitted?: boolean;
 }) {
+  const restrictions = useRestrictions();
   const { quarters } = useQuarter();
   const membership = useAPI(
     "MembershipView",
@@ -21,6 +23,12 @@ export function RetreatMembershipNotice({
   const submitted = submittedProp ?? membership.data?.status === "pending";
   const quarter = quarters.find((q) => q.id === quarterId);
   const paused = useMembershipPause(quarter);
+  if (restrictions.membershipRestricted)
+    return (
+      <RestrictionNotice
+        items={restrictions.items.filter((r) => r.membership)}
+      />
+    );
   return (
     <div
       className={`notice retreat-membership-notice${submitted ? " info" : ""}`}

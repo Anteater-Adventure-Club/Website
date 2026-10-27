@@ -1565,6 +1565,21 @@
             }
           },
           {
+            "name": "ban_status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "all",
+                "active",
+                "none"
+              ],
+              "type": "string",
+              "default": "all",
+              "title": "Ban Status"
+            }
+          },
+          {
             "name": "limit",
             "in": "query",
             "required": false,
@@ -1925,6 +1940,217 @@
             "content": {
               "application/json": {
                 "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/me/restrictions": {
+      "get": {
+        "summary": "Own Restrictions",
+        "operationId": "own_restrictions_api_me_restrictions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Items_RestrictionView_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/members/{mid}/bans": {
+      "get": {
+        "summary": "History",
+        "operationId": "history_api_admin_members__mid__bans_get",
+        "parameters": [
+          {
+            "name": "mid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Mid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Items_BanView_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create",
+        "operationId": "create_api_admin_members__mid__bans_post",
+        "parameters": [
+          {
+            "name": "mid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Mid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BanWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BanView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/members/{mid}/bans/preview": {
+      "post": {
+        "summary": "Preview",
+        "operationId": "preview_api_admin_members__mid__bans_preview_post",
+        "parameters": [
+          {
+            "name": "mid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Mid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BanScope"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BanPreview"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/members/{mid}/bans/{bid}/lift": {
+      "post": {
+        "summary": "Lift",
+        "operationId": "lift_api_admin_members__mid__bans__bid__lift_post",
+        "parameters": [
+          {
+            "name": "mid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Mid"
+            }
+          },
+          {
+            "name": "bid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Bid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BanLift"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BanView"
+                }
               }
             }
           },
@@ -4937,6 +5163,339 @@
         ],
         "title": "AttentionItem"
       },
+      "BanEvent": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "BanEvent"
+      },
+      "BanImpact": {
+        "properties": {
+          "signup_id": {
+            "type": "integer",
+            "title": "Signup Id"
+          },
+          "event_id": {
+            "type": "integer",
+            "title": "Event Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "checked_in": {
+            "type": "boolean",
+            "title": "Checked In"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "signup_id",
+          "event_id",
+          "name",
+          "starts_at",
+          "checked_in"
+        ],
+        "title": "BanImpact"
+      },
+      "BanLift": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "BanLift"
+      },
+      "BanPreview": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BanImpact"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "BanPreview"
+      },
+      "BanScope": {
+        "properties": {
+          "all_events": {
+            "type": "boolean",
+            "title": "All Events",
+            "default": false
+          },
+          "event_kinds": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "regular",
+                "meeting",
+                "picnic",
+                "retreat"
+              ]
+            },
+            "type": "array",
+            "title": "Event Kinds"
+          },
+          "event_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "maxItems": 200,
+            "title": "Event Ids"
+          },
+          "membership": {
+            "type": "boolean",
+            "title": "Membership",
+            "default": false
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "BanScope"
+      },
+      "BanView": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "all_events": {
+            "type": "boolean",
+            "title": "All Events"
+          },
+          "event_kinds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Event Kinds"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/BanEvent"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "membership": {
+            "type": "boolean",
+            "title": "Membership"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "member_id": {
+            "type": "integer",
+            "title": "Member Id"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "created_by": {
+            "type": "integer",
+            "title": "Created By"
+          },
+          "lifted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lifted At"
+          },
+          "lifted_by": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lifted By"
+          },
+          "lift_reason": {
+            "type": "string",
+            "title": "Lift Reason"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "expired",
+              "lifted"
+            ],
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "all_events",
+          "event_kinds",
+          "events",
+          "membership",
+          "created_at",
+          "expires_at",
+          "message",
+          "member_id",
+          "reason",
+          "created_by",
+          "lifted_at",
+          "lifted_by",
+          "lift_reason",
+          "status"
+        ],
+        "title": "BanView"
+      },
+      "BanWrite": {
+        "properties": {
+          "all_events": {
+            "type": "boolean",
+            "title": "All Events",
+            "default": false
+          },
+          "event_kinds": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "regular",
+                "meeting",
+                "picnic",
+                "retreat"
+              ]
+            },
+            "type": "array",
+            "title": "Event Kinds"
+          },
+          "event_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "maxItems": 200,
+            "title": "Event Ids"
+          },
+          "membership": {
+            "type": "boolean",
+            "title": "Membership",
+            "default": false
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Message",
+            "default": ""
+          },
+          "request_id": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Request Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "reason",
+          "request_id"
+        ],
+        "title": "BanWrite"
+      },
       "BoardEntryPrivate": {
         "properties": {
           "id": {
@@ -7540,6 +8099,23 @@
         ],
         "title": "InventoryCard"
       },
+      "Items_BanView_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BanView"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "Items[BanView]"
+      },
       "Items_BoardTermView_": {
         "properties": {
           "items": {
@@ -7573,6 +8149,23 @@
           "items"
         ],
         "title": "Items[OfficerView]"
+      },
+      "Items_RestrictionView_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RestrictionView"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "Items[RestrictionView]"
       },
       "Items_TripRow_": {
         "properties": {
@@ -7642,6 +8235,13 @@
                 "type": "null"
               }
             ]
+          },
+          "bans": {
+            "items": {
+              "$ref": "#/components/schemas/BanView"
+            },
+            "type": "array",
+            "title": "Bans"
           },
           "memberships": {
             "items": {
@@ -7760,6 +8360,13 @@
                 "type": "null"
               }
             ]
+          },
+          "bans": {
+            "items": {
+              "$ref": "#/components/schemas/BanView"
+            },
+            "type": "array",
+            "title": "Bans"
           }
         },
         "additionalProperties": false,
@@ -9525,6 +10132,70 @@
           "created_at"
         ],
         "title": "ReceiptView"
+      },
+      "RestrictionView": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "all_events": {
+            "type": "boolean",
+            "title": "All Events"
+          },
+          "event_kinds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Event Kinds"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/BanEvent"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "membership": {
+            "type": "boolean",
+            "title": "Membership"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "all_events",
+          "event_kinds",
+          "events",
+          "membership",
+          "created_at",
+          "expires_at",
+          "message"
+        ],
+        "title": "RestrictionView"
       },
       "Revision": {
         "properties": {

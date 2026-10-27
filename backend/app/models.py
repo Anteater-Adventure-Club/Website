@@ -49,6 +49,29 @@ class Identity(Base):
     __table_args__ = (UniqueConstraint("issuer", "subject"),)
 
 
+class MemberBan(Base):
+    __tablename__ = "member_bans"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    member_id: Mapped[int] = mapped_column(ForeignKey("members.id"), index=True)
+    all_events: Mapped[bool] = mapped_column(default=False)
+    event_kinds: Mapped[list] = mapped_column(JSON, default=list)
+    # IDs and labels survive event deletion; targets never grant access to event details.
+    events: Mapped[list] = mapped_column(JSON, default=list)
+    membership: Mapped[bool] = mapped_column(default=False)
+    reason: Mapped[str] = mapped_column(String(2000))
+    message: Mapped[str] = mapped_column(String(1000), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_by: Mapped[int] = mapped_column(ForeignKey("members.id"))
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    lifted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    lifted_by: Mapped[int | None] = mapped_column(ForeignKey("members.id"))
+    lift_reason: Mapped[str] = mapped_column(String(2000), default="")
+    request_id: Mapped[str] = mapped_column(String(80), unique=True)
+    __table_args__ = (
+        CheckConstraint("expires_at IS NULL OR expires_at > created_at", name="ck_member_ban_expiry"),
+    )
+
+
 class Officer(Base):
     __tablename__ = "officers"
     member_id: Mapped[int] = mapped_column(ForeignKey("members.id"), primary_key=True)

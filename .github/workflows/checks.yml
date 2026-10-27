@@ -134,6 +134,9 @@ jobs:
       - name: Fuzzy officer name search across desktop and mobile browsers
         run: npm run test:e2e:search
         working-directory: frontend
+      - name: Member bans and restriction journeys
+        run: npm run test:e2e:bans
+        working-directory: frontend
       - name: Layout boundaries, orientation and keyboard focus
         run: npm run test:e2e:boundaries
         working-directory: frontend
@@ -162,6 +165,7 @@ jobs:
         with:
           name: browser-failure-evidence
           path: |
+            artifacts/restrictions-and-bans
             artifacts/test-results
             artifacts/playwright-results.json
             artifacts/journey-results.json

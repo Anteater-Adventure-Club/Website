@@ -63,9 +63,22 @@ Choose additional suites for the affected behavior:
 | `npm run test:e2e:boundaries` | Narrow screens, breakpoints, orientation, focus, and simulated 200% reflow |
 | `npm run test:e2e:keyboard` | Mobile forms with simulated keyboard viewport changes |
 | `npm run test:e2e:search` | Officer person search |
+| `npm run test:e2e:bans` | Ban creation, automatic cancellation, returning pending dues to general membership, lifting, independent scopes, accessibility, and screenshots at iPhone, iPad, and desktop sizes |
 | `npx playwright test --config playwright.retreat.config.ts` | Retreat opening, reservation races, pending membership, payment instructions, and officer controls at desktop, laptop, tablet, and phone sizes |
 
 Keyboard simulation does not replace a check on a physical phone. Test output stays in ignored `artifacts/`.
+
+The bans suite uses the isolated browser database and reseeds it between tests.
+It captures WebKit at iPhone 390 × 844 and iPad 834 × 1112, and Chromium at
+desktop 1440 × 900. Review the PNGs under
+`artifacts/restrictions-and-bans/screens/`; results and failure traces are stored
+alongside them. These are emulated viewports, not physical-device captures.
+To leave populated examples for manual review after testing, run
+`.venv/bin/python scripts/seed-ban-review.py` from the repository root with the
+browser-fixture environment. This resets only the guarded `aac_browser` database.
+Use the `officer` cookie for `/admin/members?ban_status=active` or the `Pending`
+cookie for member restriction and general-membership views; the fixture JSON includes
+the example event URL under `ban_review`.
 
 ### Retreat concurrency benchmark
 

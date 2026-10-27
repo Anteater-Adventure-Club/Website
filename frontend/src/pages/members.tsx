@@ -1,3 +1,4 @@
+import { RestrictionNotice, useRestrictions } from "../components/restrictions";
 import { useState } from "react";
 import { Link } from "react-router";
 import { useForm } from "react-hook-form";
@@ -420,6 +421,7 @@ export function Profile() {
 }
 
 export function MyOverview() {
+  const restrictions = useRestrictions();
   const { quarter } = useQuarter();
   const { session } = useIdentity();
   const query = useAPI(
@@ -434,6 +436,7 @@ export function MyOverview() {
         title={`Hi, ${session?.member?.name.split(" ")[0] || "adventurer"}!`}
         subtitle="Your next adventure starts here!"
       />
+      <RestrictionNotice items={restrictions.items} />
       <div className="split-layout">
         <Panel>
           {query.data.next_event ? (
@@ -492,7 +495,8 @@ export function MyOverview() {
               ? "Paid Member"
               : query.data.membership?.status === "pending"
                 ? "Pending Confirmation"
-                : query.data.membership?.retreat_membership_required
+                : query.data.membership?.retreat_membership_required &&
+                    !restrictions.membershipRestricted
                   ? "Pending Membership"
                   : "General Member"}
           </Pill>
@@ -504,7 +508,8 @@ export function MyOverview() {
             className="button primary"
             to={quarterURL("/my-aac/membership", quarter?.id)}
           >
-            {query.data.membership?.status === "approved"
+            {query.data.membership?.status === "approved" ||
+            restrictions.membershipRestricted
               ? "View Membership"
               : "Become a Member"}
           </Link>

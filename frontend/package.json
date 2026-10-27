@@ -19,7 +19,8 @@
     "test:e2e:search": "playwright test --config playwright.search.config.ts",
     "test:e2e:social": "playwright test --config playwright.social.config.ts",
     "test:e2e:speed": "playwright test --config playwright.speed.config.ts",
-    "api:types": "openapi-typescript ../backend/openapi.json -o src/lib/api-schema.d.ts && prettier --write src/lib/api-schema.d.ts"
+    "api:types": "openapi-typescript ../backend/openapi.json -o src/lib/api-schema.d.ts && prettier --write src/lib/api-schema.d.ts",
+    "test:e2e:bans": "playwright test --config playwright.bans.config.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.0",

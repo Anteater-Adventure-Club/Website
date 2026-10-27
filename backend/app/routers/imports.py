@@ -1,7 +1,7 @@
 import hashlib
 from datetime import datetime, timedelta
 from uuid import uuid4
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, HTTPException
 from pydantic import ValidationError
 from sqlalchemy import select
 from ..auth import limited, officer
@@ -20,6 +20,8 @@ from ..models import ImportPreview, Member, Signup, Vehicle
 from ..schemas import ImportApply, ImportWrite, MemberInput, SignupWrite, ImportView, ImportOutcome
 from ..services.import_parser import event_fields, read_rows
 from ..services.participation import save_signup
+from ..services.restrictions import enforce
+from ..domain import get_membership
 
 router = APIRouter(prefix="/api/admin/imports")
 
@@ -73,7 +75,17 @@ def preview(value: ImportWrite, request: Request, user=Depends(officer), db=Depe
                 )
             ):
                 action = "skip existing signup"
+            if existing:
+                if event and action != "skip existing signup":
+                    enforce(db, existing.id, event=event)
+                membership = get_membership(db, existing.id, value.quarter_id)
+                if value.mode == "paid_members" and (not membership or membership.status != "approved"):
+                    enforce(db, existing.id, membership=True)
             rows.append({"line": number, "action": action, **data})
+        except HTTPException as exc:
+            if exc.detail.get("code") not in {"membership_restricted", "event_signup_restricted"}:
+                raise
+            issues.append({"line": number, "message": "Active ban: lift the matching ban before importing this member."})
         except (ValueError, ValidationError) as exc:
             issues.append({"line": number, "message": str(exc)[:500]})
     signature = hashlib.sha256(value.model_dump_json().encode()).hexdigest()
@@ -124,6 +136,7 @@ def apply(pid: str, value: ImportApply, user=Depends(officer), db=Depends(get_db
             m.phone = row["phone"]
         membership = ensure_membership(db, m.id, spec.quarter_id)
         if spec.mode == "paid_members" and membership.status != "approved":
+            enforce(db, m.id, membership=True)
             membership.status, membership.source = "approved", "imported"
             membership.reason = "Imported paid member; payment receipt unknown"
         if event:

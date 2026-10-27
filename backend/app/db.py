@@ -1,4 +1,5 @@
 from collections.abc import Generator
+import re
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 from fastapi import Request
@@ -16,6 +17,11 @@ def get_db(request: Request) -> Generator[Session, None, None]:
     with request.app.state.sessions() as db:
         db.info["request_id"] = getattr(request.state, "request_id", None)
         try:
+            if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
+                from .services.restrictions import restriction_lock
+
+                exclusive = bool(re.fullmatch(r"/api/admin/members/[^/]+/bans(?:/[^/]+/lift)?", request.url.path))
+                restriction_lock(db, exclusive=exclusive)
             yield db
             db.commit()
         except BaseException:

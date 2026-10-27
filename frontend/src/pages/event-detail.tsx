@@ -1,3 +1,8 @@
+import {
+  matchesRestriction,
+  RestrictionNotice,
+  useRestrictions,
+} from "../components/restrictions";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { Controller, useForm } from "react-hook-form";
@@ -613,6 +618,7 @@ function CheckedIn({
 }
 
 export function EventDetail() {
+  const restrictions = useRestrictions();
   const { id, slug } = useParams();
   const navigate = useNavigate();
   const { session, loading: identityLoading } = useIdentity();
@@ -663,6 +669,9 @@ export function EventDetail() {
     );
   const e = event.data;
   const signup = own.data?.items.find((s) => s.event_id === e.id);
+  const matchingRestrictions = restrictions.items.filter((r) =>
+    matchesRestriction(r, e),
+  );
   const retreatRestricted =
     e.kind === "retreat" &&
     membership.data?.status !== "approved" &&
@@ -803,12 +812,22 @@ export function EventDetail() {
                 Sign in to sign up!
               </Link>
             </Panel>
-          ) : own.isPending || membership.isPending ? (
+          ) : own.isPending ||
+            membership.isPending ||
+            restrictions.isPending ? (
             <Loading />
           ) : own.error ? (
             <Failure error={own.error} retry={own.refetch} />
           ) : membership.error ? (
             <Failure error={membership.error} retry={membership.refetch} />
+          ) : restrictions.error ? (
+            <Failure error={restrictions.error} retry={restrictions.refetch} />
+          ) : matchingRestrictions.length > 0 &&
+            (!signup || signup.cancelled) ? (
+            <Panel>
+              <RestrictionNotice items={matchingRestrictions} />
+              {signup?.cancelled && <p>Your previous signup is cancelled.</p>}
+            </Panel>
           ) : retreatRestricted && e.general_signup_opens_at ? (
             <Panel>
               <div
@@ -843,6 +862,13 @@ export function EventDetail() {
               <p>
                 Retreat signups require approved membership for this quarter.
               </p>
+            </Panel>
+          ) : retreatRestricted && restrictions.membershipRestricted ? (
+            <Panel>
+              <RestrictionNotice
+                items={restrictions.items.filter((r) => r.membership)}
+              />
+              <p>This retreat requires approved membership.</p>
             </Panel>
           ) : retreatRestricted ? (
             <Empty

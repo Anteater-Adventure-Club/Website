@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import func, select
 from ..auth import limited, member, officer, uci_email
@@ -17,9 +17,10 @@ from ..domain import (
     today,
     utcnow,
 )
-from ..models import Audit, Event, Member, Membership, Officer, Receipt, Signup, Vehicle
+from ..models import Audit, Event, Member, MemberBan, Membership, Officer, Receipt, Signup, Vehicle
 from ..projections import event_projection, membership_view, signups_projection
 from ..person_search import ranked_page
+from ..services.restrictions import active_clause, ban_view, enforce
 from ..schemas import (
     Items,
     OfficerView,
@@ -119,6 +120,8 @@ def submit_dues(qid: int, value: MembershipSubmit, user=Depends(member), db=Depe
             return membership_view(db, user.id, qid)
         fail(409, "membership_signups_paused", q.membership_pause_message,
              reopens_at=q.membership_pause_ends_at.isoformat())
+    if not existing or existing.status not in {"approved", "pending"}:
+        enforce(db, user.id, membership=True)
     phone = value.phone if value.phone is not None else user.phone.strip()
     if not phone:
         fail(422, "phone_required", "Enter your contact phone number on the dues form.")
@@ -155,6 +158,8 @@ def decide_dues(mid: int, qid: int, value: MembershipDecision, user=Depends(offi
     open_quarter(db, qid)
     require(db, Member, mid)
     m = ensure_membership(db, mid, qid)
+    if value.category in {"payment", "exception"} and m.status != "approved":
+        enforce(db, mid, membership=True)
     existing = list(
         db.scalars(
             select(Receipt)
@@ -215,6 +220,7 @@ def member_list(
     quarter_id: int | None = None,
     search: str = "",
     status: str = "all",
+    ban_status: Literal["all", "active", "none"] = "all",
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
     user=Depends(officer),
@@ -222,6 +228,9 @@ def member_list(
 ):
     q = default_quarter(db, quarter_id)
     query = select(Member)
+    if ban_status != "all":
+        banned = select(MemberBan.id).where(MemberBan.member_id == Member.id, *active_clause()).exists()
+        query = query.where(banned if ban_status == "active" else ~banned)
     if q and status != "all":
         query = query.outerjoin(
             Membership, (Membership.member_id == Member.id) & (Membership.quarter_id == q.id)
@@ -235,9 +244,14 @@ def member_list(
         else:
             query = query.where(Membership.status == status)
     result = ranked_page(db, query.order_by(Member.name, Member.id), Member, search, limit, offset)
+    bans_by_member = {}
+    ids = [m.id for m in result["items"]]
+    for ban in db.scalars(select(MemberBan).where(MemberBan.member_id.in_(ids), *active_clause())):
+        bans_by_member.setdefault(ban.member_id, []).append(ban_view(ban))
     result["items"] = [
         {
             "member": MemberPrivate.model_validate(m),
+            "bans": bans_by_member.get(m.id, []),
             "membership": membership_view(db, m.id, q.id) if q else None,
         }
         for m in result["items"]
@@ -268,6 +282,7 @@ def member_detail(mid: int, quarter_id: int | None = None, user=Depends(officer)
         ],
         "signups": signups_projection(db, history),
         "officer": db.get(Officer, mid) is not None,
+        "bans": [ban_view(b) for b in db.scalars(select(MemberBan).where(MemberBan.member_id == mid).order_by(MemberBan.created_at.desc()))],
     }
 
 

@@ -130,7 +130,7 @@ export function Failure({
   error: Error;
   retry?: () => unknown;
 }) {
-  const denied = error instanceof ApiError && error.status === 403;
+  const denied = error instanceof ApiError && error.code === "officer_required";
   return (
     <Empty
       title={denied ? "Officers only" : "A little detour"}
@@ -147,11 +147,13 @@ export function Dialog({
   children,
   onClose,
   wide = false,
+  className = "",
 }: {
   title: string;
   children: ReactNode;
   onClose: () => void;
   wide?: boolean;
+  className?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const id = useId();
@@ -167,7 +169,7 @@ export function Dialog({
   return (
     <dialog
       ref={ref}
-      className={wide ? "wide" : ""}
+      className={`${wide ? "wide" : ""} ${className}`.trim()}
       aria-labelledby={id}
       onCancel={onClose}
       onKeyDown={(event) => {

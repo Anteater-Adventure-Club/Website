@@ -14,6 +14,7 @@ import {
 import type { AdminEvent, Person, Schema } from "../lib/api";
 import { quarterURL, useQuarter } from "../lib/context";
 import { useSearchQuery } from "../lib/search-query";
+import { MemberBans } from "../components/member-bans";
 import { MembershipSignupSettings } from "../components/membership-signup-settings";
 import {
   Button,
@@ -589,18 +590,22 @@ function DuesDialog({
   membership,
   quarterId,
   onClose,
+  restricted = false,
 }: {
   person: Person;
+  restricted?: boolean;
   membership?: Schema<"MembershipView"> | null;
   quarterId: number;
   onClose: () => void;
 }) {
   const [category, setCategory] = useState(
-    membership?.source === "exception"
-      ? "exception"
-      : membership?.student === false
-        ? "non-student"
-        : "student",
+    restricted && membership?.status !== "approved"
+      ? "general"
+      : membership?.source === "exception"
+        ? "exception"
+        : membership?.student === false
+          ? "non-student"
+          : "student",
   );
   const form = useForm<Schema<"MembershipDecision">>({
     defaultValues: {
@@ -641,6 +646,9 @@ function DuesDialog({
           Confirm payment made outside the site, or approve a reasoned
           exception.
         </p>
+        {restricted && (
+          <Message>Membership ban active. New approvals are blocked.</Message>
+        )}
         <label className="field">
           Membership category
           <select
@@ -657,9 +665,24 @@ function DuesDialog({
                 );
             }}
           >
-            <option value="student">Student · $25</option>
-            <option value="non-student">Non-student · $30</option>
-            <option value="exception">Exception · $0</option>
+            <option
+              value="student"
+              disabled={restricted && membership?.status !== "approved"}
+            >
+              Student · $25
+            </option>
+            <option
+              value="non-student"
+              disabled={restricted && membership?.status !== "approved"}
+            >
+              Non-student · $30
+            </option>
+            <option
+              value="exception"
+              disabled={restricted && membership?.status !== "approved"}
+            >
+              Exception · $0
+            </option>
             <option value="general">Return to General Membership</option>
           </select>
         </label>
@@ -784,6 +807,7 @@ function MemberDetailDialog({
                 ` · ending ${query.data.member.payout_phone_suffix}`}
             </p>
           </div>
+          <MemberBans person={query.data.member} />
           <hr />
           <div className="section-heading">
             <h3>Membership · {quarter?.name || "No quarter"}</h3>
@@ -864,6 +888,9 @@ function MemberDetailDialog({
             <DuesDialog
               person={query.data.member}
               membership={query.data.membership}
+              restricted={(query.data.bans || []).some(
+                (b) => b.status === "active" && b.membership,
+              )}
               quarterId={quarterId}
               onClose={() => setDues(false)}
             />
@@ -879,11 +906,14 @@ export function Members() {
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const { query: searchQuery, pending: searching } = useSearchQuery(search);
-  const status = params.get("status") || "all";
+  const status =
+    params.get("ban_status") === "active"
+      ? "banned"
+      : params.get("status") || "all";
   const [offset, setOffset] = useState(0);
   const query = useAPI(
     "MemberList",
-    `/api/admin/members?limit=50&offset=${offset}&status=${status}&search=${encodeURIComponent(searchQuery)}${quarter ? `&quarter_id=${quarter.id}` : ""}`,
+    `/api/admin/members?limit=50&offset=${offset}&status=${status === "banned" ? "all" : status}&ban_status=${status === "banned" ? "active" : "all"}&search=${encodeURIComponent(searchQuery)}${quarter ? `&quarter_id=${quarter.id}` : ""}`,
     { enabled: !searching },
   );
   const [add, setAdd] = useState(false);
@@ -892,7 +922,9 @@ export function Members() {
   const [dues, setDues] = useState<Schema<"MemberListRow"> | null>(null);
   function filter(value: string) {
     const next = new URLSearchParams(params);
-    next.set("status", value);
+    next.delete("ban_status");
+    next.set("status", value === "banned" ? "all" : value);
+    if (value === "banned") next.set("ban_status", "active");
     setParams(next);
     setOffset(0);
   }
@@ -931,6 +963,7 @@ export function Members() {
           ["paid", "Paid"],
           ["exception", "Exception"],
           ["general", "General"],
+          ["banned", "Banned"],
         ].map(([value, label]) => (
           <Button
             key={value}
@@ -969,23 +1002,32 @@ export function Members() {
                       </div>
                     </td>
                     <td data-label="Membership">
-                      <Pill
-                        tone={
-                          row.membership?.status === "approved"
-                            ? "solid"
-                            : row.membership?.status === "pending"
-                              ? "yellow"
-                              : "green"
-                        }
-                      >
-                        {row.membership?.source === "exception"
-                          ? "Exception"
-                          : row.membership?.status === "approved"
-                            ? "Paid Member"
-                            : row.membership?.status === "pending"
-                              ? "Pending"
-                              : "General"}
-                      </Pill>
+                      <div className="membership-statuses">
+                        <Pill
+                          tone={
+                            row.membership?.status === "approved"
+                              ? "solid"
+                              : row.membership?.status === "pending"
+                                ? "yellow"
+                                : "green"
+                          }
+                        >
+                          {row.membership?.source === "exception"
+                            ? "Exception"
+                            : row.membership?.status === "approved"
+                              ? "Paid Member"
+                              : row.membership?.status === "pending"
+                                ? "Pending"
+                                : "General"}
+                        </Pill>
+                        {(row.bans || []).length > 0 && (
+                          <Pill tone="yellow">
+                            {row.bans!.every((ban) => ban.expires_at)
+                              ? "Temp banned"
+                              : "Banned"}
+                          </Pill>
+                        )}
+                      </div>
                     </td>
                     <td data-label="Submitted">
                       <div>
@@ -1071,6 +1113,7 @@ export function Members() {
         <DuesDialog
           person={dues.member}
           membership={dues.membership}
+          restricted={(dues.bans || []).some((b) => b.membership)}
           quarterId={quarter.id}
           onClose={() => setDues(null)}
         />

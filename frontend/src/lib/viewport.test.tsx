@@ -134,6 +134,7 @@ describe("phone keyboard focus", () => {
     sheet.style.paddingBottom = "24px";
     const actions = document.createElement("div");
     actions.className = "sticky-actions";
+    actions.style.position = "sticky";
     sheet.append(actions);
     vi.spyOn(actions, "getBoundingClientRect").mockReturnValue({
       height: 108,
@@ -144,6 +145,27 @@ describe("phone keyboard focus", () => {
     settle();
     expect(sheet.scrollBy).toHaveBeenCalledWith({
       top: 158,
+      behavior: "instant",
+    });
+    expect(window.scrollBy).not.toHaveBeenCalled();
+  });
+
+  it("keeps the field visible without reserving space for a scrolling footer", () => {
+    renderHook(useKeyboardViewport);
+    const { sheet, input } = fieldInSheet();
+    const actions = document.createElement("div");
+    actions.className = "sticky-actions";
+    actions.style.position = "static";
+    sheet.append(actions);
+    vi.spyOn(actions, "getBoundingClientRect").mockReturnValue({
+      height: 108,
+    } as DOMRect);
+    input.focus();
+    height = 480;
+    viewport.dispatchEvent(new Event("resize"));
+    settle();
+    expect(sheet.scrollBy).toHaveBeenCalledWith({
+      top: 26,
       behavior: "instant",
     });
     expect(window.scrollBy).not.toHaveBeenCalled();

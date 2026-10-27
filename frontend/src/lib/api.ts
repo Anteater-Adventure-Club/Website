@@ -136,7 +136,12 @@ export function useAction<T = unknown>() {
       request<T>(url, method, body, undefined, headers),
     onSuccess: () => cache.invalidateQueries(),
     onError: (error) => {
-      if (error.status === 409) void cache.invalidateQueries();
+      if (
+        error.status === 409 ||
+        error.code === "membership_restricted" ||
+        error.code === "event_signup_restricted"
+      )
+        void cache.invalidateQueries();
     },
   });
 }

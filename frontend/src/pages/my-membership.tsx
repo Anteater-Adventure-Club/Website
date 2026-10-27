@@ -1,3 +1,4 @@
+import { RestrictionNotice, useRestrictions } from "../components/restrictions";
 import { Link } from "react-router";
 import { Car, Check, Clock, Leaf, Tent, Vote, Wallet } from "lucide-react";
 import { clock, dateLabel, money, pacificDate, useAPI } from "../lib/api";
@@ -209,6 +210,7 @@ function MembershipRecord({
 }
 
 export function MyMembership() {
+  const restrictions = useRestrictions();
   const { session } = useIdentity();
   const { quarter, loading } = useQuarter();
   const membershipPaused = useMembershipPause(quarter);
@@ -238,7 +240,9 @@ export function MyMembership() {
         </Empty>
       </>
     );
-  if (membership.isPending) return <Loading />;
+  if (membership.isPending || restrictions.isPending) return <Loading />;
+  if (restrictions.error)
+    return <Failure error={restrictions.error} retry={restrictions.refetch} />;
   if (membership.error)
     return <Failure error={membership.error} retry={membership.refetch} />;
   const status = membership.data;
@@ -252,7 +256,10 @@ export function MyMembership() {
     year: "numeric",
   });
   const awaitingSignup =
-    !approved && !pending && status.retreat_membership_required;
+    !approved &&
+    !pending &&
+    !restrictions.membershipRestricted &&
+    status.retreat_membership_required;
   const Icon = approved ? Check : pending || awaitingSignup ? Clock : Leaf;
   return (
     <div
@@ -306,7 +313,9 @@ export function MyMembership() {
           <div className="membership-pass-bottom">
             <div>
               <Pill tone={pending || awaitingSignup ? "yellow" : "green"}>
-                {membershipLabel(status)}
+                {restrictions.membershipRestricted && !approved && !pending
+                  ? "General member"
+                  : membershipLabel(status)}
               </Pill>
               <p>
                 {approved
@@ -318,7 +327,9 @@ export function MyMembership() {
                         ? "Membership recorded for this quarter"
                         : "Paid membership benefits are active"
                   : pending
-                    ? "No further action needed"
+                    ? restrictions.membershipRestricted
+                      ? "Submission on hold"
+                      : "No further action needed"
                     : "Paid membership is not active"}
               </p>
             </div>
@@ -328,16 +339,21 @@ export function MyMembership() {
           </div>
         </section>
         <div className="personal-membership-content">
+          <RestrictionNotice
+            items={restrictions.items.filter((r) => r.membership)}
+          />
           <Panel>
             <span className="membership-eyebrow muted">
               {pending
                 ? "Payment submitted"
-                : approved || awaitingSignup
+                : approved ||
+                    awaitingSignup ||
+                    restrictions.membershipRestricted
                   ? "Your membership"
                   : "Membership dues"}
             </span>
             <h2>
-              {approved || awaitingSignup
+              {approved || awaitingSignup || restrictions.membershipRestricted
                 ? "Membership details"
                 : pending
                   ? "Payment awaiting confirmation"
@@ -345,7 +361,13 @@ export function MyMembership() {
                     ? `${quarter.name} membership`
                     : `Pay dues for ${quarter.name}`}
             </h2>
-            {awaitingSignup ? (
+            {!approved && restrictions.membershipRestricted ? (
+              <p>
+                {pending
+                  ? "Your submission is on hold for officer review. New approvals are restricted until this restriction ends."
+                  : "Membership signup is currently restricted. You can still view your membership history."}
+              </p>
+            ) : awaitingSignup ? (
               <>
                 <dl className="membership-details">
                   <div>
