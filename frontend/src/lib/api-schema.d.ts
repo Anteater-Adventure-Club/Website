@@ -210,6 +210,179 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/admin/form-templates": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Templates */
+    get: operations["templates_api_admin_form_templates_get"];
+    put?: never;
+    /** Create Template */
+    post: operations["create_template_api_admin_form_templates_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/form-templates/{key}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Update Template */
+    put: operations["update_template_api_admin_form_templates__key__put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/event-forms": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** All Forms */
+    get: operations["all_forms_api_admin_event_forms_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/events/{eid}/forms": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Event Forms */
+    get: operations["event_forms_api_admin_events__eid__forms_get"];
+    put?: never;
+    /** Create Form */
+    post: operations["create_form_api_admin_events__eid__forms_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/events/{eid}/forms/{number}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Admin Form */
+    get: operations["admin_form_api_admin_events__eid__forms__number__get"];
+    /** Update Form */
+    put: operations["update_form_api_admin_events__eid__forms__number__put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/events/{eid}/forms/{number}/responses": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Responses */
+    get: operations["responses_api_admin_events__eid__forms__number__responses_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/events/{eid}/forms": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Own Forms */
+    get: operations["own_forms_api_events__eid__forms_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/me/event-forms/attention": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Attention */
+    get: operations["attention_api_me_event_forms_attention_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/events/{eid}/forms/{number}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Own Form */
+    get: operations["own_form_api_events__eid__forms__number__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/events/{eid}/forms/{number}/response": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Submit */
+    put: operations["submit_api_events__eid__forms__number__response_put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/events": {
     parameters: {
       query?: never;
@@ -1684,6 +1857,24 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/admin/events/{eid}/forms/{number}/google-sheet": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Form Sheet */
+    get: operations["form_sheet_api_admin_events__eid__forms__number__google_sheet_get"];
+    /** Configure Form Sheet */
+    put: operations["configure_form_sheet_api_admin_events__eid__forms__number__google_sheet_put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2299,6 +2490,218 @@ export interface components {
       /** Cost */
       cost: string;
     };
+    /** EventFormResponseRow */
+    EventFormResponseRow: {
+      /** Signup Id */
+      signup_id: number;
+      /** Member Id */
+      member_id: number;
+      /** Name */
+      name: string;
+      /** Email */
+      email: string | null;
+      /** Cancelled */
+      cancelled: boolean;
+      /** Can Cancel */
+      can_cancel: boolean;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status:
+        | "not_open"
+        | "awaiting"
+        | "not_submitted"
+        | "no_response"
+        | "not_required"
+        | "responded"
+        | "responded_late"
+        | "cancelled";
+      response: components["schemas"]["FormResponseView"] | null;
+    };
+    /** EventFormSheetView */
+    EventFormSheetView: {
+      /** Configured */
+      configured: boolean;
+      /** Workbook Configured */
+      workbook_configured: boolean;
+      /** Enabled */
+      enabled: boolean;
+      /** Revision */
+      revision: number | null;
+      /** Columns */
+      columns: components["schemas"]["SheetColumn"][];
+      /** Catalog */
+      catalog: components["schemas"]["SheetColumn"][];
+      /** Spreadsheet Url */
+      spreadsheet_url: string | null;
+      /** Preview */
+      preview: string[][];
+    };
+    /** EventFormSheetWrite */
+    EventFormSheetWrite: {
+      /** Expected Revision */
+      expected_revision?: number | null;
+      /**
+       * Enabled
+       * @default true
+       */
+      enabled: boolean;
+      /** Columns */
+      columns: components["schemas"]["SheetColumn"][];
+    };
+    /** EventFormSummary */
+    EventFormSummary: {
+      /** Number */
+      number: number;
+      /** Title */
+      title: string;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status:
+        | "not_open"
+        | "awaiting"
+        | "not_submitted"
+        | "no_response"
+        | "not_required"
+        | "responded"
+        | "responded_late"
+        | "cancelled";
+    };
+    /** EventFormView */
+    EventFormView: {
+      /** Id */
+      id: number;
+      /** Event Id */
+      event_id: number;
+      /** Event Name */
+      event_name: string;
+      /** Event Slug */
+      event_slug: string;
+      /** Quarter Id */
+      quarter_id: number;
+      /** Number */
+      number: number;
+      /** Title */
+      title: string;
+      /** Instructions */
+      instructions: string;
+      /** Questions */
+      questions: components["schemas"]["Question"][];
+      /**
+       * Opens At
+       * Format: date-time
+       */
+      opens_at: string;
+      /**
+       * Closes At
+       * Format: date-time
+       */
+      closes_at: string;
+      /** Required */
+      required: boolean;
+      /** Allow Late */
+      allow_late: boolean;
+      /**
+       * State
+       * @enum {string}
+       */
+      state: "draft" | "published" | "archived";
+      /**
+       * Phase
+       * @enum {string}
+       */
+      phase:
+        | "draft"
+        | "scheduled"
+        | "open"
+        | "closed"
+        | "late"
+        | "archived"
+        | "unavailable";
+      /** Revision */
+      revision: number;
+      /** Questions Locked */
+      questions_locked: boolean;
+      /** Editable */
+      editable: boolean;
+      /**
+       * Can Submit
+       * @default false
+       */
+      can_submit: boolean;
+      /** Status */
+      status?:
+        | (
+            | "not_open"
+            | "awaiting"
+            | "not_submitted"
+            | "no_response"
+            | "not_required"
+            | "responded"
+            | "responded_late"
+            | "cancelled"
+          )
+        | null;
+      response?: components["schemas"]["FormResponseView"] | null;
+      /**
+       * Response Count
+       * @default 0
+       */
+      response_count: number;
+      /**
+       * Participant Count
+       * @default 0
+       */
+      participant_count: number;
+      /**
+       * No Response Count
+       * @default 0
+       */
+      no_response_count: number;
+    };
+    /** EventFormWrite */
+    EventFormWrite: {
+      /** Expected Revision */
+      expected_revision?: number | null;
+      /** Title */
+      title: string;
+      /**
+       * Instructions
+       * @default
+       */
+      instructions: string;
+      /** Questions */
+      questions: components["schemas"]["Question"][];
+      /**
+       * Opens At
+       * Format: date-time
+       */
+      opens_at: string;
+      /**
+       * Closes At
+       * Format: date-time
+       */
+      closes_at: string;
+      /**
+       * Required
+       * @default false
+       */
+      required: boolean;
+      /**
+       * Allow Late
+       * @default false
+       */
+      allow_late: boolean;
+      /**
+       * State
+       * @default draft
+       * @enum {string}
+       */
+      state: "draft" | "published" | "archived";
+    };
     /** EventPrivate */
     EventPrivate: {
       /** Id */
@@ -2726,6 +3129,103 @@ export interface components {
       /** Reason */
       reason: string;
     };
+    /** FormResponseView */
+    FormResponseView: {
+      /** Questions */
+      questions: components["schemas"]["Question"][];
+      /** Answers */
+      answers: {
+        [key: string]: string | string[];
+      };
+      /**
+       * Submitted At
+       * Format: date-time
+       */
+      submitted_at: string;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
+      /** Revision */
+      revision: number;
+    };
+    /** FormResponseWrite */
+    FormResponseWrite: {
+      /** Form Revision */
+      form_revision: number;
+      /** Expected Revision */
+      expected_revision?: number | null;
+      /** Answers */
+      answers: {
+        [key: string]: string | string[];
+      };
+    };
+    /** FormTemplateView */
+    FormTemplateView: {
+      /** Key */
+      key: string;
+      /** Revision */
+      revision: number;
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "signup" | "followup";
+      /** Title */
+      title: string;
+      /** Instructions */
+      instructions: string;
+      /** Questions */
+      questions: components["schemas"]["Question"][];
+      /** Required */
+      required: boolean;
+      /** Allow Late */
+      allow_late: boolean;
+      /** Archived */
+      archived: boolean;
+      /** Default Event Kinds */
+      default_event_kinds: string[];
+    };
+    /** FormTemplateWrite */
+    FormTemplateWrite: {
+      /** Expected Revision */
+      expected_revision?: number | null;
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "signup" | "followup";
+      /** Title */
+      title: string;
+      /**
+       * Instructions
+       * @default
+       */
+      instructions: string;
+      /** Questions */
+      questions: components["schemas"]["Question"][];
+      /**
+       * Required
+       * @default false
+       */
+      required: boolean;
+      /**
+       * Allow Late
+       * @default false
+       */
+      allow_late: boolean;
+      /**
+       * Archived
+       * @default false
+       */
+      archived: boolean;
+      /**
+       * Default Event Kinds
+       * @default []
+       */
+      default_event_kinds: ("regular" | "retreat" | "meeting" | "picnic")[];
+    };
     /** GalleryRow */
     GalleryRow: {
       /** Image Id */
@@ -2885,6 +3385,16 @@ export interface components {
     Items_BoardTermView_: {
       /** Items */
       items: components["schemas"]["BoardTermView"][];
+    };
+    /** Items[EventFormView] */
+    Items_EventFormView_: {
+      /** Items */
+      items: components["schemas"]["EventFormView"][];
+    };
+    /** Items[FormTemplateView] */
+    Items_FormTemplateView_: {
+      /** Items */
+      items: components["schemas"]["FormTemplateView"][];
     };
     /** Items[OfficerView] */
     Items_OfficerView_: {
@@ -3200,6 +3710,20 @@ export interface components {
     Page_AttendanceLogRow_: {
       /** Items */
       items: components["schemas"]["AttendanceLogRow"][];
+      /** Total */
+      total: number;
+    };
+    /** Page[EventFormResponseRow] */
+    Page_EventFormResponseRow_: {
+      /** Items */
+      items: components["schemas"]["EventFormResponseRow"][];
+      /** Total */
+      total: number;
+    };
+    /** Page[EventFormView] */
+    Page_EventFormView_: {
+      /** Items */
+      items: components["schemas"]["EventFormView"][];
       /** Total */
       total: number;
     };
@@ -3878,6 +4402,8 @@ export interface components {
     };
     /** SignupOwn */
     SignupOwn: {
+      /** Form Statuses */
+      form_statuses?: components["schemas"]["EventFormSummary"][];
       /** Id */
       id: number;
       /** Member Id */
@@ -3939,6 +4465,8 @@ export interface components {
     };
     /** SignupPrivate */
     SignupPrivate: {
+      /** Form Statuses */
+      form_statuses?: components["schemas"]["EventFormSummary"][];
       /** Id */
       id: number;
       /** Member Id */
@@ -4578,6 +5106,417 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ApplicationView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  templates_api_admin_form_templates_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Items_FormTemplateView_"];
+        };
+      };
+    };
+  };
+  create_template_api_admin_form_templates_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FormTemplateWrite"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["FormTemplateView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_template_api_admin_form_templates__key__put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        key: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FormTemplateWrite"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["FormTemplateView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  all_forms_api_admin_event_forms_get: {
+    parameters: {
+      query?: {
+        quarter_id?: number | null;
+        limit?: number;
+        offset?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Page_EventFormView_"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  event_forms_api_admin_events__eid__forms_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        eid: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Items_EventFormView_"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_form_api_admin_events__eid__forms_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        eid: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["EventFormWrite"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EventFormView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  admin_form_api_admin_events__eid__forms__number__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        eid: number;
+        number: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EventFormView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_form_api_admin_events__eid__forms__number__put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        eid: number;
+        number: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["EventFormWrite"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EventFormView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  responses_api_admin_events__eid__forms__number__responses_get: {
+    parameters: {
+      query?: {
+        status?: string | null;
+        search?: string;
+        limit?: number;
+        offset?: number;
+      };
+      header?: never;
+      path: {
+        eid: number;
+        number: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Page_EventFormResponseRow_"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  own_forms_api_events__eid__forms_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        eid: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Items_EventFormView_"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  attention_api_me_event_forms_attention_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Items_EventFormView_"];
+        };
+      };
+    };
+  };
+  own_form_api_events__eid__forms__number__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        eid: number;
+        number: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EventFormView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  submit_api_events__eid__forms__number__response_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        eid: number;
+        number: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FormResponseWrite"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EventFormView"];
         };
       };
       /** @description Validation Error */
@@ -6173,6 +7112,7 @@ export interface operations {
       query?: {
         search?: string;
         role?: string | null;
+        form_status?: string | null;
         limit?: number;
         offset?: number;
       };
@@ -8113,6 +9053,74 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["EventSheetView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  form_sheet_api_admin_events__eid__forms__number__google_sheet_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        eid: number;
+        number: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EventFormSheetView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  configure_form_sheet_api_admin_events__eid__forms__number__google_sheet_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        eid: number;
+        number: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["EventFormSheetWrite"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EventFormSheetView"];
         };
       };
       /** @description Validation Error */

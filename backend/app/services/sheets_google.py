@@ -169,6 +169,28 @@ class GoogleSheetsClient:
             if not token:
                 return result
 
+    def ensure_form_tab(self, file_id, sheet_id, title, owner):
+        sheets = self.metadata(file_id).get("sheets", [])
+        managed = next((s for s in sheets if s["properties"]["sheetId"] == sheet_id), None)
+        title = re.sub(r"[\[\]:*?/\\]", "-", title)[:100]
+        if any(s["properties"]["title"] == title and s["properties"]["sheetId"] != sheet_id for s in sheets):
+            raise GoogleFailure("Another tab uses this form’s name. Rename that tab before syncing.", permanent=True)
+        operations = []
+        if not managed:
+            operations.append({"addSheet": {"properties": {"sheetId": sheet_id, "title": title}}})
+        elif managed["properties"]["title"] != title:
+            operations.append({"updateSheetProperties": {
+                "properties": {"sheetId": sheet_id, "title": title}, "fields": "title",
+            }})
+        if not managed or not any(p.get("description") == "AAC managed form responses"
+                                  for p in managed.get("protectedRanges", [])):
+            operations.append({"addProtectedRange": {"protectedRange": {
+                "range": {"sheetId": sheet_id}, "description": "AAC managed form responses",
+                "warningOnly": False, "editors": {"users": [owner]},
+            }}})
+        if operations:
+            self.batch(file_id, operations)
+
     def share(self, file_id, email):
         return self.request("POST", f"{DRIVE}/files/{file_id}/permissions",
                             params={"sendNotificationEmail": "false", "fields": "id"},

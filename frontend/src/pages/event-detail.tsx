@@ -1,3 +1,4 @@
+import { MemberEventForms } from "../components/event-form-member";
 import {
   matchesRestriction,
   RestrictionNotice,
@@ -754,6 +755,9 @@ export function EventDetail() {
                 an officer grants an extension.
               </p>
             </section>
+          )}
+          {signup && !signup.cancelled && !needsApproval(session?.member) && (
+            <MemberEventForms eventId={e.id} />
           )}
         </article>
         <aside>

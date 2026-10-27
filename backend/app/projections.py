@@ -113,6 +113,8 @@ def event_projection(db, e, private=False):
 
 def signups_projection(db, signups, own=False, include_event=True):
     """Build rosters with grouped queries instead of a query per person."""
+    from .services.event_forms import signup_form_statuses
+    form_statuses = signup_form_statuses(db, signups)
     if not signups:
         return []
     event_ids = {s.event_id for s in signups}
@@ -203,6 +205,7 @@ def signups_projection(db, signups, own=False, include_event=True):
         result.append(
             {
                 "id": s.id,
+                "form_statuses": form_statuses.get(s.id, []),
                 "member_id": s.member_id,
                 "event_id": s.event_id,
                 "name": m.name,

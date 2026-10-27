@@ -1,3 +1,4 @@
+import { FormTemplatePicker } from "../components/form-templates";
 import { QuestionEditor } from "../components/form-questions";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
@@ -108,6 +109,7 @@ function Editor({
       packing: source?.packing?.join("\n") || "",
     },
   });
+  const [questionsDirty, setQuestionsDirty] = useState(false);
   const [tab, setTab] = useState("basics");
   const [recurrence, setRecurrence] = useState<Recurrence>(
     definition?.kind || "none",
@@ -607,9 +609,25 @@ function Editor({
                       questions must be optional.
                     </Message>
                   ) : null}
+                  {!roster.data?.total && (
+                    <FormTemplatePicker
+                      kind="signup"
+                      questions={questions}
+                      eventKind={form.watch("kind")}
+                      autoDefault={!source}
+                      dirty={questionsDirty}
+                      onSelect={(template, automatic) => {
+                        if (!automatic) setQuestionsDirty(true);
+                        setQuestions(template?.questions || []);
+                      }}
+                    />
+                  )}
                   <QuestionEditor
                     questions={questions}
-                    onChange={setQuestions}
+                    onChange={(next) => {
+                      setQuestionsDirty(true);
+                      setQuestions(next);
+                    }}
                     frozenIds={frozenIds}
                     optionalOnly={!!roster.data?.total}
                   />

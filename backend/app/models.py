@@ -14,6 +14,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    func,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 from .db import Base
@@ -49,6 +50,13 @@ class FormDefinition(Base):
     key: Mapped[str] = mapped_column(String(80), primary_key=True)
     questions: Mapped[list] = mapped_column(JSON)
     revision: Mapped[int] = mapped_column(default=1)
+    kind: Mapped[str] = mapped_column(String(30), default="application", server_default="application")
+    title: Mapped[str] = mapped_column(String(150), default="", server_default="")
+    instructions: Mapped[str] = mapped_column(Text, default="", server_default="")
+    required: Mapped[bool] = mapped_column(default=False, server_default="false")
+    allow_late: Mapped[bool] = mapped_column(default=False, server_default="false")
+    archived: Mapped[bool] = mapped_column(default=False, server_default="false")
+    default_event_kinds: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
 
 
 class ApprovalApplication(Base):
@@ -278,6 +286,7 @@ class Signup(Base):
     notes: Mapped[str] = mapped_column(String(1000), default="")
     source: Mapped[str] = mapped_column(String(20), default="member")
     joined_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True).evaluates_none(), default=now)
+    registered_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, server_default=func.now())
     cancelled: Mapped[bool] = mapped_column(default=False)
     checked_in_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     extended_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -288,6 +297,50 @@ class Signup(Base):
         CheckConstraint("role IN ('ride','driver','own','unknown')", name="ck_signups_role"),
         CheckConstraint("seats >= 0"),
     )
+
+
+class EventForm(Base):
+    __tablename__ = "event_forms"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_id: Mapped[int] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"), index=True)
+    number: Mapped[int]
+    title: Mapped[str] = mapped_column(String(150))
+    instructions: Mapped[str] = mapped_column(Text, default="")
+    questions: Mapped[list] = mapped_column(JSON)
+    opens_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    closes_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    required: Mapped[bool] = mapped_column(default=False)
+    allow_late: Mapped[bool] = mapped_column(default=False)
+    state: Mapped[str] = mapped_column(String(20), default="draft")
+    revision: Mapped[int] = mapped_column(default=1)
+    __table_args__ = (
+        UniqueConstraint("event_id", "number"),
+        CheckConstraint("closes_at > opens_at", name="ck_event_form_window"),
+        CheckConstraint("state IN ('draft','published','archived')", name="ck_event_form_state"),
+    )
+
+
+class EventFormResponse(Base):
+    __tablename__ = "event_form_responses"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    form_id: Mapped[int] = mapped_column(ForeignKey("event_forms.id", ondelete="CASCADE"), index=True)
+    signup_id: Mapped[int] = mapped_column(ForeignKey("signups.id"), index=True)
+    questions: Mapped[list] = mapped_column(JSON)
+    answers: Mapped[dict] = mapped_column(JSON)
+    form_revision: Mapped[int]
+    submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    revision: Mapped[int] = mapped_column(default=1)
+    __table_args__ = (UniqueConstraint("form_id", "signup_id"),)
+
+
+class EventFormSheet(Base):
+    __tablename__ = "event_form_sheets"
+    form_id: Mapped[int] = mapped_column(ForeignKey("event_forms.id", ondelete="CASCADE"), primary_key=True)
+    sheet_id: Mapped[int]
+    columns: Mapped[list] = mapped_column(JSON)
+    enabled: Mapped[bool] = mapped_column(default=True)
+    revision: Mapped[int] = mapped_column(default=1)
 
 
 class SheetsConnection(Base):
@@ -339,6 +392,7 @@ class EventSheet(Base):
     access_blocked: Mapped[bool] = mapped_column(default=False)
     claim_token: Mapped[str | None] = mapped_column(String(32))
     claimed_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    next_form_transition_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
     __table_args__ = (Index("ix_event_google_sheets_due", "due_at", "access_due_at"),)
 
 

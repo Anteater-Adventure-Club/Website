@@ -10,11 +10,13 @@ from sqlalchemy.dialects.postgresql import insert
 from ..auth import limited, officer
 from ..db import get_db
 from ..domain import PACIFIC, advisory, audit, fail, require, slug, utcnow
-from ..models import Event, EventSheet, Officer, SheetsConnection, SheetsOAuthFlow
+from ..models import Event, EventFormSheet, EventSheet, Officer, SheetsConnection, SheetsOAuthFlow
 from ..schemas import (
     EventSheetView, EventSheetWrite, Revision, SheetsConnectURL, SheetsConnectWrite, SheetsConnectionView,
+    EventFormSheetView, EventFormSheetWrite,
 )
 from ..services.sheets_export import column_catalog, signup_rows
+from ..services.event_forms import find_form
 
 router = APIRouter(prefix="/api/admin")
 DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file"
@@ -245,3 +247,51 @@ def sync(eid: int, value: Revision, request: Request, user=Depends(officer),
     audit(db, user, "sheets.sync", eid)
     db.flush()
     return sheet_view(db, event, target)
+
+
+def form_sheet_view(db, event, form, config):
+    from ..services.sheets_export import form_column_catalog, form_rows
+    workbook = db.scalar(select(EventSheet).where(EventSheet.event_id == event.id))
+    catalog = form_column_catalog(form)
+    return {
+        "configured": bool(config), "workbook_configured": bool(workbook),
+        "enabled": config.enabled if config else False, "revision": config.revision if config else None,
+        "columns": config.columns if config else catalog, "catalog": catalog,
+        "spreadsheet_url": f"https://docs.google.com/spreadsheets/d/{workbook.spreadsheet_id}/edit#gid={config.sheet_id}"
+        if workbook and workbook.spreadsheet_id and config else None,
+        "preview": [row[1:] for row in form_rows(db, form, catalog, limit=3)],
+    }
+
+
+@router.get("/events/{eid}/forms/{number}/google-sheet", response_model=EventFormSheetView)
+def form_sheet(eid: int, number: int, user=Depends(officer), db=Depends(get_db, scope="function")):
+    form = find_form(db, eid, number)
+    return form_sheet_view(db, require(db, Event, eid), form, db.get(EventFormSheet, form.id))
+
+
+@router.put("/events/{eid}/forms/{number}/google-sheet", response_model=EventFormSheetView)
+def configure_form_sheet(eid: int, number: int, value: EventFormSheetWrite, request: Request,
+                         user=Depends(officer), db=Depends(get_db, scope="function")):
+    from ..services.sheets_export import form_column_catalog
+    connected(request, db)
+    event = require(db, Event, eid, True)
+    form = find_form(db, eid, number, True)
+    target = db.scalar(select(EventSheet).where(EventSheet.event_id == eid).with_for_update())
+    if not target:
+        fail(409, "sheet_missing", "Configure the event spreadsheet before syncing form responses.")
+    keys = {c["key"] for c in form_column_catalog(form)}
+    if any(c.key not in keys for c in value.columns):
+        fail(422, "sheet_column", "A selected question is no longer available. Reload the form.")
+    config = db.get(EventFormSheet, form.id, with_for_update=True)
+    if (config.revision if config else None) != value.expected_revision:
+        fail(409, "stale_revision", "These settings changed. Reload before saving.")
+    if config is None:
+        config = EventFormSheet(form_id=form.id, sheet_id=1_000_000_000 + form.id)
+        db.add(config)
+    else:
+        config.revision += 1
+    config.columns, config.enabled = [c.model_dump() for c in value.columns], value.enabled
+    target.error, target.blocked, target.attempts = "", False, 0
+    db.flush()
+    audit(db, user, "event_form.sheets_configure", form.id, {"enabled": value.enabled})
+    return form_sheet_view(db, event, form, config)

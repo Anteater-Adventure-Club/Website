@@ -402,6 +402,628 @@
         }
       }
     },
+    "/api/admin/form-templates": {
+      "get": {
+        "summary": "Templates",
+        "operationId": "templates_api_admin_form_templates_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Items_FormTemplateView_"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Template",
+        "operationId": "create_template_api_admin_form_templates_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FormTemplateWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormTemplateView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/form-templates/{key}": {
+      "put": {
+        "summary": "Update Template",
+        "operationId": "update_template_api_admin_form_templates__key__put",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FormTemplateWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormTemplateView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/event-forms": {
+      "get": {
+        "summary": "All Forms",
+        "operationId": "all_forms_api_admin_event_forms_get",
+        "parameters": [
+          {
+            "name": "quarter_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Quarter Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_EventFormView_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/events/{eid}/forms": {
+      "get": {
+        "summary": "Event Forms",
+        "operationId": "event_forms_api_admin_events__eid__forms_get",
+        "parameters": [
+          {
+            "name": "eid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Eid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Items_EventFormView_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Form",
+        "operationId": "create_form_api_admin_events__eid__forms_post",
+        "parameters": [
+          {
+            "name": "eid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Eid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventFormWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventFormView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/events/{eid}/forms/{number}": {
+      "get": {
+        "summary": "Admin Form",
+        "operationId": "admin_form_api_admin_events__eid__forms__number__get",
+        "parameters": [
+          {
+            "name": "eid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Eid"
+            }
+          },
+          {
+            "name": "number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventFormView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Form",
+        "operationId": "update_form_api_admin_events__eid__forms__number__put",
+        "parameters": [
+          {
+            "name": "eid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Eid"
+            }
+          },
+          {
+            "name": "number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventFormWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventFormView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/events/{eid}/forms/{number}/responses": {
+      "get": {
+        "summary": "Responses",
+        "operationId": "responses_api_admin_events__eid__forms__number__responses_get",
+        "parameters": [
+          {
+            "name": "eid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Eid"
+            }
+          },
+          {
+            "name": "number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Number"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Search"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_EventFormResponseRow_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{eid}/forms": {
+      "get": {
+        "summary": "Own Forms",
+        "operationId": "own_forms_api_events__eid__forms_get",
+        "parameters": [
+          {
+            "name": "eid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Eid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Items_EventFormView_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/me/event-forms/attention": {
+      "get": {
+        "summary": "Attention",
+        "operationId": "attention_api_me_event_forms_attention_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Items_EventFormView_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{eid}/forms/{number}": {
+      "get": {
+        "summary": "Own Form",
+        "operationId": "own_form_api_events__eid__forms__number__get",
+        "parameters": [
+          {
+            "name": "eid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Eid"
+            }
+          },
+          {
+            "name": "number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventFormView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{eid}/forms/{number}/response": {
+      "put": {
+        "summary": "Submit",
+        "operationId": "submit_api_events__eid__forms__number__response_put",
+        "parameters": [
+          {
+            "name": "eid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Eid"
+            }
+          },
+          {
+            "name": "number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FormResponseWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventFormView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/events": {
       "get": {
         "summary": "Public Events",
@@ -2619,6 +3241,22 @@
                 }
               ],
               "title": "Role"
+            }
+          },
+          {
+            "name": "form_status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Form Status"
             }
           },
           {
@@ -5161,6 +5799,110 @@
           }
         }
       }
+    },
+    "/api/admin/events/{eid}/forms/{number}/google-sheet": {
+      "get": {
+        "summary": "Form Sheet",
+        "operationId": "form_sheet_api_admin_events__eid__forms__number__google_sheet_get",
+        "parameters": [
+          {
+            "name": "eid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Eid"
+            }
+          },
+          {
+            "name": "number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventFormSheetView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Configure Form Sheet",
+        "operationId": "configure_form_sheet_api_admin_events__eid__forms__number__google_sheet_put",
+        "parameters": [
+          {
+            "name": "eid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Eid"
+            }
+          },
+          {
+            "name": "number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventFormSheetWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventFormSheetView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -6883,6 +7625,466 @@
         ],
         "title": "EventCost"
       },
+      "EventFormResponseRow": {
+        "properties": {
+          "signup_id": {
+            "type": "integer",
+            "title": "Signup Id"
+          },
+          "member_id": {
+            "type": "integer",
+            "title": "Member Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "cancelled": {
+            "type": "boolean",
+            "title": "Cancelled"
+          },
+          "can_cancel": {
+            "type": "boolean",
+            "title": "Can Cancel"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "not_open",
+              "awaiting",
+              "not_submitted",
+              "no_response",
+              "not_required",
+              "responded",
+              "responded_late",
+              "cancelled"
+            ],
+            "title": "Status"
+          },
+          "response": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FormResponseView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "signup_id",
+          "member_id",
+          "name",
+          "email",
+          "cancelled",
+          "can_cancel",
+          "status",
+          "response"
+        ],
+        "title": "EventFormResponseRow"
+      },
+      "EventFormSheetView": {
+        "properties": {
+          "configured": {
+            "type": "boolean",
+            "title": "Configured"
+          },
+          "workbook_configured": {
+            "type": "boolean",
+            "title": "Workbook Configured"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision"
+          },
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/SheetColumn"
+            },
+            "type": "array",
+            "title": "Columns"
+          },
+          "catalog": {
+            "items": {
+              "$ref": "#/components/schemas/SheetColumn"
+            },
+            "type": "array",
+            "title": "Catalog"
+          },
+          "spreadsheet_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spreadsheet Url"
+          },
+          "preview": {
+            "items": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Preview"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "configured",
+          "workbook_configured",
+          "enabled",
+          "revision",
+          "columns",
+          "catalog",
+          "spreadsheet_url",
+          "preview"
+        ],
+        "title": "EventFormSheetView"
+      },
+      "EventFormSheetWrite": {
+        "properties": {
+          "expected_revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Revision"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/SheetColumn"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "minItems": 2,
+            "title": "Columns"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "columns"
+        ],
+        "title": "EventFormSheetWrite"
+      },
+      "EventFormSummary": {
+        "properties": {
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "not_open",
+              "awaiting",
+              "not_submitted",
+              "no_response",
+              "not_required",
+              "responded",
+              "responded_late",
+              "cancelled"
+            ],
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "number",
+          "title",
+          "status"
+        ],
+        "title": "EventFormSummary"
+      },
+      "EventFormView": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "event_id": {
+            "type": "integer",
+            "title": "Event Id"
+          },
+          "event_name": {
+            "type": "string",
+            "title": "Event Name"
+          },
+          "event_slug": {
+            "type": "string",
+            "title": "Event Slug"
+          },
+          "quarter_id": {
+            "type": "integer",
+            "title": "Quarter Id"
+          },
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "instructions": {
+            "type": "string",
+            "title": "Instructions"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/Question"
+            },
+            "type": "array",
+            "title": "Questions"
+          },
+          "opens_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Opens At"
+          },
+          "closes_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Closes At"
+          },
+          "required": {
+            "type": "boolean",
+            "title": "Required"
+          },
+          "allow_late": {
+            "type": "boolean",
+            "title": "Allow Late"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published",
+              "archived"
+            ],
+            "title": "State"
+          },
+          "phase": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "scheduled",
+              "open",
+              "closed",
+              "late",
+              "archived",
+              "unavailable"
+            ],
+            "title": "Phase"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "questions_locked": {
+            "type": "boolean",
+            "title": "Questions Locked"
+          },
+          "editable": {
+            "type": "boolean",
+            "title": "Editable"
+          },
+          "can_submit": {
+            "type": "boolean",
+            "title": "Can Submit",
+            "default": false
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "not_open",
+                  "awaiting",
+                  "not_submitted",
+                  "no_response",
+                  "not_required",
+                  "responded",
+                  "responded_late",
+                  "cancelled"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "response": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FormResponseView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "response_count": {
+            "type": "integer",
+            "title": "Response Count",
+            "default": 0
+          },
+          "participant_count": {
+            "type": "integer",
+            "title": "Participant Count",
+            "default": 0
+          },
+          "no_response_count": {
+            "type": "integer",
+            "title": "No Response Count",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "event_id",
+          "event_name",
+          "event_slug",
+          "quarter_id",
+          "number",
+          "title",
+          "instructions",
+          "questions",
+          "opens_at",
+          "closes_at",
+          "required",
+          "allow_late",
+          "state",
+          "phase",
+          "revision",
+          "questions_locked",
+          "editable"
+        ],
+        "title": "EventFormView"
+      },
+      "EventFormWrite": {
+        "properties": {
+          "expected_revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Revision"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "instructions": {
+            "type": "string",
+            "maxLength": 5000,
+            "title": "Instructions",
+            "default": ""
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/Question"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Questions"
+          },
+          "opens_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Opens At"
+          },
+          "closes_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Closes At"
+          },
+          "required": {
+            "type": "boolean",
+            "title": "Required",
+            "default": false
+          },
+          "allow_late": {
+            "type": "boolean",
+            "title": "Allow Late",
+            "default": false
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published",
+              "archived"
+            ],
+            "title": "State",
+            "default": "draft"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "questions",
+          "opens_at",
+          "closes_at"
+        ],
+        "title": "EventFormWrite"
+      },
       "EventPrivate": {
         "properties": {
           "id": {
@@ -8260,6 +9462,252 @@
         ],
         "title": "ExtensionWrite"
       },
+      "FormResponseView": {
+        "properties": {
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/Question"
+            },
+            "type": "array",
+            "title": "Questions"
+          },
+          "answers": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Answers"
+          },
+          "submitted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Submitted At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "questions",
+          "answers",
+          "submitted_at",
+          "updated_at",
+          "revision"
+        ],
+        "title": "FormResponseView"
+      },
+      "FormResponseWrite": {
+        "properties": {
+          "form_revision": {
+            "type": "integer",
+            "title": "Form Revision"
+          },
+          "expected_revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Revision"
+          },
+          "answers": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Answers"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "form_revision",
+          "answers"
+        ],
+        "title": "FormResponseWrite"
+      },
+      "FormTemplateView": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "signup",
+              "followup"
+            ],
+            "title": "Kind"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "instructions": {
+            "type": "string",
+            "title": "Instructions"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/Question"
+            },
+            "type": "array",
+            "title": "Questions"
+          },
+          "required": {
+            "type": "boolean",
+            "title": "Required"
+          },
+          "allow_late": {
+            "type": "boolean",
+            "title": "Allow Late"
+          },
+          "archived": {
+            "type": "boolean",
+            "title": "Archived"
+          },
+          "default_event_kinds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Default Event Kinds"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "key",
+          "revision",
+          "kind",
+          "title",
+          "instructions",
+          "questions",
+          "required",
+          "allow_late",
+          "archived",
+          "default_event_kinds"
+        ],
+        "title": "FormTemplateView"
+      },
+      "FormTemplateWrite": {
+        "properties": {
+          "expected_revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Revision"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "signup",
+              "followup"
+            ],
+            "title": "Kind"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "instructions": {
+            "type": "string",
+            "maxLength": 5000,
+            "title": "Instructions",
+            "default": ""
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/Question"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Questions"
+          },
+          "required": {
+            "type": "boolean",
+            "title": "Required",
+            "default": false
+          },
+          "allow_late": {
+            "type": "boolean",
+            "title": "Allow Late",
+            "default": false
+          },
+          "archived": {
+            "type": "boolean",
+            "title": "Archived",
+            "default": false
+          },
+          "default_event_kinds": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "regular",
+                "retreat",
+                "meeting",
+                "picnic"
+              ]
+            },
+            "type": "array",
+            "maxItems": 4,
+            "title": "Default Event Kinds",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "title",
+          "questions"
+        ],
+        "title": "FormTemplateWrite"
+      },
       "GalleryRow": {
         "properties": {
           "image_id": {
@@ -8697,6 +10145,40 @@
           "items"
         ],
         "title": "Items[BoardTermView]"
+      },
+      "Items_EventFormView_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/EventFormView"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "Items[EventFormView]"
+      },
+      "Items_FormTemplateView_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/FormTemplateView"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "Items[FormTemplateView]"
       },
       "Items_OfficerView_": {
         "properties": {
@@ -9743,6 +11225,50 @@
           "total"
         ],
         "title": "Page[AttendanceLogRow]"
+      },
+      "Page_EventFormResponseRow_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/EventFormResponseRow"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "Page[EventFormResponseRow]"
+      },
+      "Page_EventFormView_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/EventFormView"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "Page[EventFormView]"
       },
       "Page_EventPrivate_": {
         "properties": {
@@ -11654,6 +13180,13 @@
       },
       "SignupOwn": {
         "properties": {
+          "form_statuses": {
+            "items": {
+              "$ref": "#/components/schemas/EventFormSummary"
+            },
+            "type": "array",
+            "title": "Form Statuses"
+          },
           "id": {
             "type": "integer",
             "title": "Id"
@@ -11886,6 +13419,13 @@
       },
       "SignupPrivate": {
         "properties": {
+          "form_statuses": {
+            "items": {
+              "$ref": "#/components/schemas/EventFormSummary"
+            },
+            "type": "array",
+            "title": "Form Statuses"
+          },
           "id": {
             "type": "integer",
             "title": "Id"
