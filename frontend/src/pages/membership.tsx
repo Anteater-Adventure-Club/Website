@@ -1,3 +1,4 @@
+import { RestrictionNotice, useRestrictions } from "../components/restrictions";
 import { useState } from "react";
 import { Link } from "react-router";
 import { dateLabel, money, useAction, useAPI } from "../lib/api";
@@ -17,6 +18,7 @@ import {
 } from "../components/ui";
 
 export function Membership() {
+  const restrictions = useRestrictions();
   const { quarter, loading } = useQuarter();
   const membershipPaused = useMembershipPause(quarter);
   const { session, loading: identityLoading } = useIdentity();
@@ -119,6 +121,11 @@ export function Membership() {
           {membershipPaused && quarter && !session?.member && (
             <MembershipPauseNotice quarter={quarter} />
           )}
+          {session?.member && status?.status === "approved" && (
+            <RestrictionNotice
+              items={restrictions.items.filter((r) => r.membership)}
+            />
+          )}
           <Panel className="status-card">
             {loading || identityLoading ? (
               <Loading />
@@ -147,10 +154,28 @@ export function Membership() {
                   Explore Events
                 </Link>
               </>
-            ) : membership.isPending ? (
+            ) : membership.isPending || restrictions.isPending ? (
               <Loading />
             ) : membership.error ? (
               <Failure error={membership.error} retry={membership.refetch} />
+            ) : restrictions.error ? (
+              <Failure
+                error={restrictions.error}
+                retry={restrictions.refetch}
+              />
+            ) : status?.status !== "approved" &&
+              restrictions.membershipRestricted ? (
+              <>
+                <RestrictionNotice
+                  items={restrictions.items.filter((r) => r.membership)}
+                />
+                {status?.status === "pending" && (
+                  <p>
+                    Your existing submission is on hold. An officer can review
+                    and reject it, or approve it after the restriction ends.
+                  </p>
+                )}
+              </>
             ) : status?.status === "approved" ? (
               <>
                 <Pill tone="solid">

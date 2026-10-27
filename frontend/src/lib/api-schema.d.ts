@@ -631,6 +631,75 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/me/restrictions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Own Restrictions */
+    get: operations["own_restrictions_api_me_restrictions_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/members/{mid}/bans": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** History */
+    get: operations["history_api_admin_members__mid__bans_get"];
+    put?: never;
+    /** Create */
+    post: operations["create_api_admin_members__mid__bans_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/members/{mid}/bans/preview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Preview */
+    post: operations["preview_api_admin_members__mid__bans_preview_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/members/{mid}/bans/{bid}/lift": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Lift */
+    post: operations["lift_api_admin_members__mid__bans__bid__lift_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/events/{eid}/signup": {
     parameters: {
       query?: never;
@@ -1610,6 +1679,127 @@ export interface components {
       /** Url */
       url: string;
     };
+    /** BanEvent */
+    BanEvent: {
+      /** Id */
+      id: number;
+      /** Name */
+      name: string;
+    };
+    /** BanImpact */
+    BanImpact: {
+      /** Signup Id */
+      signup_id: number;
+      /** Event Id */
+      event_id: number;
+      /** Name */
+      name: string;
+      /**
+       * Starts At
+       * Format: date-time
+       */
+      starts_at: string;
+      /** Checked In */
+      checked_in: boolean;
+    };
+    /** BanLift */
+    BanLift: {
+      /** Reason */
+      reason: string;
+    };
+    /** BanPreview */
+    BanPreview: {
+      /** Items */
+      items: components["schemas"]["BanImpact"][];
+      /** Total */
+      total: number;
+    };
+    /** BanScope */
+    BanScope: {
+      /**
+       * All Events
+       * @default false
+       */
+      all_events: boolean;
+      /** Event Kinds */
+      event_kinds?: ("regular" | "meeting" | "picnic" | "retreat")[];
+      /** Event Ids */
+      event_ids?: number[];
+      /**
+       * Membership
+       * @default false
+       */
+      membership: boolean;
+      /** Expires At */
+      expires_at?: string | null;
+    };
+    /** BanView */
+    BanView: {
+      /** Id */
+      id: number;
+      /** All Events */
+      all_events: boolean;
+      /** Event Kinds */
+      event_kinds: string[];
+      /** Events */
+      events: components["schemas"]["BanEvent"][];
+      /** Membership */
+      membership: boolean;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Expires At */
+      expires_at: string | null;
+      /** Message */
+      message: string;
+      /** Member Id */
+      member_id: number;
+      /** Reason */
+      reason: string;
+      /** Created By */
+      created_by: number;
+      /** Lifted At */
+      lifted_at: string | null;
+      /** Lifted By */
+      lifted_by: number | null;
+      /** Lift Reason */
+      lift_reason: string;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "active" | "expired" | "lifted";
+    };
+    /** BanWrite */
+    BanWrite: {
+      /**
+       * All Events
+       * @default false
+       */
+      all_events: boolean;
+      /** Event Kinds */
+      event_kinds?: ("regular" | "meeting" | "picnic" | "retreat")[];
+      /** Event Ids */
+      event_ids?: number[];
+      /**
+       * Membership
+       * @default false
+       */
+      membership: boolean;
+      /** Expires At */
+      expires_at?: string | null;
+      /** Reason */
+      reason: string;
+      /**
+       * Message
+       * @default
+       */
+      message: string;
+      /** Request Id */
+      request_id: string;
+    };
     /** BoardEntryPrivate */
     BoardEntryPrivate: {
       /** Id */
@@ -2492,6 +2682,11 @@ export interface components {
       /** Voided */
       voided: boolean;
     };
+    /** Items[BanView] */
+    Items_BanView_: {
+      /** Items */
+      items: components["schemas"]["BanView"][];
+    };
     /** Items[BoardTermView] */
     Items_BoardTermView_: {
       /** Items */
@@ -2501,6 +2696,11 @@ export interface components {
     Items_OfficerView_: {
       /** Items */
       items: components["schemas"]["OfficerView"][];
+    };
+    /** Items[RestrictionView] */
+    Items_RestrictionView_: {
+      /** Items */
+      items: components["schemas"]["RestrictionView"][];
     };
     /** Items[TripRow] */
     Items_TripRow_: {
@@ -2524,6 +2724,8 @@ export interface components {
     MemberDetail: {
       member: components["schemas"]["MemberPrivate"];
       membership: components["schemas"]["MembershipView"] | null;
+      /** Bans */
+      bans?: components["schemas"]["BanView"][];
       /** Memberships */
       memberships: components["schemas"]["MembershipView"][];
       /** Signups */
@@ -2561,6 +2763,8 @@ export interface components {
     MemberListRow: {
       member: components["schemas"]["MemberPrivate"];
       membership: components["schemas"]["MembershipView"] | null;
+      /** Bans */
+      bans?: components["schemas"]["BanView"][];
     };
     /** MemberPrivate */
     MemberPrivate: {
@@ -3169,6 +3373,28 @@ export interface components {
        * Format: date-time
        */
       created_at: string;
+    };
+    /** RestrictionView */
+    RestrictionView: {
+      /** Id */
+      id: number;
+      /** All Events */
+      all_events: boolean;
+      /** Event Kinds */
+      event_kinds: string[];
+      /** Events */
+      events: components["schemas"]["BanEvent"][];
+      /** Membership */
+      membership: boolean;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Expires At */
+      expires_at: string | null;
+      /** Message */
+      message: string;
     };
     /** Revision */
     Revision: {
@@ -4937,6 +5163,7 @@ export interface operations {
         quarter_id?: number | null;
         search?: string;
         status?: string;
+        ban_status?: "all" | "active" | "none";
         limit?: number;
         offset?: number;
       };
@@ -5251,6 +5478,163 @@ export interface operations {
         };
         content: {
           "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  own_restrictions_api_me_restrictions_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Items_RestrictionView_"];
+        };
+      };
+    };
+  };
+  history_api_admin_members__mid__bans_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        mid: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Items_BanView_"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_api_admin_members__mid__bans_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        mid: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["BanWrite"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["BanView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  preview_api_admin_members__mid__bans_preview_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        mid: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["BanScope"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["BanPreview"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  lift_api_admin_members__mid__bans__bid__lift_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        mid: number;
+        bid: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["BanLift"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["BanView"];
         };
       };
       /** @description Validation Error */

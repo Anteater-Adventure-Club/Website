@@ -134,6 +134,47 @@ const eventPath = (name: string) =>
   `/admin/events/${fixture.events[name].slug}/${fixture.events[name].id}`;
 
 for (const mode of ["visual", "content"] as const) {
+  test(`K08 ${mode} ban reason, review, and confirmation remain reachable`, async ({
+    page,
+  }) => {
+    await page.goto("/admin/members");
+    await page.getByLabel("Search members").fill("Fixture General Rider");
+    await page.getByRole("button", { name: "Details", exact: true }).click();
+    await modal(page)
+      .getByRole("button", { name: "Ban Member", exact: true })
+      .click();
+    await modal(page)
+      .getByRole("group", { name: "Event categories" })
+      .getByRole("button", { name: "All", exact: true })
+      .click();
+    await modal(page)
+      .getByLabel(/^Duration/)
+      .selectOption("permanent");
+    const reason = modal(page).getByLabel("Private officer reason");
+    const dismiss = await keyboard(page, mode, reason);
+    await reason.fill("Keyboard review fixture.");
+    await inputReadable(reason);
+    await reachable(modal(page));
+    await submit(
+      page,
+      modal(page).getByRole("button", { name: "Review Ban", exact: true }),
+    );
+    await reachable(modal(page));
+    await dismiss();
+    await submit(
+      page,
+      modal(page).getByRole("button", { name: "Confirm Ban", exact: true }),
+    );
+    await expect(page.getByRole("dialog")).toHaveCount(1);
+    await expect(
+      modal(page).getByRole("button", { name: "Lift Ban", exact: true }),
+    ).toBeVisible();
+    await modal(page)
+      .getByRole("button", { name: "Close dialog", exact: true })
+      .click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+  });
+
   test(`K07 ${mode} membership contact and submit remain usable with the phone keyboard`, async ({
     page,
     context,

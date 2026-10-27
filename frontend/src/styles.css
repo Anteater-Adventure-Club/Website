@@ -2277,7 +2277,8 @@ dialog::backdrop {
   padding: 0.45rem 0.9rem;
   font-size: 0.8rem;
 }
-.filters .selected {
+.filters .button.selected,
+.filters .button.selected:hover {
   background: var(--forest);
   color: #fff;
 }
@@ -3745,4 +3746,137 @@ dialog::backdrop {
   display: grid;
   gap: 0.35rem;
   overflow-wrap: anywhere;
+}
+
+/* Member bans use the existing modal, record-table, and notice layouts. */
+.membership-statuses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.ban-category-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.ban-category-buttons .button {
+  padding: 0.55rem 0.85rem;
+  font-size: 0.88rem;
+}
+.ban-category-buttons .button[aria-pressed="true"],
+.ban-category-buttons .button[aria-pressed="true"]:hover {
+  background: var(--forest);
+  border-color: var(--forest);
+  color: #fff;
+}
+.ban-scope {
+  margin: 0;
+}
+.ban-scope-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.ban-duration input,
+.ban-duration select {
+  height: 3.25rem;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.ban-check,
+.ban-event-options label {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 44px;
+  padding: 0;
+  cursor: pointer;
+}
+.ban-check input,
+.ban-event-options input {
+  width: 22px;
+  height: 22px;
+  min-height: 0;
+  padding: 0;
+  flex: 0 0 auto;
+  margin: 0;
+  appearance: none;
+  border: 1.5px solid #7b8d80;
+  border-radius: 5px;
+  background: #fff center / 20px 20px no-repeat;
+  cursor: pointer;
+}
+.ban-check input:checked,
+.ban-event-options input:checked {
+  border-color: var(--forest);
+  background-color: var(--forest);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='m4 10 4 4 8-8' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+.ban-check {
+  margin: 0.5rem 0 0;
+}
+.ban-event-options {
+  max-height: 14rem;
+  overflow-y: auto;
+  display: grid;
+  gap: 0;
+}
+.ban-event-options small {
+  display: block;
+}
+.ban-history {
+  border: 1px solid var(--border, #d6dcd5);
+  border-radius: 12px;
+  padding: 1rem;
+  overflow-wrap: anywhere;
+}
+.ban-history .section-heading {
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+.ban-history p,
+.restriction-notice p {
+  margin: 0.5rem 0;
+}
+.restriction-item + .restriction-item {
+  border-top: 1px solid currentColor;
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+}
+.restriction-notice {
+  overflow-wrap: anywhere;
+}
+.restriction-notice a {
+  text-decoration: underline;
+}
+.ban-dialog .sticky-actions {
+  position: static;
+}
+@media (forced-colors: active) {
+  .ban-check input,
+  .ban-check input:checked,
+  .ban-event-options input,
+  .ban-event-options input:checked {
+    appearance: auto;
+    background-image: none;
+  }
+}
+@media (max-width: 767px) {
+  dialog.ban-dialog,
+  :root.keyboard-open dialog.ban-dialog {
+    top: calc(var(--visible-top, 0px) + var(--visible-height, 100dvh) / 2);
+    bottom: auto;
+    margin: 0 auto;
+    width: calc(100% - 24px);
+    height: auto;
+    max-height: calc(var(--visible-height, 100dvh) - 32px);
+    border-radius: 1.25rem;
+    padding: 1.25rem;
+    transform: translateY(-50%);
+    animation: none;
+  }
+  .membership-statuses {
+    justify-content: flex-end;
+  }
 }

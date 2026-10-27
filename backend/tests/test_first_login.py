@@ -328,3 +328,19 @@ def test_non_uci_links_existing_member_and_can_edit_profile_without_officer_acce
     with api.app.state.sessions() as db:
         assert db.scalar(select(func.count()).select_from(Member).where(Member.email == NON_UCI_EMAIL)) == 1
         assert db.scalar(select(Identity.member_id)) == member_id
+
+
+def test_banned_member_can_sign_in_again(google_flow, api):
+    google_flow.begin()
+    google_flow.finish()
+    mid = assert_signed_in(google_flow, api)
+    response = api.post(f"/api/admin/members/{mid}/bans", json={
+        "all_events": True, "membership": True, "reason": "Officer-only review",
+        "request_id": "oauth-restriction-fixture",
+    })
+    assert response.status_code == 201
+    google_flow.client.post("/api/auth/logout")
+    google_flow.begin()
+    assert google_flow.finish().status_code == 303
+    assert assert_signed_in(google_flow, api) == mid
+    assert google_flow.client.get("/api/me/restrictions").json()["items"]

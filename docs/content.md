@@ -25,6 +25,45 @@ Multi-day reference dates appear only on their start and end dates, labeled **St
 
 Club event labels in the calendar link directly to the event page, just like the cards below. Select the date or its empty space to view that day's details without navigating away. Phones keep the compact dots and date selection.
 
+## Member bans and restrictions
+
+Open **Officer Tools → Members → Details → Bans → Ban Member**.
+Choose event signups, membership signups, or both. Use the category buttons to
+select one or more event types, or **All** for all events. Membership is selected
+independently. Event bans can cover all events, selected types
+(including all retreats), or specific published upcoming events. Types also
+cover events created later. Bans apply across quarters and never prevent login.
+
+Choose a temporary end time in Pacific time or **Permanent**. Enter the required
+private officer reason and, optionally, a separate message for the member.
+Members see “restriction,” its scope and duration, and officer contact guidance;
+they cannot see private reasons or the officers' ban history.
+
+**Review Ban** previews automatic cancellations before **Confirm Ban**. A ban
+cancels existing signups for matching events starting from its creation until its
+expiry (exclusive); a permanent ban covers all matching upcoming events. Already-started
+events and later events outside a temporary ban remain intact. Early check-in and
+carpool assignments for cancelled signups are undone. Cancellation cannot be
+disabled. While active, the ban also blocks new or restored matching signups,
+even for events taking place after expiry.
+
+Use the **Banned** filter button alongside All, Pending, Paid, Exception, and
+General. Active bans appear as **Temp banned** or **Banned** badges in the
+Membership column. Member **Details → Bans** shows history
+and **Lift Ban**. Lifting requires a private reason. Expiry and lifting never
+restore cancelled signups automatically, and any other matching active ban
+continues to apply. Correct a ban by lifting it and creating its replacement.
+
+Officers, walk-ins, and imports follow the same restrictions; capacity overrides
+cannot bypass them. Membership bans block new submissions and new approvals,
+including exceptions and paid imports, while preserving already-approved
+membership and payment history. For pending dues, open **Confirm Dues**, select
+**Return to General Membership**, enter a reason, and choose **Save Adjustment**.
+This uses the existing adjustment flow to return the member to general status
+and remove the submission from the pending queue.
+Coordinate any refund separately. Once restrictions end, the member can submit
+again. Notifications are displayed in the site; no email is sent.
+
 ## Signup limits and retreat priority
 
 In an event's editor, open **Signups & Carpools** and set the **Signup limits**. The total counts everyone; the transport limits count people who need a ride, drive others, or have their own ride. Blank means unlimited, and zero closes that choice. A full transport category leaves other categories open until the total limit is reached. Offered passenger seats are separate from signup limits.

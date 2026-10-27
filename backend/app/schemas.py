@@ -590,9 +590,91 @@ class MembershipBenefitView(DTO):
     coverage: str | None
 
 
+class BanEvent(DTO):
+    id: int
+    name: str
+
+
+class BanScope(DTO):
+    all_events: bool = False
+    event_kinds: list[Literal["regular", "meeting", "picnic", "retreat"]] = Field(default_factory=list)
+    event_ids: list[int] = Field(default_factory=list, max_length=200)
+    membership: bool = False
+    expires_at: AwareDatetime | None = None
+
+    @model_validator(mode="after")
+    def scope_valid(self):
+        self.event_kinds = sorted(set(self.event_kinds))
+        self.event_ids = sorted(set(self.event_ids))
+        if not (self.all_events or self.event_kinds or self.event_ids or self.membership):
+            raise ValueError("Choose at least one ban scope")
+        if self.all_events and (self.event_kinds or self.event_ids):
+            raise ValueError("All events already includes every type and event")
+        return self
+
+
+class BanWrite(BanScope):
+    reason: str = Field(min_length=1, max_length=2000)
+    message: str = Field(default="", max_length=1000)
+    request_id: str = Field(min_length=1, max_length=80)
+
+    @field_validator("reason", "request_id")
+    @classmethod
+    def nonblank(cls, value):
+        if not value.strip():
+            raise ValueError("This field is required")
+        return value.strip()
+
+
+class BanLift(DTO):
+    reason: str = Field(min_length=1, max_length=2000)
+
+    @field_validator("reason")
+    @classmethod
+    def nonblank(cls, value):
+        if not value.strip():
+            raise ValueError("Explain why the ban is being lifted")
+        return value.strip()
+
+
+class RestrictionView(DTO):
+    id: int
+    all_events: bool
+    event_kinds: list[str]
+    events: list[BanEvent]
+    membership: bool
+    created_at: datetime
+    expires_at: datetime | None
+    message: str
+
+
+class BanView(RestrictionView):
+    member_id: int
+    reason: str
+    created_by: int
+    lifted_at: datetime | None
+    lifted_by: int | None
+    lift_reason: str
+    status: Literal["active", "expired", "lifted"]
+
+
+class BanImpact(DTO):
+    signup_id: int
+    event_id: int
+    name: str
+    starts_at: datetime
+    checked_in: bool
+
+
+class BanPreview(DTO):
+    items: list[BanImpact]
+    total: int
+
+
 class MemberListRow(DTO):
     member: MemberPrivate
     membership: MembershipView | None
+    bans: list[BanView] = Field(default_factory=list)
 
 
 class MemberList(DTO):
