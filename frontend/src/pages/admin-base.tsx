@@ -58,7 +58,13 @@ function AttentionItems({
             key={i}
             to={quarterURL(item.url, quarterId)}
           >
-            <Pill tone={item.kind === "dues" ? "yellow" : "orange"}>
+            <Pill
+              tone={
+                item.kind === "dues" || item.kind === "approval"
+                  ? "yellow"
+                  : "orange"
+              }
+            >
               {item.count}
             </Pill>
             <span>{item.title}</span>

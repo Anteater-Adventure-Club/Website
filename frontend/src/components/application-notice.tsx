@@ -8,10 +8,8 @@ export function ApplicationNotice() {
   const status = session?.member?.approval_status || "required";
   return (
     <Panel className="application-notice">
-      {status !== "required" && (
-        <Pill tone={status === "denied" ? "orange" : "yellow"}>
-          {approvalLabel(status)}
-        </Pill>
+      {status === "denied" && (
+        <Pill tone="orange">{approvalLabel(status)}</Pill>
       )}
       <h2>
         {status === "required"
