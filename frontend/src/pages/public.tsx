@@ -635,9 +635,6 @@ export function SignIn() {
             >
               I don't have a UCI email
             </a>
-            <small className="muted">
-              New non-UCI members complete an application for officer approval.
-            </small>
           </>
         )}
         <Link className="text-link" to="/events">
