@@ -522,9 +522,11 @@ form {
   min-height: calc(100vh - 160px);
 }
 .guest-access-notice {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 1rem clamp(1rem, 4vw, 3rem);
+  background: #fff0ac;
+  color: #5b4c13;
+  width: 100%;
+  margin: 0;
+  padding: 0.5rem max(1rem, calc((100% - 1280px) / 2));
 }
 .page-heading {
   display: flex;

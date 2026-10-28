@@ -261,7 +261,7 @@ for (const [permission, path, tabs] of [
   test(`${permission} only shows useful tabs and actions`, async ({ page }) => {
     const state = await fixture(page, [permission]);
     await page.goto(path);
-    await expect(page.getByText(/Guest access · expires/)).toBeVisible();
+    await expect(page.getByText(/Limited access · expires/)).toBeVisible();
     expect(await visibleTabs(page)).toEqual(tabs);
     if (
       permission === "events" ||
