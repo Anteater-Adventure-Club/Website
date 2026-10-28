@@ -68,6 +68,14 @@ Choose additional suites for the affected behavior:
 
 Keyboard simulation does not replace a check on a physical phone. Test output stays in ignored `artifacts/`.
 
+CI runs browser suites in separate jobs, each with its own PostgreSQL service,
+API, and fixture files. The journey suite is also split by browser engine. Each
+job installs only its required browsers and keeps one Playwright worker, since
+mutating tests reset the fixture database. Do not run these suites concurrently
+against a shared local database. The existing **views** check reports the combined
+result and passes only when every browser job succeeds; failure artifacts are
+named by suite. The forms suite is included in this matrix.
+
 The bans suite uses the isolated browser database and reseeds it between tests.
 It captures WebKit at iPhone 390 × 844 and iPad 834 × 1112, and Chromium at
 desktop 1440 × 900. Review the PNGs under
