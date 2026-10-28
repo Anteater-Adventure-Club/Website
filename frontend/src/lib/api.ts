@@ -80,6 +80,14 @@ export async function request<T>(
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
     const detail = data.detail;
+    if (
+      response.status === 403 &&
+      ["permission_required", "officer_required", "approval_required"].includes(
+        detail?.code,
+      )
+    ) {
+      window.dispatchEvent(new window.Event("aac-access-rejected"));
+    }
     const message = Array.isArray(detail)
       ? detail
           .map(

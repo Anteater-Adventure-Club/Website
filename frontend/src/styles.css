@@ -521,6 +521,11 @@ form {
   padding: 2.7rem 3rem 3rem;
   min-height: calc(100vh - 160px);
 }
+.guest-access-notice {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1rem clamp(1rem, 4vw, 3rem);
+}
 .page-heading {
   display: flex;
   align-items: flex-start;

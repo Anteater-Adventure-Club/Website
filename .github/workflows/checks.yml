@@ -134,6 +134,9 @@ jobs:
       - name: Fuzzy officer name search across desktop and mobile browsers
         run: npm run test:e2e:search
         working-directory: frontend
+      - name: Guest officer permissions and expiry
+        run: npm run test:e2e:guests
+        working-directory: frontend
       - name: Member bans and restriction journeys
         run: npm run test:e2e:bans
         working-directory: frontend
@@ -168,6 +171,7 @@ jobs:
         with:
           name: browser-failure-evidence
           path: |
+            artifacts/guest-access-traces
             artifacts/restrictions-and-bans
             artifacts/external-member-approval
             artifacts/test-results

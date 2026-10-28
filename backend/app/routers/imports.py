@@ -4,7 +4,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, Request, HTTPException
 from pydantic import ValidationError
 from sqlalchemy import select
-from ..auth import limited, officer
+from ..auth import authorize, limited, permission
 from ..db import get_db
 from ..domain import (
     audit,
@@ -40,8 +40,9 @@ def scope(db, value):
 
 
 @router.post("/preview", response_model=ImportView)
-def preview(value: ImportWrite, request: Request, user=Depends(officer), db=Depends(get_db, scope="function")):
+def preview(value: ImportWrite, request: Request, user=Depends(permission("members", "participation")), db=Depends(get_db, scope="function")):
     limited(request, db, "import", 10)
+    authorize(db, user, "participation" if value.mode == "participants" else "members")
     event = scope(db, value)
     if len(value.text.encode()) > 1048576:
         fail(422, "import_size", "Import at most 1 MiB at a time.")
@@ -115,9 +116,10 @@ def preview(value: ImportWrite, request: Request, user=Depends(officer), db=Depe
 
 
 @router.post("/{pid}/apply", response_model=ImportOutcome)
-def apply(pid: str, value: ImportApply, user=Depends(officer), db=Depends(get_db, scope="function")):
+def apply(pid: str, value: ImportApply, user=Depends(permission("members", "participation")), db=Depends(get_db, scope="function")):
     original = require(db, ImportPreview, pid)
     spec = ImportWrite(text="", **original.specification)
+    authorize(db, user, "participation" if spec.mode == "participants" else "members")
     event = scope(db, spec)
     item = require(db, ImportPreview, pid, True)
     if item.actor_id != user.id or item.request_hash != value.request_hash:

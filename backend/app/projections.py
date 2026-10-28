@@ -83,6 +83,7 @@ def events_projection(db, events, private=False):
         .where(Signup.event_id.in_(ids), Signup.role == "ride", Signup.cancelled.is_(False), Membership.status == "approved")
         .group_by(Signup.event_id)
     ).all())
+    participated = set(db.scalars(select(Signup.event_id).where(Signup.event_id.in_(ids)).distinct())) if private else set()
     recaps = {r.event_id: r.published for r in db.scalars(select(Recap).where(Recap.event_id.in_(ids)))}
     values = []
     for e in events:
@@ -102,6 +103,7 @@ def events_projection(db, events, private=False):
             published_recap=recaps.get(e.id),
         )
         if private:
+            data["has_signups"] = e.id in participated
             data.update({k: getattr(e, k) for k in EventPrivate.model_fields if k not in data})
         values.append((EventPrivate if private else EventPublic)(**data))
     return values

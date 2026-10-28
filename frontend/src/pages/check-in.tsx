@@ -1,3 +1,4 @@
+import { GuestAccessNotice } from "../components/guest-access-notice";
 import { useState } from "react";
 import { Link, useParams } from "react-router";
 import { ArrowLeft, Car, Check, CreditCard, Plus } from "lucide-react";
@@ -103,7 +104,7 @@ export function FieldDesk({ seat = false }: { seat?: boolean }) {
   const query = useAPI("CheckInView", `/api/admin/events/${id}/check-in`, {
     poll: true,
   });
-  const quarters = useAPI("Page_QuarterPrivate_", "/api/admin/quarters");
+  const quarters = useAPI("Page_QuarterPublic_", "/api/quarters?limit=200");
   const [role, setRole] = useState("ride");
   const [search, setSearch] = useState("");
   const [person, setPerson] = useState<number | null>(null);
@@ -136,6 +137,7 @@ export function FieldDesk({ seat = false }: { seat?: boolean }) {
   );
   return (
     <div className="field-desk">
+      <GuestAccessNotice />
       <header className="desk-header">
         <Link className="text-link" to={base}>
           <ArrowLeft size={18} />

@@ -400,6 +400,7 @@ class EventPublic(DTO):
 
 
 class EventPrivate(EventPublic):
+    has_signups: bool
     miles: Decimal
     gas_price: Decimal
     rate_override: Decimal | None
@@ -526,7 +527,7 @@ class BoardEntryWrite(Revision):
     palette: Literal["forest", "rose", "sunset", "ocean", "sage", "lavender"] = "forest"
     visible: bool = True
     position: int = Field(default=0, ge=0)
-    site_access: bool = False
+    site_access: bool | None = None
 
     @field_validator("instagram")
     @classmethod
@@ -574,7 +575,48 @@ class DuplicateWrite(DTO):
     ends_at: AwareDatetime
 
 
+Permission = Literal["events", "participation", "members", "reimbursements", "board"]
+
+
+class OfficerAccess(DTO):
+    kind: Literal["full", "guest", "none"]
+    permissions: list[Permission]
+    expires_at: datetime | None
+
+
+class GuestOfficerWrite(DTO):
+    permissions: list[Permission] = Field(min_length=1, max_length=5)
+    expires_at: AwareDatetime
+
+    @field_validator("permissions")
+    @classmethod
+    def unique_permissions(cls, value):
+        return sorted(set(value))
+
+
+class GuestOfficerGrant(GuestOfficerWrite):
+    member_id: int
+
+
+class GuestOfficerUpdate(GuestOfficerWrite):
+    expected_revision: int = Field(ge=1)
+
+
+class GuestOfficerView(GuestOfficerWrite):
+    member_id: int
+    name: str
+    email: str
+    granted_at: datetime
+    updated_at: datetime
+    granted_by: int
+    updated_by: int
+    revision: int
+    active: bool
+
+
 class SessionView(DTO):
+    officer_access: OfficerAccess
+    server_time: datetime
     member: MemberPrivate | None
     officer: bool
     oauth_available: bool

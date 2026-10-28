@@ -163,3 +163,20 @@ Open **Settings → External Member Application → Edit application questions**
 Review submissions in **Members → Pending**, or follow the dashboard’s **New members waiting for approval** link. The Pending view includes both applications labeled **Pending (Approval)** and payment confirmations labeled **Pending (Membership)**, with no additional pending filters. Applications are independent of quarters and remain reviewable even without an open quarter.
 
 Officers can approve or deny a submitted application. Approvals take applicants directly to the normal **My AAC** pages, including when approval arrives while their application page is open. There is no approval message or acknowledgment step. When denying an application, officers can include a reason that remains visible on the applicant’s application page. Answers lock after submission, and denied accounts cannot apply again on their own. Officers can choose **Allow reapplication** beside a denied member in the Members list to reopen a blank application with the current questions. The previous submission and denial reason remain under **Details → Club application → Previous applications**. Reopening is recorded with the officer and time; it does not grant member access or lift bans. A new submission returns to the existing Pending queue for review. Email notifications and follow-up conversations are not included. Approval does not grant paid membership or lift any bans. College information is self-reported and does not change dues pricing.
+
+
+## Guest officer access
+
+Full officers can grant temporary access from **Officers → Guest officer access**. Choose an approved member with an email, select one or more permissions, and set the required expiry in Pacific time. The form starts at seven days; approved non-UCI members are eligible. Permissions apply across all quarters and events, subject to existing workflow locks and member restrictions.
+
+| Permission | Tools available |
+| --- | --- |
+| Events & Recaps | Event editing and publication, series, questions, images, recaps |
+| Check-in & Carpools | Signups, walk-ins, cards, attendance, carpools, participant imports/exports |
+| Members & Dues | Member records/imports, dues, external application reviews and reapplication |
+| Reimbursements | Drivers, eligibility, trips, mileage, payout records |
+| Board Profiles | Board years, profiles, ordering, visibility, photos |
+
+Guest navigation includes only the assigned tools. Full officers retain Dashboard, Settings, access management, bans and their private reasons, application-form configuration, Google Sheets, audit history, budgets, and quarter finalization/archival. Shared member pickers omit payout details; guests without Reimbursements cannot retrieve payout fields from member records.
+
+Expired grants remain listed for renewal. Revocation takes effect on subsequent API requests; expiry is checked on every protected request without a scheduled cleanup job. Open pages refresh access at expiry, on focus, every 30 seconds in officer tools, and on authorization errors. Losing officer access does not sign the member out. Grant and edit history is recorded in the audit log. Promoting an eligible UCI Guest to full officer removes the temporary grant.

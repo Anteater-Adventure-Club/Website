@@ -2,7 +2,7 @@ from datetime import date, datetime, timedelta
 from typing import Annotated
 from fastapi import APIRouter, Depends, Query, Request, Response
 from sqlalchemy import delete, select
-from ..auth import officer, session_member_id
+from ..auth import permission, session_member_id
 from ..db import get_db
 from ..domain import (
     PACIFIC,
@@ -165,7 +165,7 @@ def admin_events(
     state: str | None = None,
     limit: Limit = 50,
     offset: Offset = 0,
-    user=Depends(officer),
+    user=Depends(permission("events", "participation", "reimbursements")),
     db=Depends(get_db, scope="function"),
 ):
     default_quarter(db, quarter_id)
@@ -180,7 +180,7 @@ def admin_events(
 
 
 @router.post("/admin/events", response_model=EventPrivate, status_code=201)
-def create_event(value: EventWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
+def create_event(value: EventWrite, user=Depends(permission("events")), db=Depends(get_db, scope="function")):
     validate_event(db, value)
     e = Event()
     apply_event(e, value)
@@ -191,12 +191,12 @@ def create_event(value: EventWrite, user=Depends(officer), db=Depends(get_db, sc
 
 
 @router.get("/admin/events/{eid}", response_model=EventPrivate)
-def manage_event(eid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
+def manage_event(eid: int, user=Depends(permission("events", "participation", "reimbursements")), db=Depends(get_db, scope="function")):
     return event_projection(db, require(db, Event, eid), True)
 
 
 @router.put("/admin/events/{eid}", response_model=EventPrivate)
-def edit_event(eid: int, value: EventWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
+def edit_event(eid: int, value: EventWrite, user=Depends(permission("events")), db=Depends(get_db, scope="function")):
     open_quarter(db, value.quarter_id)
     e = require(db, Event, eid, True)
     revision(e, value.expected_revision)
@@ -267,7 +267,7 @@ def remove_events(db, events):
 
 
 @router.delete("/admin/events/{eid}")
-def delete_event(eid: int, value: Revision, user=Depends(officer), db=Depends(get_db, scope="function")):
+def delete_event(eid: int, value: Revision, user=Depends(permission("events")), db=Depends(get_db, scope="function")):
     initial = require(db, Event, eid)
     open_quarter(db, initial.quarter_id)
     series = require(db, Series, initial.series_id, True) if initial.series_id else None
@@ -288,7 +288,7 @@ def delete_event(eid: int, value: Revision, user=Depends(officer), db=Depends(ge
 
 
 @router.post("/admin/events/{eid}/state", response_model=EventPrivate)
-def event_state(eid: int, value: StateChange, user=Depends(officer), db=Depends(get_db, scope="function")):
+def event_state(eid: int, value: StateChange, user=Depends(permission("events")), db=Depends(get_db, scope="function")):
     initial = require(db, Event, eid)
     open_quarter(db, initial.quarter_id)
     e = require(db, Event, eid, True)
@@ -332,7 +332,7 @@ def event_state(eid: int, value: StateChange, user=Depends(officer), db=Depends(
 
 
 @router.post("/admin/events/{eid}/duplicate", response_model=EventPrivate)
-def duplicate(eid: int, value: DuplicateWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
+def duplicate(eid: int, value: DuplicateWrite, user=Depends(permission("events")), db=Depends(get_db, scope="function")):
     old = require(db, Event, eid)
     fields = {k: getattr(old, k) for k in EventWrite.model_fields if hasattr(old, k)}
     fields.update(quarter_id=value.quarter_id, starts_at=value.starts_at, ends_at=value.ends_at)
@@ -343,7 +343,7 @@ def duplicate(eid: int, value: DuplicateWrite, user=Depends(officer), db=Depends
 
 
 @router.post("/admin/events/{eid}/skip")
-def skip(eid: int, value: Revision, user=Depends(officer), db=Depends(get_db, scope="function")):
+def skip(eid: int, value: Revision, user=Depends(permission("events")), db=Depends(get_db, scope="function")):
     e = require(db, Event, eid)
     open_quarter(db, e.quarter_id)
     e = require(db, Event, eid, True)
@@ -384,12 +384,12 @@ def occurrence_input(value, row):
 
 
 @router.post("/admin/series/preview")
-def preview_series(value: SeriesWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
+def preview_series(value: SeriesWrite, user=Depends(permission("events")), db=Depends(get_db, scope="function")):
     return {"items": series_dates(db, value)}
 
 
 @router.post("/admin/series", status_code=201, response_model=SeriesView)
-def create_series(value: SeriesWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
+def create_series(value: SeriesWrite, user=Depends(permission("events")), db=Depends(get_db, scope="function")):
     return new_series(db, user, value)
 
 
@@ -422,7 +422,7 @@ def new_series(db, user, value, reuse=None):
 
 
 @router.post("/admin/events/{eid}/series", response_model=SeriesView)
-def event_to_series(eid: int, value: SeriesWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
+def event_to_series(eid: int, value: SeriesWrite, user=Depends(permission("events")), db=Depends(get_db, scope="function")):
     initial = require(db, Event, eid)
     open_quarter(db, initial.quarter_id)
     e = require(db, Event, eid, True)
@@ -449,7 +449,7 @@ def locked_series_events(db, sid):
 
 
 @router.delete("/admin/series/{sid}")
-def delete_draft_series(sid: int, value: Revision, user=Depends(officer), db=Depends(get_db, scope="function")):
+def delete_draft_series(sid: int, value: Revision, user=Depends(permission("events")), db=Depends(get_db, scope="function")):
     series, events = locked_series_events(db, sid)
     revision(series, value.expected_revision)
     require_unused_drafts(db, events)
@@ -460,7 +460,7 @@ def delete_draft_series(sid: int, value: Revision, user=Depends(officer), db=Dep
 
 
 @router.post("/admin/series/{sid}/single", response_model=EventPrivate)
-def series_to_event(sid: int, value: SeriesSingleWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
+def series_to_event(sid: int, value: SeriesSingleWrite, user=Depends(permission("events")), db=Depends(get_db, scope="function")):
     series, events = locked_series_events(db, sid)
     revision(series, value.expected_revision)
     require_unused_drafts(db, events)
@@ -482,7 +482,7 @@ def series_to_event(sid: int, value: SeriesSingleWrite, user=Depends(officer), d
 
 
 @router.get("/admin/series/{sid}", response_model=SeriesView)
-def series_detail(sid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
+def series_detail(sid: int, user=Depends(permission("events")), db=Depends(get_db, scope="function")):
     series = require(db, Series, sid)
     events = list(db.scalars(select(Event).where(Event.series_id == sid).order_by(Event.starts_at)))
     participated = set(
@@ -501,7 +501,7 @@ def series_detail(sid: int, user=Depends(officer), db=Depends(get_db, scope="fun
 
 
 @router.put("/admin/series/{sid}", response_model=SeriesView)
-def edit_series(sid: int, value: SeriesWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
+def edit_series(sid: int, value: SeriesWrite, user=Depends(permission("events")), db=Depends(get_db, scope="function")):
     open_quarter(db, value.event.quarter_id)
     series = require(db, Series, sid, True)
     revision(series, value.expected_revision)
@@ -553,7 +553,7 @@ def edit_series(sid: int, value: SeriesWrite, user=Depends(officer), db=Depends(
 
 
 @router.post("/admin/series/{sid}/publish", response_model=SeriesView)
-def publish_series(sid: int, value: Revision, user=Depends(officer), db=Depends(get_db, scope="function")):
+def publish_series(sid: int, value: Revision, user=Depends(permission("events")), db=Depends(get_db, scope="function")):
     """Publish the remaining active drafts as one transaction."""
     initial = require(db, Series, sid)
     open_quarter(db, initial.quarter_id)

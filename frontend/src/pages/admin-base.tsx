@@ -1,3 +1,4 @@
+import { can } from "../lib/access";
 import { approvalLabel, needsApproval } from "../lib/approval";
 import {
   ApplicationReview,
@@ -18,7 +19,7 @@ import {
   useAPI,
 } from "../lib/api";
 import type { AdminEvent, Person, Schema } from "../lib/api";
-import { quarterURL, useQuarter } from "../lib/context";
+import { quarterURL, useIdentity, useQuarter } from "../lib/context";
 import { useSearchQuery } from "../lib/search-query";
 import { MemberBans } from "../components/member-bans";
 import { MembershipSignupSettings } from "../components/membership-signup-settings";
@@ -197,6 +198,8 @@ export function AdminOverview() {
 }
 
 export function AdminEvents() {
+  const { session } = useIdentity();
+  const editEvents = can(session, "events");
   const { quarter } = useQuarter();
   const [filter, setFilter] = useState("upcoming");
   const [search, setSearch] = useState("");
@@ -221,7 +224,7 @@ export function AdminEvents() {
   const rows: AdminEvent[] = [];
   const seen = new Set<number>();
   for (const e of filtered) {
-    if (e.series_id) {
+    if (editEvents && e.series_id) {
       if (seen.has(e.series_id)) continue;
       seen.add(e.series_id);
     }
@@ -233,13 +236,15 @@ export function AdminEvents() {
         title="Events"
         subtitle="Plan adventures, organize rides, and keep the club in the loop."
       >
-        <Link
-          className="button primary"
-          to={quarterURL("/admin/events/new", quarter?.id)}
-        >
-          <Plus size={16} />
-          New Event
-        </Link>
+        {editEvents && (
+          <Link
+            className="button primary"
+            to={quarterURL("/admin/events/new", quarter?.id)}
+          >
+            <Plus size={16} />
+            New Event
+          </Link>
+        )}
       </PageHeading>
       {!quarter ? (
         <SetupQuarter />
@@ -278,7 +283,9 @@ export function AdminEvents() {
               {rows.map((e) => (
                 <Panel
                   className="record-card"
-                  key={e.series_id ? `series-${e.series_id}` : e.id}
+                  key={
+                    editEvents && e.series_id ? `series-${e.series_id}` : e.id
+                  }
                 >
                   <div>
                     <div className="actions">
@@ -303,7 +310,7 @@ export function AdminEvents() {
                       {dateLabel(e.starts_at)} ·{" "}
                       {e.destination || "Location pending"}
                     </p>
-                    {e.series_id && (
+                    {editEvents && e.series_id && (
                       <Link
                         className="text-link"
                         to={`/admin/series/${e.series_id}`}
@@ -316,7 +323,8 @@ export function AdminEvents() {
                     <Link className="button primary" to={eventURL(e, true)}>
                       Manage
                     </Link>
-                    {quarter.state === "open" &&
+                    {editEvents &&
+                      quarter.state === "open" &&
                       !["completed", "cancelled"].includes(e.state) && (
                         <Link
                           className="button secondary"
@@ -329,12 +337,13 @@ export function AdminEvents() {
                           Edit
                         </Link>
                       )}
-                    {e.state === "draft" && !e.series_id && (
+                    {editEvents && e.state === "draft" && !e.series_id && (
                       <Button variant="secondary" onClick={() => setConfirm(e)}>
                         Publish
                       </Button>
                     )}
-                    {quarter.state === "open" &&
+                    {editEvents &&
+                      quarter.state === "open" &&
                       !e.series_id &&
                       (e.state === "draft" || e.state === "cancelled") && (
                         <DeleteEventButton
@@ -353,12 +362,14 @@ export function AdminEvents() {
             <Empty
               title="No events here yet"
               action={
-                <Link
-                  className="button primary"
-                  to={quarterURL("/admin/events/new", quarter.id)}
-                >
-                  Create an Event
-                </Link>
+                editEvents && (
+                  <Link
+                    className="button primary"
+                    to={quarterURL("/admin/events/new", quarter.id)}
+                  >
+                    Create an Event
+                  </Link>
+                )
               }
             >
               Try a different filter or start planning the next adventure.
@@ -800,6 +811,7 @@ function MemberDetailDialog({
   applicationOnly?: boolean;
   onClose: () => void;
 }) {
+  const { session } = useIdentity();
   const query = useAPI(
     "MemberDetail",
     `/api/admin/members/${memberId}${quarterId ? `?quarter_id=${quarterId}` : ""}`,
@@ -842,17 +854,19 @@ function MemberDetailDialog({
               <small>Discord</small>
               {query.data.member.discord || "Not provided"}
             </p>
-            <p>
-              <small>Reimbursement destination · private</small>
-              {query.data.member.payout_method || "Not provided"}
-              {query.data.member.payout_destination &&
-                ` · ${query.data.member.payout_destination}`}
-              {query.data.member.payout_phone_suffix &&
-                ` · ending ${query.data.member.payout_phone_suffix}`}
-            </p>
+            {can(session, "reimbursements") && (
+              <p>
+                <small>Reimbursement destination · private</small>
+                {query.data.member.payout_method || "Not provided"}
+                {query.data.member.payout_destination &&
+                  ` · ${query.data.member.payout_destination}`}
+                {query.data.member.payout_phone_suffix &&
+                  ` · ending ${query.data.member.payout_phone_suffix}`}
+              </p>
+            )}
           </div>
           <ApplicationReview person={query.data.member} />
-          <MemberBans person={query.data.member} />
+          {can(session) && <MemberBans person={query.data.member} />}
           <hr />
           <div className="section-heading">
             <h3>Membership · {quarter?.name || "No quarter"}</h3>
@@ -912,7 +926,10 @@ function MemberDetailDialog({
                   <Link
                     className="history-row"
                     key={s.id}
-                    to={eventURL(s.event!, true)}
+                    to={eventURL(
+                      s.event!,
+                      can(session, "events", "participation", "reimbursements"),
+                    )}
                     onClick={onClose}
                   >
                     <strong>{s.event!.name}</strong>
@@ -949,6 +966,7 @@ function MemberDetailDialog({
 }
 
 export function Members() {
+  const { session } = useIdentity();
   const { quarter } = useQuarter();
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState("");
@@ -1013,7 +1031,7 @@ export function Members() {
           ["paid", "Paid"],
           ["exception", "Exception"],
           ["general", "General"],
-          ["banned", "Banned"],
+          ...(can(session) ? [["banned", "Banned"]] : []),
         ].map(([value, label]) => (
           <Button
             key={value}

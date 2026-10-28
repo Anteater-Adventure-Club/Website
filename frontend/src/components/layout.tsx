@@ -1,3 +1,5 @@
+import { GuestAccessNotice } from "./guest-access-notice";
+import { canVisit, hasTools, officerHome } from "../lib/access";
 import { needsApproval, approvalLabel } from "../lib/approval";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -85,7 +87,7 @@ export function Layout() {
           ],
         ]
       : []),
-    ...(session?.officer ? [["/admin/overview", "Officer Tools"]] : []),
+    ...(hasTools(session) ? [[officerHome(session), "Officer Tools"]] : []),
   ];
   async function logout() {
     await request("/api/auth/logout", "POST");
@@ -128,12 +130,12 @@ export function Layout() {
           {label}
         </Link>
       ))}
-      {session?.officer && (
+      {hasTools(session) && (
         <Link
           to={
             location.pathname.startsWith("/admin")
               ? "/my-aac"
-              : "/admin/overview"
+              : officerHome(session)
           }
           onClick={() => {
             setAccount(false);
@@ -268,7 +270,7 @@ export function Guard({
   const { session, loading, error } = useIdentity();
   const location = useLocation();
   if (loading) return <Loading />;
-  if (error) return <Failure error={error} />;
+  if (error && !session) return <Failure error={error} />;
   if (!session?.member)
     return (
       <Navigate
@@ -278,20 +280,22 @@ export function Guard({
     );
   if (!allowUnapproved && needsApproval(session.member))
     return <Navigate replace to="/my-aac/application" />;
-  if (officer && !session.officer)
-    return (
-      <Empty
-        title="Officers only"
-        action={
-          <Link className="button primary" to="/my-aac">
-            Back to My AAC
-          </Link>
-        }
-      >
-        This area is for AAC officers. Your adventures are over in My AAC.
-      </Empty>
-    );
-  return <Outlet />;
+  if (officer && !hasTools(session)) return <Navigate replace to="/my-aac" />;
+  if (officer && !canVisit(session, location.pathname))
+    return <Navigate replace to={officerHome(session)} />;
+  return (
+    <Outlet
+      key={
+        officer
+          ? JSON.stringify([
+              session.member.id,
+              session.officer,
+              session.officer_access,
+            ])
+          : "member"
+      }
+    />
+  );
 }
 
 export function QuarterPicker() {
@@ -317,7 +321,9 @@ export function QuarterPicker() {
 export function Workspace({ admin = false }: { admin?: boolean }) {
   const { quarter, invalid } = useQuarter();
   const { session } = useIdentity();
-  const links = admin ? adminLinks : memberLinks;
+  const links = admin
+    ? adminLinks.filter(([url]) => canVisit(session, url))
+    : memberLinks;
   const [sections, setSections] = useState(false);
   const location = useLocation();
   const selected =
@@ -325,6 +331,7 @@ export function Workspace({ admin = false }: { admin?: boolean }) {
     (admin ? "Officer Tools" : "My AAC");
   return (
     <>
+      {admin && <GuestAccessNotice />}
       <div className="workspace-bar">
         <nav
           className="workspace-tabs"
@@ -345,10 +352,10 @@ export function Workspace({ admin = false }: { admin?: boolean }) {
         </Button>
         <div className="workspace-controls">
           <QuarterPicker />
-          {session?.officer && (
+          {hasTools(session) && (
             <Link
               className="mode-switch"
-              to={admin ? "/my-aac" : "/admin/overview"}
+              to={admin ? "/my-aac" : officerHome(session)}
             >
               {admin ? "Member View" : "Officer Tools"}
             </Link>

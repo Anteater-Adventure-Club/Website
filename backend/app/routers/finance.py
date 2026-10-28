@@ -2,7 +2,7 @@ from decimal import Decimal
 from typing import Annotated
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
-from ..auth import member, officer
+from ..auth import member, officer, permission
 from ..db import get_db
 from ..domain import (
     PACIFIC,
@@ -49,7 +49,7 @@ def quarters(
 
 
 @router.get("/admin/quarters", response_model=Page[QuarterPrivate])
-def admin_quarters(user=Depends(officer), db=Depends(get_db, scope="function")):
+def admin_quarters(user=Depends(permission("reimbursements")), db=Depends(get_db, scope="function")):
     return page(db, select(Quarter).order_by(Quarter.starts_on.desc()), 200, 0)
 
 
@@ -104,7 +104,7 @@ def benefits(quarter_id: int | None = None, db=Depends(get_db, scope="function")
 
 
 @router.get("/admin/quarters/{qid}/reimbursements", response_model=QuarterReport)
-def quarter_report(qid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
+def quarter_report(qid: int, user=Depends(permission("reimbursements")), db=Depends(get_db, scope="function")):
     return report(db, require(db, Quarter, qid))
 
 
@@ -126,7 +126,7 @@ def personal_report(quarter_id: int | None = None, user=Depends(member), db=Depe
 
 
 @router.post("/admin/quarters/{qid}/drivers")
-def register_driver(qid: int, value: OfficerGrant, user=Depends(officer), db=Depends(get_db, scope="function")):
+def register_driver(qid: int, value: OfficerGrant, user=Depends(permission("reimbursements")), db=Depends(get_db, scope="function")):
     open_quarter(db, qid)
     require(db, Member, value.member_id)
     r = db.scalar(
@@ -142,7 +142,7 @@ def register_driver(qid: int, value: OfficerGrant, user=Depends(officer), db=Dep
 
 
 @router.put("/admin/quarters/{qid}/drivers/{mid}/eligibility")
-def eligibility(qid: int, mid: int, value: EligibilityWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
+def eligibility(qid: int, mid: int, value: EligibilityWrite, user=Depends(permission("reimbursements")), db=Depends(get_db, scope="function")):
     register_driver(qid, OfficerGrant(member_id=mid), user, db)
     r = db.scalar(
         select(DriverRegistration).where(
@@ -170,7 +170,7 @@ def financial_event(db, eid):
 
 
 @router.put("/admin/events/{eid}/mileage")
-def mileage(eid: int, value: MileageWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
+def mileage(eid: int, value: MileageWrite, user=Depends(permission("reimbursements")), db=Depends(get_db, scope="function")):
     e, q = financial_event(db, eid)
     revision(e, value.expected_revision)
     e.miles, e.gas_price, e.rate_override = value.miles, value.gas_price, value.rate_override
@@ -180,7 +180,7 @@ def mileage(eid: int, value: MileageWrite, user=Depends(officer), db=Depends(get
 
 
 @router.get("/admin/events/{eid}/trips", response_model=Items[TripRow])
-def event_trips(eid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
+def event_trips(eid: int, user=Depends(permission("reimbursements")), db=Depends(get_db, scope="function")):
     e = require(db, Event, eid)
     if not e.signups_enabled:
         fail(409, "signups_disabled", "This event does not use trips.")
@@ -203,7 +203,7 @@ def event_trips(eid: int, user=Depends(officer), db=Depends(get_db, scope="funct
 
 
 @router.post("/admin/events/{eid}/trips")
-def add_trip(eid: int, value: TripCreate, user=Depends(officer), db=Depends(get_db, scope="function")):
+def add_trip(eid: int, value: TripCreate, user=Depends(permission("reimbursements")), db=Depends(get_db, scope="function")):
     e, q = financial_event(db, eid)
     register_driver(q.id, OfficerGrant(member_id=value.member_id), user, db)
     t = db.scalar(select(Trip).where(Trip.event_id == eid, Trip.member_id == value.member_id))
@@ -217,7 +217,7 @@ def add_trip(eid: int, value: TripCreate, user=Depends(officer), db=Depends(get_
 
 
 @router.put("/admin/trips/{tid}")
-def edit_trip(tid: int, value: TripWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
+def edit_trip(tid: int, value: TripWrite, user=Depends(permission("reimbursements")), db=Depends(get_db, scope="function")):
     t = require(db, Trip, tid)
     financial_event(db, t.event_id)
     t = require(db, Trip, tid, True)
@@ -229,7 +229,7 @@ def edit_trip(tid: int, value: TripWrite, user=Depends(officer), db=Depends(get_
 
 
 @router.delete("/admin/trips/{tid}")
-def remove_trip(tid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
+def remove_trip(tid: int, user=Depends(permission("reimbursements")), db=Depends(get_db, scope="function")):
     t = require(db, Trip, tid)
     financial_event(db, t.event_id)
     db.delete(t)
@@ -261,7 +261,7 @@ def finalize(qid: int, user=Depends(officer), db=Depends(get_db, scope="function
 
 
 @router.put("/admin/payouts/{pid}/payment")
-def payment(pid: int, value: PaymentWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
+def payment(pid: int, value: PaymentWrite, user=Depends(permission("reimbursements")), db=Depends(get_db, scope="function")):
     p = require(db, Payout, pid)
     q = require(db, Quarter, p.quarter_id, True)
     p = require(db, Payout, pid, True)

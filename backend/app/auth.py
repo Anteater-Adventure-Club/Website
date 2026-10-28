@@ -1,6 +1,6 @@
 import hashlib
 import secrets
-from typing import Literal
+from typing import Literal, get_args
 from urllib.parse import urlencode, urlsplit
 from authlib.integrations.starlette_client import OAuth
 from fastapi import APIRouter, Depends, Request
@@ -8,8 +8,8 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy import select, text
 from .db import get_db
 from .domain import advisory, audit, fail, utcnow
-from .models import FormDefinition, Identity, Marker, Member, Officer, RateLimit
-from .schemas import MemberPrivate, SessionView
+from .models import FormDefinition, GuestOfficerAccess, Identity, Marker, Member, Officer, RateLimit
+from .schemas import MemberPrivate, Permission, SessionView
 
 router = APIRouter(prefix="/api")
 
@@ -61,6 +61,37 @@ def officer(user=Depends(member), db=Depends(get_db, scope="function")):
     if db.get(Officer, user.id) is None:
         fail(403, "officer_required", "This page is for AAC officers.")
     return user
+
+
+PERMISSIONS = get_args(Permission)
+
+
+def access_for(db, user):
+    if user and user.approval_status == "approved":
+        if db.get(Officer, user.id):
+            return {"kind": "full", "permissions": list(PERMISSIONS), "expires_at": None}
+        grant = db.get(GuestOfficerAccess, user.id)
+        if grant and grant.expires_at > utcnow():
+            return {"kind": "guest", "permissions": grant.permissions, "expires_at": grant.expires_at}
+    return {"kind": "none", "permissions": [], "expires_at": None}
+
+
+def allowed(db, user, *permissions):
+    """Allow any requested permission; an empty list requires a full officer."""
+    access = access_for(db, user)
+    return access["kind"] == "full" or bool(set(permissions) & set(access["permissions"]))
+
+
+def authorize(db, user, *permissions):
+    if not allowed(db, user, *permissions):
+        fail(403, "permission_required", "Your officer access does not allow this action or has expired.")
+
+
+def permission(*permissions):
+    def check(user=Depends(member), db=Depends(get_db, scope="function")):
+        authorize(db, user, *permissions)
+        return user
+    return check
 
 
 def limited(request, db, action, limit=30):
@@ -137,6 +168,8 @@ def session(request: Request, db=Depends(get_db, scope="function")):
     return {
         "member": MemberPrivate.model_validate(user).model_dump(mode="json") if user else None,
         "officer": bool(user and db.get(Officer, user.id)),
+        "officer_access": access_for(db, user),
+        "server_time": utcnow(),
         "oauth_available": bool(request.app.state.settings.google_client_id),
         "profile_complete": bool(user and user.name and user.phone),
     }
