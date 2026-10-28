@@ -85,6 +85,7 @@ def roster(
     eid: int,
     search: str = "",
     role: str | None = None,
+    form_status: str | None = None,
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
     user=Depends(officer),
@@ -96,6 +97,15 @@ def roster(
     query = select(Signup).join(Member).where(Signup.event_id == eid)
     if role:
         query = query.where(Signup.role == role)
+    if form_status == "no_response":
+        from ..models import EventForm, EventFormResponse
+        query = query.where(Signup.cancelled.is_(False), select(EventForm.id).where(
+            EventForm.event_id == Signup.event_id, EventForm.state == "published", EventForm.required.is_(True),
+            EventForm.closes_at <= utcnow(),
+            EventForm.allow_late.is_(True) | (Signup.registered_at < EventForm.closes_at),
+            ~select(EventFormResponse.id).where(EventFormResponse.form_id == EventForm.id,
+                                               EventFormResponse.signup_id == Signup.id).correlate(EventForm, Signup).exists(),
+        ).correlate(Signup).exists())
     result = ranked_page(db, query.order_by(Signup.joined_at, Signup.id), Signup, search, limit, offset)
     result["items"] = signups_projection(db, result["items"])
     return result

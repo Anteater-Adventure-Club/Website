@@ -46,11 +46,18 @@ export function SheetColumns({
   busy,
   disabled,
   onSave,
+  requiredKeys = ["status"],
+  saveLabel,
 }: {
-  initial: Schema<"EventSheetView">;
+  initial: Pick<
+    Schema<"EventSheetView">,
+    "columns" | "catalog" | "preview" | "configured"
+  >;
   busy: boolean;
   disabled: boolean;
   onSave: (columns: Schema<"SheetColumn">[]) => void;
+  requiredKeys?: string[];
+  saveLabel?: string;
 }) {
   const [columns, setColumns] = useState(initial.columns);
   function move(index: number, delta: number) {
@@ -75,7 +82,7 @@ export function SheetColumns({
               <input
                 type="checkbox"
                 checked={columns.some((c) => c.key === column.key)}
-                disabled={column.key === "status"}
+                disabled={requiredKeys.includes(column.key)}
                 onChange={(event) =>
                   setColumns((old) =>
                     event.target.checked
@@ -85,7 +92,7 @@ export function SheetColumns({
                 }
               />
               {column.header}
-              {column.key === "status" && " (required)"}
+              {requiredKeys.includes(column.key) && " (required)"}
             </label>
           ))}
         </div>
@@ -184,9 +191,10 @@ export function SheetColumns({
       <Button disabled={disabled || busy} type="submit">
         {busy
           ? "Saving…"
-          : initial.configured
-            ? "Save column settings"
-            : "Create spreadsheet"}
+          : saveLabel ||
+            (initial.configured
+              ? "Save column settings"
+              : "Create spreadsheet")}
       </Button>
     </form>
   );
@@ -291,7 +299,8 @@ export function EventGoogleSheet({ eventId }: { eventId: number }) {
         <p>
           Updates normally arrive within one minute. Existing signups are
           included automatically. Use the Notes tab or other tabs for manual
-          work; the website manages the protected Signups tab.
+          work; the website manages the protected Signups and enabled form tabs.
+          Pausing this spreadsheet pauses all of its synced tabs.
         </p>
         {data.configured && (
           <>

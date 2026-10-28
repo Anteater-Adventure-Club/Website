@@ -1180,12 +1180,16 @@ form {
   pointer-events: auto;
   text-decoration: none;
   text-underline-offset: 2px;
-  transition: transform 150ms ease, box-shadow 150ms ease;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease;
 }
 .calendar-event-link:is(:hover, :focus-visible) {
   text-decoration: underline;
   transform: translateY(-1px);
-  box-shadow: inset 0 0 0 1px var(--category-accent), 0 2px 4px #1f4d3b1a;
+  box-shadow:
+    inset 0 0 0 1px var(--category-accent),
+    0 2px 4px #1f4d3b1a;
 }
 .calendar-event-link:focus-visible {
   outline: 2px solid var(--forest);
@@ -3979,5 +3983,402 @@ dialog::backdrop {
   }
   .question-list .panel {
     padding: 1rem;
+  }
+}
+
+/* Event follow-up forms */
+.form-attention {
+  background: #fff1aa;
+  border-bottom: 1px solid #e0cf79;
+  color: #414324;
+}
+.form-attention-inner {
+  max-width: 1280px;
+  margin: auto;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.form-attention-inner > svg {
+  flex-shrink: 0;
+}
+.form-attention-inner > div {
+  flex: 1;
+  min-width: 0;
+}
+.form-attention p {
+  margin: 0.2rem 0 0;
+  font-size: 0.88rem;
+}
+.form-attention summary {
+  cursor: pointer;
+}
+.form-attention li {
+  margin: 0.5rem 0;
+}
+.form-attention a {
+  color: var(--forest);
+}
+.event-form-page {
+  max-width: 850px;
+}
+.event-form-page h1 {
+  font-size: clamp(1.9rem, 5vw, 3rem);
+  margin: 1rem 0;
+}
+.event-form-page .panel {
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+}
+.event-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr));
+  gap: 1.5rem;
+}
+.event-form-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.event-form-card h3 {
+  font-size: 1.3rem;
+  margin: 0.5rem 0 0;
+}
+.event-form-card p {
+  margin: 0;
+}
+.event-form-card .text-link {
+  margin-top: auto;
+  padding-top: 1rem;
+}
+.form-card-counts {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0 0.5rem;
+}
+.form-card-counts strong {
+  font-size: 1.4rem;
+}
+.form-card-date,
+.form-deadline {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.form-deadline {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0;
+}
+.form-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+.form-summary-grid .panel {
+  padding: 1.25rem 1.5rem;
+}
+.form-summary-grid strong {
+  font-size: 2rem;
+  color: var(--forest);
+}
+.form-summary-grid strong span {
+  font-size: 1.1rem;
+  font-weight: normal;
+  color: var(--muted);
+}
+.form-summary-grid p {
+  margin: 0.3rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.form-questions-editor {
+  padding: 0;
+  border: 0;
+  margin-top: 1.5rem;
+  min-width: 0;
+}
+.form-questions-editor > legend {
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+.template-defaults {
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  margin: 1rem 0;
+}
+.event-form-preview {
+  max-width: 800px;
+}
+@media (max-width: 650px) {
+  .form-attention-inner {
+    padding: 1rem;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+  }
+  .form-attention-inner > .button {
+    margin-left: 2.1rem;
+  }
+  .form-summary-grid {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+  .form-summary-grid .panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1.1rem;
+  }
+  .form-summary-grid strong {
+    font-size: 1.6rem;
+  }
+  .event-form-grid {
+    gap: 1rem;
+  }
+}
+.tabs [aria-current="page"] {
+  color: var(--forest);
+  border-bottom-color: var(--forest);
+  font-weight: 700;
+}
+@media (max-width: 650px) {
+  .form-attention-inner {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+  .form-attention-inner > .button {
+    grid-column: 2;
+    justify-self: start;
+    margin-left: 0;
+  }
+}
+
+.inline-link {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+/* Follow-up responses stay tabular on tablet and desktop. */
+@media (min-width: 768px) {
+  .response-grid-wrapper {
+    max-height: 70vh;
+    border: 1px solid var(--border);
+    overscroll-behavior: contain;
+  }
+  .response-grid {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  .response-grid th,
+  .response-grid td {
+    border-right: 1px solid var(--border);
+    vertical-align: top;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .response-grid tr > :last-child {
+    border-right: 0;
+  }
+  .response-grid thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    box-shadow: 0 1px 0 var(--border);
+  }
+  .response-grid .response-member-cell {
+    width: 200px;
+    min-width: 200px;
+    max-width: 200px;
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: white;
+    box-shadow: 1px 0 0 var(--border);
+  }
+  .response-grid thead .response-member-cell {
+    z-index: 3;
+    background: #f9faf6;
+  }
+  .response-grid .response-status-cell {
+    width: 160px;
+    min-width: 160px;
+  }
+  .response-grid .response-answer-cell {
+    width: 270px;
+    min-width: 270px;
+    max-width: 270px;
+  }
+  .response-grid td.response-answer-cell {
+    white-space: pre-wrap;
+  }
+  .response-grid .response-time-cell {
+    width: 180px;
+    min-width: 180px;
+    max-width: 180px;
+  }
+  .response-grid .response-actions-cell {
+    width: 180px;
+    min-width: 180px;
+  }
+  .response-grid .response-mobile-only {
+    display: none;
+  }
+}
+@media (max-width: 767px) {
+  .response-grid .response-answer-cell {
+    display: none;
+  }
+}
+
+.event-form-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 1.5rem 0 1rem;
+}
+.event-form-nav .tabs {
+  margin: 0;
+}
+.event-form-content {
+  margin: 0;
+}
+.swipe-table-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+.response-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+.response-filters input {
+  flex: 1;
+  min-width: 0;
+}
+.response-filters select {
+  width: 12rem;
+}
+.swipe-table-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+.swipe-table-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin: 0;
+  color: var(--forest);
+  font-size: 0.9rem;
+}
+.swipe-table-hint small {
+  display: block;
+  color: var(--muted);
+}
+.swipe-gesture {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 48px;
+  background: var(--tint);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+.swipe-gesture > svg:first-child {
+  align-self: start;
+  margin-top: 4px;
+}
+.swipe-gesture > svg:last-child {
+  position: absolute;
+  top: 20px;
+  animation: swipe-hint 2s ease-in-out 2;
+}
+.swipe-table-controls .actions {
+  flex-shrink: 0;
+}
+.swipe-table-controls .button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.6rem;
+}
+.swipe-table-surface {
+  position: relative;
+}
+@media (max-width: 1023px) {
+  .swipe-table-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+}
+@media (max-width: 767px) {
+  .response-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .response-filters select {
+    width: 100%;
+  }
+}
+.swipe-contact {
+  position: absolute;
+  z-index: 5;
+  width: 38px;
+  height: 38px;
+  border: 2px solid var(--forest);
+  background: rgb(31 77 59 / 12%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  box-shadow: 0 0 0 6px rgb(31 77 59 / 6%);
+}
+@media (min-width: 768px) {
+  .response-grid-wrapper {
+    touch-action: pan-x pan-y pinch-zoom;
+  }
+  .response-grid-wrapper.can-swipe {
+    cursor: grab;
+  }
+  .response-grid-wrapper.is-dragging,
+  .response-grid-wrapper.is-dragging * {
+    cursor: grabbing;
+    user-select: none;
+  }
+}
+@media (max-width: 767px) {
+  .swipe-table-controls,
+  .swipe-contact {
+    display: none;
+  }
+}
+@keyframes swipe-hint {
+  0%,
+  20%,
+  100% {
+    transform: translateX(7px);
+  }
+  55%,
+  75% {
+    transform: translateX(-7px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .swipe-gesture > svg:last-child {
+    animation: none;
   }
 }

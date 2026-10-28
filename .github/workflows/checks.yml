@@ -66,9 +66,55 @@ jobs:
         run: |
           docker build -f deploy/frontend.Dockerfile -t aac-web:rolling-assets .
           AAC_ASSET_TEST_IMAGE=aac-web:rolling-assets python3 -m unittest discover -s deploy/tests -v
-  views:
+  browser:
+    name: browser (${{ matrix.suite }})
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 30
+    # Each runner owns its database, API, media, and artifacts. Keep one worker
+    # inside each suite because mutating tests reset the entire fixture database.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - suite: layouts
+            config: playwright.config.ts
+            browsers: chromium
+          - suite: journeys-chromium
+            config: playwright.journeys.config.ts
+            project: chromium-*
+            browsers: chromium
+          - suite: journeys-firefox
+            config: playwright.journeys.config.ts
+            project: firefox-*
+            browsers: firefox
+          - suite: journeys-webkit
+            config: playwright.journeys.config.ts
+            project: webkit-*
+            browsers: webkit
+          - suite: retreat
+            config: playwright.retreat.config.ts
+            browsers: chromium
+          - suite: search
+            config: playwright.search.config.ts
+            browsers: chromium webkit
+          - suite: bans
+            config: playwright.bans.config.ts
+            browsers: chromium webkit
+          - suite: approvals
+            config: playwright.approvals.config.ts
+            browsers: chromium webkit
+          - suite: forms
+            config: playwright.forms.config.ts
+            browsers: chromium webkit
+          - suite: boundaries
+            config: playwright.boundaries.config.ts
+            browsers: chromium
+          - suite: keyboard
+            config: playwright.keyboard.config.ts
+            browsers: chromium webkit
+          - suite: production
+            config: playwright.social.config.ts
+            browsers: chromium firefox webkit
     services:
       postgres:
         image: postgres:17
@@ -95,6 +141,8 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
       - uses: actions/setup-node@v7
         with:
           node-version-file: ".node-version"
@@ -104,8 +152,15 @@ jobs:
       - run: alembic upgrade head
         working-directory: backend
       - run: python scripts/seed-browser-fixtures.py
-      - run: npm ci && npx playwright install --with-deps chromium firefox webkit
+      - run: npm ci
         working-directory: frontend
+      - name: Install suite browsers
+        working-directory: frontend
+        env:
+          PLAYWRIGHT_BROWSERS: ${{ matrix.browsers }}
+        run: |
+          read -r -a browser_engines <<< "$PLAYWRIGHT_BROWSERS"
+          npx playwright install --with-deps "${browser_engines[@]}"
       - name: Start isolated application
         run: |
           mkdir -p artifacts
@@ -123,30 +178,15 @@ jobs:
               else:
                   raise SystemExit(f'Application did not become ready: {url}')
           PY
-      - run: npm run test:e2e
+      - name: Run browser suite
+        if: matrix.suite != 'production'
         working-directory: frontend
-      - name: Member and officer journeys across browser engines
-        run: npm run test:e2e:journeys
-        working-directory: frontend
-      - name: Retreat reservations across desktop, laptop, tablet and phone
-        run: npx playwright test --config playwright.retreat.config.ts
-        working-directory: frontend
-      - name: Fuzzy officer name search across desktop and mobile browsers
-        run: npm run test:e2e:search
-        working-directory: frontend
-      - name: Member bans and restriction journeys
-        run: npm run test:e2e:bans
-        working-directory: frontend
-      - name: External member applications and officer review
-        run: npm run test:e2e:approvals
-        working-directory: frontend
-      - name: Layout boundaries, orientation and keyboard focus
-        run: npm run test:e2e:boundaries
-        working-directory: frontend
-      - name: Phone forms with simulated visual and layout viewport keyboards
-        run: npm run test:e2e:keyboard
-        working-directory: frontend
+        env:
+          PLAYWRIGHT_CONFIG: ${{ matrix.config }}
+          PLAYWRIGHT_PROJECT: ${{ matrix.project || '*' }}
+        run: npx playwright test --config "$PLAYWRIGHT_CONFIG" --project "$PLAYWRIGHT_PROJECT" --workers=1
       - name: Production HTML embeds and responsive branding
+        if: matrix.suite == 'production'
         working-directory: frontend
         run: |
           npm run build
@@ -164,12 +204,15 @@ jobs:
           E2E_URL=http://localhost:8080 E2E_SERVES_METADATA=1 npm run test:e2e:social
           E2E_BASE_URL=http://localhost:8080 npm run test:e2e:speed
       - uses: actions/upload-artifact@v7
-        if: failure()
+        if: failure() || cancelled()
         with:
-          name: browser-failure-evidence
+          name: browser-${{ matrix.suite }}-failure-evidence
           path: |
             artifacts/restrictions-and-bans
             artifacts/external-member-approval
+            artifacts/event-forms
+            artifacts/viewports
+            artifacts/journeys
             artifacts/test-results
             artifacts/playwright-results.json
             artifacts/journey-results.json
@@ -190,3 +233,18 @@ jobs:
             artifacts/api.log
             artifacts/web.log
           retention-days: 7
+  # Retain the existing required check name for branch protection.
+  views:
+    if: always()
+    needs: browser
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require every browser suite to pass
+        env:
+          BROWSER_RESULT: ${{ needs.browser.result }}
+        run: |
+          if [[ "$BROWSER_RESULT" != "success" ]]; then
+            echo "Browser suites ended with: $BROWSER_RESULT"
+            exit 1
+          fi

@@ -608,6 +608,7 @@ class AssignedCar(DTO):
 
 
 class SignupOwn(DTO):
+    form_statuses: list["EventFormSummary"] = Field(default_factory=list)
     id: int
     member_id: int
     event_id: int
@@ -1083,4 +1084,150 @@ class EventSheetView(DTO):
     error: str
     sharing_pending: bool
     sharing_error: str
+    preview: list[list[str]]
+
+
+class FormTemplateWrite(DTO):
+    expected_revision: int | None = None
+    kind: Literal["signup", "followup"]
+    title: str = Field(min_length=1, max_length=150)
+    instructions: str = Field(default="", max_length=5000)
+    questions: list[Question] = Field(min_length=1, max_length=20)
+    required: bool = False
+    allow_late: bool = False
+    archived: bool = False
+    default_event_kinds: list[Literal["regular", "retreat", "meeting", "picnic"]] = Field(default=[], max_length=4)
+
+    @model_validator(mode="after")
+    def valid_form(self):
+        self.title = self.title.strip()
+        if not self.title:
+            raise ValueError("Enter a form title")
+        validate_questions(self.questions)
+        if len(set(self.default_event_kinds)) != len(self.default_event_kinds):
+            raise ValueError("Select each event type only once")
+        if self.default_event_kinds and (self.kind != "signup" or self.archived):
+            raise ValueError("Only active signup templates can be defaults")
+        return self
+
+
+class FormTemplateView(DTO):
+    key: str
+    revision: int
+    kind: Literal["signup", "followup"]
+    title: str
+    instructions: str
+    questions: list[Question]
+    required: bool
+    allow_late: bool
+    archived: bool
+    default_event_kinds: list[str]
+
+
+class EventFormWrite(DTO):
+    expected_revision: int | None = None
+    title: str = Field(min_length=1, max_length=150)
+    instructions: str = Field(default="", max_length=5000)
+    questions: list[Question] = Field(min_length=1, max_length=20)
+    opens_at: AwareDatetime
+    closes_at: AwareDatetime
+    required: bool = False
+    allow_late: bool = False
+    state: Literal["draft", "published", "archived"] = "draft"
+
+    @model_validator(mode="after")
+    def valid_form(self):
+        self.title = self.title.strip()
+        if not self.title:
+            raise ValueError("Enter a form title")
+        validate_questions(self.questions)
+        if self.closes_at <= self.opens_at:
+            raise ValueError("Closing time must be after opening time")
+        return self
+
+
+FormResponseStatus = Literal["not_open", "awaiting", "not_submitted", "no_response", "not_required", "responded", "responded_late", "cancelled"]
+
+
+class FormResponseView(DTO):
+    questions: list[Question]
+    answers: dict[str, str | list[str]]
+    submitted_at: datetime
+    updated_at: datetime
+    revision: int
+
+
+class FormResponseWrite(DTO):
+    form_revision: int
+    expected_revision: int | None = None
+    answers: dict[str, str | list[str]]
+
+
+class EventFormSummary(DTO):
+    number: int
+    title: str
+    status: FormResponseStatus
+
+
+class EventFormView(DTO):
+    id: int
+    event_id: int
+    event_name: str
+    event_slug: str
+    quarter_id: int
+    number: int
+    title: str
+    instructions: str
+    questions: list[Question]
+    opens_at: datetime
+    closes_at: datetime
+    required: bool
+    allow_late: bool
+    state: Literal["draft", "published", "archived"]
+    phase: Literal["draft", "scheduled", "open", "closed", "late", "archived", "unavailable"]
+    revision: int
+    questions_locked: bool
+    editable: bool
+    can_submit: bool = False
+    status: FormResponseStatus | None = None
+    response: FormResponseView | None = None
+    response_count: int = 0
+    participant_count: int = 0
+    no_response_count: int = 0
+
+
+class EventFormResponseRow(DTO):
+    signup_id: int
+    member_id: int
+    name: str
+    email: str | None
+    cancelled: bool
+    can_cancel: bool
+    status: FormResponseStatus
+    response: FormResponseView | None
+
+
+class EventFormSheetWrite(Revision):
+    enabled: bool = True
+    columns: list[SheetColumn] = Field(min_length=2, max_length=30)
+
+    @model_validator(mode="after")
+    def valid_columns(self):
+        if len({c.key for c in self.columns}) != len(self.columns):
+            raise ValueError("Select each column only once")
+        if len({c.header.casefold() for c in self.columns}) != len(self.columns):
+            raise ValueError("Column headings must be distinct")
+        if not {"status", "response_status"} <= {c.key for c in self.columns}:
+            raise ValueError("Keep signup status and response status to identify missing responses and cancellations")
+        return self
+
+
+class EventFormSheetView(DTO):
+    configured: bool
+    workbook_configured: bool
+    enabled: bool
+    revision: int | None
+    columns: list[SheetColumn]
+    catalog: list[SheetColumn]
+    spreadsheet_url: str | None
     preview: list[list[str]]

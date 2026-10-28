@@ -49,6 +49,7 @@ test.beforeEach(async ({ page, baseURL }) => {
         profile_complete: true,
       },
       "/api/quarters": { items: [] },
+      "/api/me/event-forms/attention": { items: [] },
       "/api/site-settings": { discord: "" },
       "/api/admin/officers": { items: [] },
       "/api/admin/board/terms": { items: [term] },

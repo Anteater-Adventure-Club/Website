@@ -1,3 +1,4 @@
+import { FormAttentionBanner } from "./event-form-member";
 import { needsApproval, approvalLabel } from "../lib/approval";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -33,6 +34,7 @@ const adminLinks = [
   ["/admin/events", "Events"],
   ["/admin/check-in", "Check In"],
   ["/admin/members", "Members"],
+  ["/admin/forms", "Forms"],
   ["/admin/reimbursements", "Reimbursements"],
   ["/admin/officers", "Officers"],
   ["/admin/settings", "Settings"],
@@ -227,6 +229,7 @@ export function Layout() {
           </nav>
         </Dialog>
       )}
+      <FormAttentionBanner />
       <main id="main">
         <Outlet />
       </main>

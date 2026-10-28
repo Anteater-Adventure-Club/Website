@@ -269,7 +269,7 @@ test("application, officer review, final denial, and configurable questions", as
   await capture(page, info.project.name, "application-approved");
 
   await identity(context, "officer");
-  await page.goto("/admin/settings");
+  await page.goto("/admin/forms?tab=application");
   await page
     .getByRole("button", { name: "Edit application questions" })
     .click();
