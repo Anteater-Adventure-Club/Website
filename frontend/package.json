@@ -22,9 +22,7 @@
     "api:types": "openapi-typescript ../backend/openapi.json -o src/lib/api-schema.d.ts && prettier --write src/lib/api-schema.d.ts",
     "test:e2e:bans": "playwright test --config playwright.bans.config.ts",
     "test:e2e:approvals": "playwright test --config playwright.approvals.config.ts",
-    "test:e2e:guests": "playwright test --config playwright.guests.config.ts",
-    "demo:guests": "node demo/guest-officers/server.mjs",
-    "demo:guests:capture": "node demo/guest-officers/capture.mjs"
+    "test:e2e:guests": "playwright test --config playwright.guests.config.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.0",

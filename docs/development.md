@@ -147,10 +147,3 @@ Apply Alembic migration `e91f52a680bc` before deploying the new API. Existing fu
 Protect newly delegated endpoints with `permission(...)` from `app.auth`; multiple permissions use **any-of** semantics. Keep full-only endpoints on `officer`. Shared imports recheck their stored mode on apply; private media checks its stored purpose; board edits with omitted `site_access` preserve access, while explicit access changes require a full officer. Update the permission matrix tests whenever extending a workflow.
 
 `backend/tests/test_guest_officers.py` runs against the disposable PostgreSQL test database described above. `npm run test:e2e:guests` runs synthetic API-backed browser journeys with Vite only, covering desktop Chromium, mobile Chromium, and mobile WebKit. It exercises tab filtering, shared dialogs, grant/renew/revoke, expiry, and changes to permissions on an open page. Traces are written under `artifacts/guest-access-traces`.
-
-### Guest officer feature demo
-
-Run `npm run demo:guests` from `frontend` and open <http://localhost:5180/demo>.
-The local gallery includes 45 screenshots across mobile, tablet, and desktop,
-with isolated sample-account previews for each permission and the access lifecycle.
-See [demo setup and capture instructions](../frontend/demo/guest-officers/README.md).
