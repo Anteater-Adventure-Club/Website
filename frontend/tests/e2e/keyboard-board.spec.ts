@@ -51,9 +51,10 @@ test.beforeEach(async ({ page, baseURL }) => {
       "/api/quarters": { items: [] },
       "/api/site-settings": { discord: "" },
       "/api/admin/officers": { items: [] },
+      "/api/admin/guest-officers": { items: [] },
       "/api/admin/board/terms": { items: [term] },
       "/api/admin/board/terms/1": { term, entries: [] },
-      "/api/admin/members": { items: [{ member: person }], total: 1 },
+      "/api/admin/member-lookup": { items: [{ member: person }], total: 1 },
     };
     if (
       path === "/api/admin/board/terms/1/entries" &&

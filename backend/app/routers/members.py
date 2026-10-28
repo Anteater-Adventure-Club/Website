@@ -1,7 +1,7 @@
 from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import false, func, or_, select
-from ..auth import allowed, authorize, limited, member, officer, permission, uci_email
+from ..auth import access_for, allowed, authorize, limited, member, officer, permission, uci_email
 from ..db import get_db
 from ..domain import (
     advisory,
@@ -214,7 +214,7 @@ def decide_dues(mid: int, qid: int, value: MembershipDecision, user=Depends(perm
 def add_member(value: MemberInput, user=Depends(permission("members", "participation")), db=Depends(get_db, scope="function")):
     m = ensure_member(db, value)
     audit(db, user, "member.add", m.id)
-    return admin_person(db, user, m)
+    return admin_person(m, include_payouts=allowed(db, user, "reimbursements"))
 
 
 @router.get("/admin/members", response_model=MemberList)
@@ -252,16 +252,20 @@ def member_list(
         else:
             query = query.where(Membership.status == status)
     result = ranked_page(db, query.order_by(Member.name, Member.id), Member, search, limit, offset)
+    access = access_for(db, user)
+    full = access["kind"] == "full"
+    include_payouts = full or "reimbursements" in access["permissions"]
     bans_by_member = {}
     ids = [m.id for m in result["items"]]
-    for ban in db.scalars(select(MemberBan).where(MemberBan.member_id.in_(ids), *active_clause())):
-        bans_by_member.setdefault(ban.member_id, []).append(ban_view(ban))
+    if full:
+        for ban in db.scalars(select(MemberBan).where(MemberBan.member_id.in_(ids), *active_clause())):
+            bans_by_member.setdefault(ban.member_id, []).append(ban_view(ban))
     submitted = dict(db.execute(select(ApprovalApplication.member_id, ApprovalApplication.submitted_at)
                                 .where(ApprovalApplication.member_id.in_(ids))).all())
     result["items"] = [
         {
-            "member": admin_person(db, user, m),
-            "bans": bans_by_member.get(m.id, []) if allowed(db, user) else [],
+            "member": admin_person(m, include_payouts=include_payouts),
+            "bans": bans_by_member.get(m.id, []),
             "application_submitted_at": submitted.get(m.id),
             "membership": membership_view(db, m.id, q.id) if q else None,
         }
@@ -271,9 +275,9 @@ def member_list(
     return result
 
 
-def admin_person(db, actor, target, lookup=False):
+def admin_person(target, *, include_payouts=False, lookup=False):
     value = MemberPrivate.model_validate(target).model_dump()
-    if lookup or not allowed(db, actor, "reimbursements"):
+    if lookup or not include_payouts:
         for key in ("payout_method", "payout_destination", "payout_phone_suffix"):
             value[key] = ""
     if lookup:
@@ -287,7 +291,7 @@ def member_lookup(search: str = "", limit: Annotated[int, Query(ge=1, le=50)] = 
                   user=Depends(permission("members", "participation", "reimbursements", "board")),
                   db=Depends(get_db, scope="function")):
     result = ranked_page(db, select(Member).order_by(Member.name, Member.id), Member, search, limit, 0)
-    result["items"] = [{"member": admin_person(db, user, m, lookup=True), "membership": None,
+    result["items"] = [{"member": admin_person(m, lookup=True), "membership": None,
                         "bans": [], "application_submitted_at": None} for m in result["items"]]
     result["quarter_id"] = None
     return result
@@ -296,6 +300,9 @@ def member_lookup(search: str = "", limit: Annotated[int, Query(ge=1, le=50)] = 
 @router.get("/admin/members/{mid}", response_model=MemberDetail)
 def member_detail(mid: int, quarter_id: int | None = None, user=Depends(permission("members")), db=Depends(get_db, scope="function")):
     m = require(db, Member, mid)
+    access = access_for(db, user)
+    full = access["kind"] == "full"
+    include_payouts = full or "reimbursements" in access["permissions"]
     q = default_quarter(db, quarter_id)
     history = list(
         db.scalars(
@@ -307,7 +314,7 @@ def member_detail(mid: int, quarter_id: int | None = None, user=Depends(permissi
         )
     )
     return {
-        "member": admin_person(db, user, m),
+        "member": admin_person(m, include_payouts=include_payouts),
         "membership": membership_view(db, mid, q.id) if q else None,
         "memberships": [
             membership_view(db, mid, qid)
@@ -315,7 +322,7 @@ def member_detail(mid: int, quarter_id: int | None = None, user=Depends(permissi
         ],
         "signups": signups_projection(db, history),
         "officer": db.get(Officer, mid) is not None,
-        "bans": [ban_view(b) for b in db.scalars(select(MemberBan).where(MemberBan.member_id == mid).order_by(MemberBan.created_at.desc()))] if allowed(db, user) else [],
+        "bans": [ban_view(b) for b in db.scalars(select(MemberBan).where(MemberBan.member_id == mid).order_by(MemberBan.created_at.desc()))] if full else [],
     }
 
 

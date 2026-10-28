@@ -3,7 +3,7 @@ from io import BytesIO
 
 import pytest
 from PIL import Image
-from sqlalchemy import select
+from sqlalchemy import event as sqlalchemy_event, select
 
 from app.auth import PERMISSIONS
 from app.domain import utcnow
@@ -296,3 +296,47 @@ def test_guest_can_edit_linked_board_profile_without_changing_access(api):
     assert response.status_code == 200, response.text
     assert response.json()["site_access"] is True
     assert api.put(path, json={**profile, "site_access": False}).status_code == 403
+
+
+@pytest.mark.parametrize("permissions", [None, ["members"], ["members", "reimbursements"]],
+                         ids=["full-officer", "members-guest", "finance-guest"])
+def test_member_list_authorization_queries_do_not_scale_with_rows(api, engine, permissions):
+    helper = person(api)
+    with api.app.state.sessions() as db:
+        db.add_all(Member(name=f"Listed {i:02}", email=f"listed-{i}@uci.edu",
+                          approval_status="approved", payout_method="zelle",
+                          payout_destination="PRIVATE-PAYOUT", payout_phone_suffix="1234")
+                   for i in range(50))
+        db.commit()
+        target_id = db.scalar(select(Member.id).where(Member.name == "Listed 00"))
+    assert api.post(f"/api/admin/members/{target_id}/bans", json={
+        "membership": True, "reason": "PRIVATE-BAN", "request_id": "list-ban",
+    }).status_code == 201
+    if permissions is not None:
+        grant(api, helper, permissions)
+        login(api, helper["id"])
+
+    statements = []
+
+    def record_authorization(conn, cursor, statement, parameters, context, executemany):
+        if any(f"from {table}" in statement.lower() for table in ("officers", "guest_officer_access")):
+            statements.append(statement)
+
+    sqlalchemy_event.listen(engine, "before_cursor_execute", record_authorization)
+    try:
+        counts = []
+        for limit in (1, 50):
+            statements.clear()
+            response = api.get(f"/api/admin/members?search=Listed&limit={limit}")
+            assert response.status_code == 200, response.text
+            rows = response.json()["items"]
+            assert len(rows) == limit
+            assert all(row["member"]["payout_destination"] == (
+                "PRIVATE-PAYOUT" if permissions is None or "reimbursements" in permissions else ""
+            ) for row in rows)
+            assert ("PRIVATE-BAN" in response.text) is (permissions is None)
+            counts.append(len(statements))
+        # Dependency authorization and response redaction have a fixed query cost.
+        assert 0 < counts[0] == counts[1] <= 4, counts
+    finally:
+        sqlalchemy_event.remove(engine, "before_cursor_execute", record_authorization)
