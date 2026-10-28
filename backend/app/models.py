@@ -116,6 +116,18 @@ class Officer(Base):
     granted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 
+class GuestOfficerAccess(Base):
+    __tablename__ = "guest_officer_access"
+    member_id: Mapped[int] = mapped_column(ForeignKey("members.id"), primary_key=True)
+    permissions: Mapped[list[str]] = mapped_column(JSON)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    granted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    granted_by: Mapped[int] = mapped_column(ForeignKey("members.id"))
+    updated_by: Mapped[int] = mapped_column(ForeignKey("members.id"))
+    revision: Mapped[int] = mapped_column(default=1)
+
+
 class Marker(Base):
     __tablename__ = "markers"
     key: Mapped[str] = mapped_column(String(80), primary_key=True)

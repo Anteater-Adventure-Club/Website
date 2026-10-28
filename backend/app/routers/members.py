@@ -1,7 +1,7 @@
 from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import false, func, or_, select
-from ..auth import limited, member, officer, uci_email
+from ..auth import allowed, authorize, limited, member, officer, permission, uci_email
 from ..db import get_db
 from ..domain import (
     advisory,
@@ -17,7 +17,7 @@ from ..domain import (
     today,
     utcnow,
 )
-from ..models import ApprovalApplication, Audit, Event, Member, MemberBan, Membership, Officer, Receipt, Signup, Vehicle
+from ..models import ApprovalApplication, Audit, Event, Member, MemberBan, Membership, Officer, GuestOfficerAccess, Receipt, Signup, Vehicle
 from ..projections import event_projection, membership_view, signups_projection
 from ..person_search import ranked_page
 from ..services.restrictions import active_clause, ban_view, enforce
@@ -155,7 +155,7 @@ def membership_signup_settings(
 
 
 @router.post("/admin/members/{mid}/memberships/{qid}/decision", response_model=MembershipView)
-def decide_dues(mid: int, qid: int, value: MembershipDecision, user=Depends(officer), db=Depends(get_db, scope="function")):
+def decide_dues(mid: int, qid: int, value: MembershipDecision, user=Depends(permission("members")), db=Depends(get_db, scope="function")):
     enforce_approval(db, mid)
     open_quarter(db, qid)
     require(db, Member, mid)
@@ -211,10 +211,10 @@ def decide_dues(mid: int, qid: int, value: MembershipDecision, user=Depends(offi
 
 
 @router.post("/admin/members", response_model=MemberPrivate, status_code=201)
-def add_member(value: MemberInput, user=Depends(officer), db=Depends(get_db, scope="function")):
+def add_member(value: MemberInput, user=Depends(permission("members", "participation")), db=Depends(get_db, scope="function")):
     m = ensure_member(db, value)
     audit(db, user, "member.add", m.id)
-    return m
+    return admin_person(db, user, m)
 
 
 @router.get("/admin/members", response_model=MemberList)
@@ -225,7 +225,7 @@ def member_list(
     ban_status: Literal["all", "active", "none"] = "all",
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
-    user=Depends(officer),
+    user=Depends(permission("members")),
     db=Depends(get_db, scope="function"),
 ):
     q = default_quarter(db, quarter_id)
@@ -260,8 +260,8 @@ def member_list(
                                 .where(ApprovalApplication.member_id.in_(ids))).all())
     result["items"] = [
         {
-            "member": MemberPrivate.model_validate(m),
-            "bans": bans_by_member.get(m.id, []),
+            "member": admin_person(db, user, m),
+            "bans": bans_by_member.get(m.id, []) if allowed(db, user) else [],
             "application_submitted_at": submitted.get(m.id),
             "membership": membership_view(db, m.id, q.id) if q else None,
         }
@@ -271,8 +271,30 @@ def member_list(
     return result
 
 
+def admin_person(db, actor, target, lookup=False):
+    value = MemberPrivate.model_validate(target).model_dump()
+    if lookup or not allowed(db, actor, "reimbursements"):
+        for key in ("payout_method", "payout_destination", "payout_phone_suffix"):
+            value[key] = ""
+    if lookup:
+        for key in ("pronouns", "discord", "driving_preferences"):
+            value[key] = ""
+    return value
+
+
+@router.get("/admin/member-lookup", response_model=MemberList)
+def member_lookup(search: str = "", limit: Annotated[int, Query(ge=1, le=50)] = 10,
+                  user=Depends(permission("members", "participation", "reimbursements", "board")),
+                  db=Depends(get_db, scope="function")):
+    result = ranked_page(db, select(Member).order_by(Member.name, Member.id), Member, search, limit, 0)
+    result["items"] = [{"member": admin_person(db, user, m, lookup=True), "membership": None,
+                        "bans": [], "application_submitted_at": None} for m in result["items"]]
+    result["quarter_id"] = None
+    return result
+
+
 @router.get("/admin/members/{mid}", response_model=MemberDetail)
-def member_detail(mid: int, quarter_id: int | None = None, user=Depends(officer), db=Depends(get_db, scope="function")):
+def member_detail(mid: int, quarter_id: int | None = None, user=Depends(permission("members")), db=Depends(get_db, scope="function")):
     m = require(db, Member, mid)
     q = default_quarter(db, quarter_id)
     history = list(
@@ -285,7 +307,7 @@ def member_detail(mid: int, quarter_id: int | None = None, user=Depends(officer)
         )
     )
     return {
-        "member": MemberPrivate.model_validate(m),
+        "member": admin_person(db, user, m),
         "membership": membership_view(db, mid, q.id) if q else None,
         "memberships": [
             membership_view(db, mid, qid)
@@ -293,12 +315,12 @@ def member_detail(mid: int, quarter_id: int | None = None, user=Depends(officer)
         ],
         "signups": signups_projection(db, history),
         "officer": db.get(Officer, mid) is not None,
-        "bans": [ban_view(b) for b in db.scalars(select(MemberBan).where(MemberBan.member_id == mid).order_by(MemberBan.created_at.desc()))],
+        "bans": [ban_view(b) for b in db.scalars(select(MemberBan).where(MemberBan.member_id == mid).order_by(MemberBan.created_at.desc()))] if allowed(db, user) else [],
     }
 
 
 @router.get("/admin/members/{mid}/vehicles", response_model=Page[VehicleView])
-def member_vehicles(mid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
+def member_vehicles(mid: int, user=Depends(permission("members", "participation")), db=Depends(get_db, scope="function")):
     require(db, Member, mid)
     return page(
         db,
@@ -309,7 +331,7 @@ def member_vehicles(mid: int, user=Depends(officer), db=Depends(get_db, scope="f
 
 
 @router.post("/admin/members/{mid}/vehicles", response_model=VehicleView)
-def officer_vehicle(mid: int, value: VehicleWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
+def officer_vehicle(mid: int, value: VehicleWrite, user=Depends(permission("members", "participation")), db=Depends(get_db, scope="function")):
     require(db, Member, mid)
     v = Vehicle(member_id=mid, source="officer", **value.model_dump())
     db.add(v)
@@ -319,17 +341,23 @@ def officer_vehicle(mid: int, value: VehicleWrite, user=Depends(officer), db=Dep
 
 
 def grant(db, mid, actor):
+    authorize(db, actor)
     advisory(db, 700)
     m = require(db, Member, mid)
     if not uci_email(m.email):
         fail(422, "uci_required", "Officer access requires a UCI email address.")
     if db.get(Officer, mid) is None:
+        guest = db.get(GuestOfficerAccess, mid)
+        if guest:
+            audit(db, actor, "guest.promote", mid, {"permissions": guest.permissions, "expires_at": guest.expires_at.isoformat()})
+            db.delete(guest)
         db.add(Officer(member_id=mid))
         audit(db, actor, "officer.grant", mid)
         db.flush()
 
 
 def revoke(db, mid, actor):
+    authorize(db, actor)
     advisory(db, 700)
     record = db.get(Officer, mid)
     if record:
@@ -415,7 +443,7 @@ def overview(quarter_id: int | None = None, user=Depends(member), db=Depends(get
 
 
 @router.get("/admin/directory")
-async def directory(request: Request, email: str, user=Depends(officer), db=Depends(get_db, scope="function")):
+async def directory(request: Request, email: str, user=Depends(permission("members", "participation")), db=Depends(get_db, scope="function")):
     from ..services.directory import DirectoryUnavailable, lookup_name
 
     limited(request, db, "directory", 20)

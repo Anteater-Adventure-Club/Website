@@ -1,3 +1,5 @@
+import { can } from "../lib/access";
+import { GuestAccess } from "../components/guest-access";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -28,8 +30,11 @@ type Entry = Schema<"BoardEntryPrivate">;
 type Term = Schema<"BoardTermView">;
 type Editor = { entry?: Entry; term: Term; position: number };
 export function Officers() {
+  const { session } = useIdentity();
   const terms = useAPI("Items_BoardTermView_", "/api/admin/board/terms");
-  const access = useAPI("Items_OfficerView_", "/api/admin/officers");
+  const access = useAPI("Items_OfficerView_", "/api/admin/officers", {
+    enabled: can(session),
+  });
   const [termId, setTermId] = useState<number | null>(null);
   const current = terms.data?.items.find((t) => t.current);
   const selected =
@@ -46,7 +51,6 @@ export function Officers() {
   const [grant, setGrant] = useState(false);
   const [revoke, setRevoke] = useState<Schema<"OfficerView"> | null>(null);
   const action = useAction();
-  const { session } = useIdentity();
   function openProfile(entry?: Entry) {
     if (!selected || !board.data) return;
     setEdit({
@@ -220,49 +224,52 @@ export function Officers() {
         </>
       )}
       <Message error={action.error} />
-      <section className="section">
-        <div className="section-heading">
-          <h2>
-            <ShieldCheck size={22} />
-            Officer site access
-          </h2>
-          <Button variant="secondary" onClick={() => setGrant(true)}>
-            Grant Access
-          </Button>
-        </div>
-        <p className="muted">
-          Access controls club records. Removing access preserves the member’s
-          account and public board profile.
-        </p>
-        {access.isPending ? (
-          <Loading />
-        ) : access.error ? (
-          <Failure error={access.error} retry={access.refetch} />
-        ) : (
-          <div className="stack">
-            {access.data.items.map((officer) => (
-              <Panel className="record-card" key={officer.member_id}>
-                <div>
-                  <h3>
-                    {officer.name}
-                    {officer.member_id === session?.member?.id && " (you)"}
-                  </h3>
-                  <small>{officer.email}</small>
-                </div>
-                <Button
-                  variant="danger"
-                  onClick={() => {
-                    action.reset();
-                    setRevoke(officer);
-                  }}
-                >
-                  Revoke Access
-                </Button>
-              </Panel>
-            ))}
+      {can(session) && (
+        <section className="section">
+          <div className="section-heading">
+            <h2>
+              <ShieldCheck size={22} />
+              Officer site access
+            </h2>
+            <Button variant="secondary" onClick={() => setGrant(true)}>
+              Grant Access
+            </Button>
           </div>
-        )}
-      </section>
+          <p className="muted">
+            Access controls club records. Removing access preserves the member’s
+            account and public board profile.
+          </p>
+          {access.isPending ? (
+            <Loading />
+          ) : access.error ? (
+            <Failure error={access.error} retry={access.refetch} />
+          ) : (
+            <div className="stack">
+              {access.data.items.map((officer) => (
+                <Panel className="record-card" key={officer.member_id}>
+                  <div>
+                    <h3>
+                      {officer.name}
+                      {officer.member_id === session?.member?.id && " (you)"}
+                    </h3>
+                    <small>{officer.email}</small>
+                  </div>
+                  <Button
+                    variant="danger"
+                    onClick={() => {
+                      action.reset();
+                      setRevoke(officer);
+                    }}
+                  >
+                    Revoke Access
+                  </Button>
+                </Panel>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+      {can(session) && <GuestAccess />}
       {edit && (
         <EntryDialog
           entry={edit.entry}
@@ -404,6 +411,7 @@ function EntryDialog({
   terms: Term[];
   onClose: () => void;
 }) {
+  const { session } = useIdentity();
   const form = useForm<Schema<"BoardEntryWrite">>({
     defaultValues: {
       member_id: entry?.member_id || null,
@@ -418,7 +426,7 @@ function EntryDialog({
         "forest") as Schema<"BoardEntryWrite">["palette"],
       visible: entry?.visible ?? true,
       position: entry?.position ?? position,
-      site_access: entry?.site_access || false,
+      ...(can(session) ? { site_access: entry?.site_access || false } : {}),
       expected_revision: entry?.revision,
     },
   });
@@ -455,6 +463,7 @@ function EntryDialog({
       )}
       <form
         onSubmit={form.handleSubmit(async (body) => {
+          if (!can(session)) delete body.site_access;
           await action
             .mutateAsync({
               url: entry
@@ -544,23 +553,25 @@ function EntryDialog({
           >
             Choose Member
           </Button>
-          <label className="check-field section">
-            <input
-              type="checkbox"
-              checked={form.watch("site_access") || false}
-              disabled={!form.watch("member_id")}
-              onChange={(e) => {
-                if (
-                  !e.target.checked &&
-                  (entry || source)?.site_access &&
-                  form.getValues("member_id") === (entry || source)?.member_id
-                )
-                  setConfirmRevoke(true);
-                else form.setValue("site_access", e.target.checked);
-              }}
-            />
-            Grant officer site access
-          </label>
+          {can(session) && (
+            <label className="check-field section">
+              <input
+                type="checkbox"
+                checked={form.watch("site_access") || false}
+                disabled={!form.watch("member_id")}
+                onChange={(e) => {
+                  if (
+                    !e.target.checked &&
+                    (entry || source)?.site_access &&
+                    form.getValues("member_id") === (entry || source)?.member_id
+                  )
+                    setConfirmRevoke(true);
+                  else form.setValue("site_access", e.target.checked);
+                }}
+              />
+              Grant officer site access
+            </label>
+          )}
           <small className="muted">
             Public profiles do not need site access. Changing the linked member
             does not revoke anyone else’s access.

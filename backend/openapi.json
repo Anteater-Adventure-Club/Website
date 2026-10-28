@@ -157,6 +157,144 @@
         }
       }
     },
+    "/api/admin/guest-officers": {
+      "get": {
+        "summary": "List Guests",
+        "operationId": "list_guests_api_admin_guest_officers_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Items_GuestOfficerView_"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Grant Guest",
+        "operationId": "grant_guest_api_admin_guest_officers_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuestOfficerGrant"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestOfficerView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/guest-officers/{mid}": {
+      "put": {
+        "summary": "Update Guest",
+        "operationId": "update_guest_api_admin_guest_officers__mid__put",
+        "parameters": [
+          {
+            "name": "mid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Mid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuestOfficerUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestOfficerView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Revoke Guest",
+        "operationId": "revoke_guest_api_admin_guest_officers__mid__delete",
+        "parameters": [
+          {
+            "name": "mid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Mid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/me/application": {
       "get": {
         "summary": "Own Application",
@@ -1845,6 +1983,58 @@
               "minimum": 0,
               "default": 0,
               "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/member-lookup": {
+      "get": {
+        "summary": "Member Lookup",
+        "operationId": "member_lookup_api_admin_member_lookup_get",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Search"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 10,
+              "title": "Limit"
             }
           }
         ],
@@ -6326,9 +6516,15 @@
             "default": 0
           },
           "site_access": {
-            "type": "boolean",
-            "title": "Site Access",
-            "default": false
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Site Access"
           }
         },
         "additionalProperties": false,
@@ -7147,6 +7343,10 @@
             ],
             "title": "Published Recap"
           },
+          "has_signups": {
+            "type": "boolean",
+            "title": "Has Signups"
+          },
           "miles": {
             "type": "string",
             "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
@@ -7231,6 +7431,7 @@
           "offered_seats",
           "paid_riders",
           "paid_ride_guaranteed",
+          "has_signups",
           "miles",
           "gas_price",
           "rate_override",
@@ -8334,6 +8535,160 @@
         ],
         "title": "GalleryRow"
       },
+      "GuestOfficerGrant": {
+        "properties": {
+          "permissions": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "events",
+                "participation",
+                "members",
+                "reimbursements",
+                "board"
+              ]
+            },
+            "type": "array",
+            "maxItems": 5,
+            "minItems": 1,
+            "title": "Permissions"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "member_id": {
+            "type": "integer",
+            "title": "Member Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "permissions",
+          "expires_at",
+          "member_id"
+        ],
+        "title": "GuestOfficerGrant"
+      },
+      "GuestOfficerUpdate": {
+        "properties": {
+          "permissions": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "events",
+                "participation",
+                "members",
+                "reimbursements",
+                "board"
+              ]
+            },
+            "type": "array",
+            "maxItems": 5,
+            "minItems": 1,
+            "title": "Permissions"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "permissions",
+          "expires_at",
+          "expected_revision"
+        ],
+        "title": "GuestOfficerUpdate"
+      },
+      "GuestOfficerView": {
+        "properties": {
+          "permissions": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "events",
+                "participation",
+                "members",
+                "reimbursements",
+                "board"
+              ]
+            },
+            "type": "array",
+            "maxItems": 5,
+            "minItems": 1,
+            "title": "Permissions"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "member_id": {
+            "type": "integer",
+            "title": "Member Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "granted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Granted At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "granted_by": {
+            "type": "integer",
+            "title": "Granted By"
+          },
+          "updated_by": {
+            "type": "integer",
+            "title": "Updated By"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "permissions",
+          "expires_at",
+          "member_id",
+          "name",
+          "email",
+          "granted_at",
+          "updated_at",
+          "granted_by",
+          "updated_by",
+          "revision",
+          "active"
+        ],
+        "title": "GuestOfficerView"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -8697,6 +9052,23 @@
           "items"
         ],
         "title": "Items[BoardTermView]"
+      },
+      "Items_GuestOfficerView_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/GuestOfficerView"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "Items[GuestOfficerView]"
       },
       "Items_OfficerView_": {
         "properties": {
@@ -9530,6 +9902,53 @@
           "driver"
         ],
         "title": "MyReimbursements"
+      },
+      "OfficerAccess": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "full",
+              "guest",
+              "none"
+            ],
+            "title": "Kind"
+          },
+          "permissions": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "events",
+                "participation",
+                "members",
+                "reimbursements",
+                "board"
+              ]
+            },
+            "type": "array",
+            "title": "Permissions"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "permissions",
+          "expires_at"
+        ],
+        "title": "OfficerAccess"
       },
       "OfficerGrant": {
         "properties": {
@@ -11122,6 +11541,10 @@
             ],
             "title": "Published Recap"
           },
+          "has_signups": {
+            "type": "boolean",
+            "title": "Has Signups"
+          },
           "miles": {
             "type": "string",
             "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
@@ -11210,6 +11633,7 @@
           "offered_seats",
           "paid_riders",
           "paid_ride_guaranteed",
+          "has_signups",
           "miles",
           "gas_price",
           "rate_override",
@@ -11496,6 +11920,14 @@
       },
       "SessionView": {
         "properties": {
+          "officer_access": {
+            "$ref": "#/components/schemas/OfficerAccess"
+          },
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time"
+          },
           "member": {
             "anyOf": [
               {
@@ -11522,6 +11954,8 @@
         "additionalProperties": false,
         "type": "object",
         "required": [
+          "officer_access",
+          "server_time",
           "member",
           "officer",
           "oauth_available",

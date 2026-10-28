@@ -1,3 +1,4 @@
+import { can } from "../lib/access";
 import { QuestionEditor } from "../components/form-questions";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
@@ -15,7 +16,7 @@ import {
 } from "../lib/api";
 import type { AdminEvent, Schema } from "../lib/api";
 import { capacityLabels } from "../lib/signup-capacity";
-import { useQuarter } from "../lib/context";
+import { useIdentity, useQuarter } from "../lib/context";
 import {
   Button,
   Dialog,
@@ -68,6 +69,7 @@ function Editor({
   initial?: AdminEvent;
   series?: Schema<"SeriesView">;
 }) {
+  const { session } = useIdentity();
   const { quarter, quarters } = useQuarter();
   const navigate = useNavigate();
   const definition = series?.definition;
@@ -139,13 +141,8 @@ function Editor({
   const convertibleSeries =
     draftSeries && series!.occurrences.some((e) => !e.skipped);
   const action = useAction();
-  const roster = useAPI(
-    "Page_SignupPrivate_",
-    `/api/admin/events/${initial?.id}/signups?limit=1`,
-    { enabled: !!initial?.signups_enabled },
-  );
   const frozenIds = new Set(
-    roster.data?.total ? initial?.questions.map((q) => q.id) : [],
+    initial?.has_signups ? initial.questions.map((q) => q.id) : [],
   );
   const enabled = form.watch("signups");
   function eventBody(values: EditorValues): Schema<"EventWrite-Input"> {
@@ -457,7 +454,7 @@ function Editor({
                 <input
                   type="checkbox"
                   {...form.register("signups")}
-                  disabled={!!roster.data?.total}
+                  disabled={!!initial?.has_signups}
                 />
                 Enable signups, carpools, check-in and driver trips
               </label>
@@ -520,9 +517,11 @@ function Editor({
                             Membership payments stay on the quarter’s separate
                             pause schedule.
                           </p>
-                          <Link to={`/admin/settings?quarter=${qid}`}>
-                            Manage membership pause →
-                          </Link>
+                          {can(session) && (
+                            <Link to={`/admin/settings?quarter=${qid}`}>
+                              Manage membership pause →
+                            </Link>
+                          )}
                         </>
                       ) : (
                         <p className="muted">
@@ -601,7 +600,7 @@ function Editor({
                     Contact details, ride situation, car and offered seats are
                     built in.
                   </p>
-                  {roster.data?.total ? (
+                  {initial?.has_signups ? (
                     <Message>
                       Existing questions are frozen after the first signup. New
                       questions must be optional.
@@ -611,7 +610,7 @@ function Editor({
                     questions={questions}
                     onChange={setQuestions}
                     frozenIds={frozenIds}
-                    optionalOnly={!!roster.data?.total}
+                    optionalOnly={!!initial?.has_signups}
                   />
                 </>
               ) : (

@@ -1,3 +1,5 @@
+import { can, eventTabAllowed } from "../lib/access";
+import { useIdentity } from "../lib/context";
 import { useState } from "react";
 import {
   Link,
@@ -60,10 +62,17 @@ import {
 } from "../components/operations";
 
 export function EventManagement() {
+  const { session } = useIdentity();
+  const editEvents = can(session, "events");
   const { id, slug } = useParams();
   const [params, setParams] = useSearchParams();
   const query = useAPI("EventPrivate", `/api/admin/events/${id}`);
-  const quarters = useAPI("Page_QuarterPrivate_", "/api/admin/quarters");
+  const quarters = useAPI("Page_QuarterPublic_", "/api/quarters?limit=200");
+  const financialQuarters = useAPI(
+    "Page_QuarterPrivate_",
+    "/api/admin/quarters",
+    { enabled: can(session, "reimbursements") },
+  );
   const [dialog, setDialog] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const action = useAction<AdminEvent>();
@@ -80,20 +89,22 @@ export function EventManagement() {
   const operational = event.state === "published" && q?.state === "open";
   const editable =
     !["completed", "cancelled"].includes(event.state) && q?.state === "open";
-  const tabs = event.signups_enabled
-    ? [
-        ["signups", "Signups"],
-        ["carpools", "Carpools"],
-        ["check-in-log", "Check-in Log"],
-        ["questions", "Questions"],
-        ["google-sheets", "Google Sheets"],
-        ["trips", "Trips & Mileage"],
-        ["recap", "Recap"],
-      ]
-    : [["recap", "Recap"]];
+  const tabs = (
+    event.signups_enabled
+      ? [
+          ["signups", "Signups"],
+          ["carpools", "Carpools"],
+          ["check-in-log", "Check-in Log"],
+          ["questions", "Questions"],
+          ["google-sheets", "Google Sheets"],
+          ["trips", "Trips & Mileage"],
+          ["recap", "Recap"],
+        ]
+      : [["recap", "Recap"]]
+  ).filter(([value]) => eventTabAllowed(session, value));
   const tab = tabs.some(([value]) => value === params.get("tab"))
     ? params.get("tab")!
-    : tabs[0][0];
+    : tabs[0]?.[0];
   function changeTab(value: string) {
     const next = new URLSearchParams(params);
     next.set("tab", value);
@@ -123,7 +134,8 @@ export function EventManagement() {
         >
           {event.state}
         </Pill>
-        {q?.state === "open" &&
+        {editEvents &&
+          q?.state === "open" &&
           (event.state === "draft" || event.state === "cancelled") && (
             <DeleteEventButton
               url={`/api/admin/events/${event.id}`}
@@ -133,13 +145,14 @@ export function EventManagement() {
               state={event.state}
             />
           )}
-        {editable && (
+        {editEvents && editable && (
           <Link className="button secondary" to={`${base}/edit`}>
             <Pencil size={16} />
             Edit This Date
           </Link>
         )}
-        {event.signups_enabled &&
+        {can(session, "participation") &&
+          event.signups_enabled &&
           event.state !== "draft" &&
           event.state !== "cancelled" && (
             <Link className="button primary" to={`${base}/check-in`}>
@@ -149,7 +162,7 @@ export function EventManagement() {
       </PageHeading>
       <div className="toolbar">
         <div className="actions">
-          {editable && (
+          {editEvents && editable && (
             <>
               <Button
                 variant="secondary"
@@ -172,18 +185,20 @@ export function EventManagement() {
               >
                 Cancel Event
               </Button>
-              {event.series_id && (
+              {editEvents && event.series_id && (
                 <Button variant="quiet" onClick={() => setDialog("skip")}>
                   Skip This Date
                 </Button>
               )}
             </>
           )}
-          <Button variant="quiet" onClick={() => setDialog("duplicate")}>
-            <Copy size={16} />
-            Duplicate
-          </Button>
-          {event.series_id && (
+          {editEvents && (
+            <Button variant="quiet" onClick={() => setDialog("duplicate")}>
+              <Copy size={16} />
+              Duplicate
+            </Button>
+          )}
+          {editEvents && event.series_id && (
             <Link className="text-link" to={`/admin/series/${event.series_id}`}>
               View Series
             </Link>
@@ -196,18 +211,20 @@ export function EventManagement() {
       {event.state === "cancelled" && (
         <Message>Cancelled: {event.cancellation_reason}</Message>
       )}
-      <nav className="tabs" aria-label="Event management tabs">
-        {tabs.map(([value, label]) => (
-          <button
-            key={value}
-            aria-current={tab === value ? "page" : undefined}
-            className={tab === value ? "selected" : ""}
-            onClick={() => changeTab(value)}
-          >
-            {label}
-          </button>
-        ))}
-      </nav>
+      {!!tabs.length && (
+        <nav className="tabs" aria-label="Event management tabs">
+          {tabs.map(([value, label]) => (
+            <button
+              key={value}
+              aria-current={tab === value ? "page" : undefined}
+              className={tab === value ? "selected" : ""}
+              onClick={() => changeTab(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+      )}
       <div className="section">
         {tab === "signups" ? (
           <SignupRoster event={event} locked={!editable} />
@@ -223,10 +240,18 @@ export function EventManagement() {
           <Trips
             event={event}
             locked={q?.state !== "open"}
-            mpg={q?.mpg ?? undefined}
+            mpg={
+              financialQuarters.data?.items.find(
+                (quarter) => quarter.id === event.quarter_id,
+              )?.mpg ?? undefined
+            }
           />
-        ) : (
+        ) : tab === "recap" ? (
           <Recap event={event} />
+        ) : (
+          <Message>
+            No tools are available for this event with your permissions.
+          </Message>
         )}
       </div>
       {dialog === "duplicate" ? (
@@ -315,7 +340,7 @@ function Duplicate({
   event: AdminEvent;
   onClose: () => void;
 }) {
-  const quarters = useAPI("Page_QuarterPrivate_", "/api/admin/quarters");
+  const quarters = useAPI("Page_QuarterPublic_", "/api/quarters?limit=200");
   const form = useForm({
     defaultValues: {
       quarter_id: String(event.quarter_id),

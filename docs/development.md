@@ -138,3 +138,19 @@ This replaces the nine JPEGs in [assets/readme](../assets/readme/) using the loc
 With the isolated browser-fixture API and Vite running, run `npm run test:e2e:approvals` from `frontend/`. The suite uses `E2E_PYTHON` (or the repository’s `.venv/bin/python`) to run the guarded `scripts/seed-approval-review.py` seeder against `aac_browser`. It checks application submission, conditional fields, word limits, both officer decisions, denial restrictions, officer-controlled reapplication with preserved history, questionnaire editing, and live status updates. It also runs accessibility and overflow checks and captures phone (390 × 844), tablet (834 × 1112), and desktop (1440 × 900) previews under `artifacts/external-member-approval/screens/`.
 
 To leave populated examples for manual review, rerun `.venv/bin/python scripts/seed-approval-review.py` with the browser-fixture environment. The fixture JSON includes `Applicant`, `Approval pending`, `Approval denied`, `Approval approved`, and `officer` session cookies. Applicant states are at `/my-aac/application`; officer review is at `/admin/members?status=pending` and questionnaire settings are at `/admin/settings`. These fixtures reset only the guarded disposable browser database.
+
+
+### Guest officer permissions
+
+Apply Alembic migration `e91f52a680bc` before deploying the new API. Existing full officers stay in `officers`; temporary grants are stored separately in `guest_officer_access` and do not satisfy the last-full-officer safeguard. `/api/session.officer` still means full officer; `officer_access` contains effective permissions and expiry, with `server_time` for the browser expiry clock.
+
+Protect newly delegated endpoints with `permission(...)` from `app.auth`; multiple permissions use **any-of** semantics. Keep full-only endpoints on `officer`. Shared imports recheck their stored mode on apply; private media checks its stored purpose; board edits with omitted `site_access` preserve access, while explicit access changes require a full officer. Update the permission matrix tests whenever extending a workflow.
+
+`backend/tests/test_guest_officers.py` runs against the disposable PostgreSQL test database described above. `npm run test:e2e:guests` runs synthetic API-backed browser journeys with Vite only, covering desktop Chromium, mobile Chromium, and mobile WebKit. It exercises tab filtering, shared dialogs, grant/renew/revoke, expiry, and changes to permissions on an open page. Traces are written under `artifacts/guest-access-traces`.
+
+### Guest officer feature demo
+
+Run `npm run demo:guests` from `frontend` and open <http://localhost:5180/demo>.
+The local gallery includes 45 screenshots across mobile, tablet, and desktop,
+with isolated sample-account previews for each permission and the access lifecycle.
+See [demo setup and capture instructions](../frontend/demo/guest-officers/README.md).
