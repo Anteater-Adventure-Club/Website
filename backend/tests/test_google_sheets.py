@@ -419,8 +419,9 @@ def test_oauth_state_is_bound_to_initiating_officer(sheets):
     assert oauth.calls == 0
 
 
-@pytest.mark.parametrize("valid_nonce", [True, False])
-def test_real_authlib_state_pkce_and_signed_google_identity(sheets, monkeypatch, valid_nonce):
+@pytest.mark.parametrize("nonce_case", ["valid", "wrong", "wrong-with-opt-out", "missing-with-opt-out"])
+def test_real_authlib_state_pkce_and_signed_google_identity(sheets, monkeypatch, nonce_case):
+    valid_nonce = nonce_case == "valid"
     sheets.app.state.sheets_oauth = make_sheets_oauth(sheets.app.state.settings)
     google = sheets.app.state.sheets_oauth.create_client("sheets")
     google.server_metadata.update({
@@ -447,6 +448,10 @@ def test_real_authlib_state_pkce_and_signed_google_identity(sheets, monkeypatch,
         claims = {"iss": "https://accounts.google.com", "sub": "club-subject", "aud": google.client_id,
                   "iat": int(time()), "exp": int(time()) + 300, "email": "club@example.com", "email_verified": True,
                   "nonce": authorization["nonce"] if valid_nonce else "wrong-nonce"}
+        if nonce_case.endswith("with-opt-out"):
+            claims["nonce_supported"] = False
+        if nonce_case == "missing-with-opt-out":
+            claims.pop("nonce")
         signed = jwt.encode({"alg": "RS256", "kid": "sheets-test"}, claims, key).decode()
         return {"id_token": signed, "access_token": "test-access", "refresh_token": "offline-secret",
                 "scope": authorization["scope"]}

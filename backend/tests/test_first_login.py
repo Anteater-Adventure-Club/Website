@@ -29,6 +29,7 @@ class GoogleFlow:
         self.key = key
         self.authorization = {}
         self.claim_overrides = {}
+        self.claim_omissions = set()
         self.token_fetches = 0
 
     def begin(self, origin=ORIGIN, mode=None):
@@ -66,6 +67,8 @@ class GoogleFlow:
             "email": EMAIL, "email_verified": True, "name": "First Login Fixture",
             **self.claim_overrides,
         }
+        for claim in self.claim_omissions:
+            claims.pop(claim, None)
         token = jwt.encode({"alg": "RS256", "kid": "isolated-fixture-key"}, claims, self.key)
         return {"id_token": token.decode(), "access_token": "isolated-fixture-access-token"}
 
@@ -209,6 +212,16 @@ def test_invalid_identity_is_rejected(google_flow, api, claims, error):
     google_flow.begin()
     google_flow.claim_overrides = claims
     assert_rejected(google_flow, api, google_flow.finish(), error)
+
+
+@pytest.mark.parametrize("mode", ["uci", "non_uci"])
+@pytest.mark.parametrize("missing_nonce", [False, True])
+def test_signed_token_cannot_disable_nonce_validation(google_flow, api, mode, missing_nonce):
+    google_flow.begin(mode=mode)
+    google_flow.claim_overrides = {"nonce_supported": False, "nonce": "wrong-nonce"}
+    if missing_nonce:
+        google_flow.claim_omissions.add("nonce")
+    assert_rejected(google_flow, api, google_flow.finish())
 
 
 def test_superseded_login_state_still_requires_fresh_attempt(google_flow, api):

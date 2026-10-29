@@ -93,7 +93,7 @@ Browser API URLs are relative to the site. Vite forwards `/api` and `/media` to 
 
 ### 1. Prerequisites and checkout
 
-Use a Bash-compatible shell with Git, curl, Python **3.12** (including `venv`/pip), Node **24.21.0** as specified in `.node-version`, npm, and Docker or Podman. Install that Node version with your preferred version manager before `npm ci`. The examples assume ports **5173**, **8000**, and **55432** are available.
+Use a Bash-compatible shell with Git, curl, Python **3.12.16** (including `venv`/pip), Node **24.22.1** as specified in `.node-version`, npm, and Docker or Podman. Install that Node version with your preferred version manager before `npm ci`. The examples assume ports **5173**, **8000**, and **55432** are available.
 
 ```bash
 git clone --branch aac-rebuild https://github.com/Anteater-Adventure-Club/Website.git
@@ -108,16 +108,19 @@ Run subsequent commands from the repository root unless shown otherwise. If anot
 
 ```bash
 python3.12 -m venv .venv
+.venv/bin/python -m pip install --upgrade pip==26.2.2
 .venv/bin/python -m pip install -r backend/requirements-dev.txt
+npm install --global npm@11.21.1
 (cd frontend && npm ci)
 
 export AAC_CONTAINER_ENGINE=podman  # or docker
+"$AAC_CONTAINER_ENGINE" build -f deploy/postgres-tests.Dockerfile -t aac-postgres:test .
 "$AAC_CONTAINER_ENGINE" run -d --name aac-dev-postgres \
   -e POSTGRES_USER=aac -e POSTGRES_PASSWORD=aac -e POSTGRES_DB=aac \
   -p 127.0.0.1:55432:5432 \
   -v aac-dev-postgres-data:/var/lib/postgresql/data \
-  docker.io/library/postgres:17
-until "$AAC_CONTAINER_ENGINE" exec aac-dev-postgres pg_isready -U aac -d aac; do sleep 1; done
+  aac-postgres:test
+until "$AAC_CONTAINER_ENGINE" exec aac-dev-postgres pg_isready -h 127.0.0.1 -U aac -d aac; do sleep 1; done
 ```
 
 The named volume preserves local development data. On later visits, use `"$AAC_CONTAINER_ENGINE" start aac-dev-postgres` rather than repeating `run`. These database credentials are for local development only.

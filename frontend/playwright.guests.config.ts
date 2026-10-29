@@ -20,11 +20,19 @@ export default defineConfig({
     },
     {
       name: "chromium-mobile",
-      use: { ...devices["Pixel 5"], browserName: "chromium" },
+      use: {
+        ...devices["Pixel 5"],
+        screen: undefined,
+        browserName: "chromium",
+      },
     },
     {
       name: "webkit-mobile",
-      use: { ...devices["iPhone 13"], browserName: "webkit" },
+      use: {
+        ...devices["iPhone 13"],
+        screen: undefined,
+        browserName: "webkit",
+      },
     },
   ],
 });
