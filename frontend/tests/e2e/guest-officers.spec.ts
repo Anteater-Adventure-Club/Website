@@ -474,13 +474,24 @@ test("forms stay full-officer only when access changes on an open page", async (
   state.requests.length = 0;
   await page.goto("/admin/events/club-hike/42?tab=forms");
   await expect(
+    page.getByRole("navigation", { name: "Event management tabs" }),
+  ).toBeVisible();
+  await expect(
     page.getByRole("button", { name: "Forms", exact: true }),
   ).toHaveCount(0);
   await expect(page.getByLabel("No Response to required forms")).toHaveCount(0);
   await page.goto("/admin/events/club-hike/42/form/1");
   await expect(page).toHaveURL(/\/admin\/events$/);
+  // The redirect updates the URL before the destination's lazy module loads.
+  // Wait for its content before another navigation can abort that import.
+  await expect(
+    page.getByRole("heading", { name: "Club hike", exact: true }),
+  ).toBeVisible();
   await page.goto("/admin/forms");
   await expect(page).toHaveURL(/\/admin\/events$/);
+  await expect(
+    page.getByRole("heading", { name: "Club hike", exact: true }),
+  ).toBeVisible();
   expect(
     state.requests.filter(
       (p) =>
