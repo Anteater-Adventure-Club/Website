@@ -123,6 +123,42 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/admin/guest-officers": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Guests */
+    get: operations["list_guests_api_admin_guest_officers_get"];
+    put?: never;
+    /** Grant Guest */
+    post: operations["grant_guest_api_admin_guest_officers_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/guest-officers/{mid}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Update Guest */
+    put: operations["update_guest_api_admin_guest_officers__mid__put"];
+    post?: never;
+    /** Revoke Guest */
+    delete: operations["revoke_guest_api_admin_guest_officers__mid__delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/me/application": {
     parameters: {
       query?: never;
@@ -764,6 +800,23 @@ export interface paths {
     put?: never;
     /** Add Member */
     post: operations["add_member_api_admin_members_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/member-lookup": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Member Lookup */
+    get: operations["member_lookup_api_admin_member_lookup_get"];
+    put?: never;
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -2291,11 +2344,8 @@ export interface components {
        * @default 0
        */
       position: number;
-      /**
-       * Site Access
-       * @default false
-       */
-      site_access: boolean;
+      /** Site Access */
+      site_access?: boolean | null;
     };
     /** BoardPrivateView */
     BoardPrivateView: {
@@ -2787,6 +2837,8 @@ export interface components {
       published_recap?: {
         [key: string]: unknown;
       } | null;
+      /** Has Signups */
+      has_signups: boolean;
       /** Miles */
       miles: string;
       /** Gas Price */
@@ -3267,6 +3319,82 @@ export interface components {
        */
       ends_at: string;
     };
+    /** GuestOfficerGrant */
+    GuestOfficerGrant: {
+      /** Permissions */
+      permissions: (
+        | "events"
+        | "participation"
+        | "members"
+        | "reimbursements"
+        | "board"
+      )[];
+      /**
+       * Expires At
+       * Format: date-time
+       */
+      expires_at: string;
+      /** Member Id */
+      member_id: number;
+    };
+    /** GuestOfficerUpdate */
+    GuestOfficerUpdate: {
+      /** Permissions */
+      permissions: (
+        | "events"
+        | "participation"
+        | "members"
+        | "reimbursements"
+        | "board"
+      )[];
+      /**
+       * Expires At
+       * Format: date-time
+       */
+      expires_at: string;
+      /** Expected Revision */
+      expected_revision: number;
+    };
+    /** GuestOfficerView */
+    GuestOfficerView: {
+      /** Permissions */
+      permissions: (
+        | "events"
+        | "participation"
+        | "members"
+        | "reimbursements"
+        | "board"
+      )[];
+      /**
+       * Expires At
+       * Format: date-time
+       */
+      expires_at: string;
+      /** Member Id */
+      member_id: number;
+      /** Name */
+      name: string;
+      /** Email */
+      email: string;
+      /**
+       * Granted At
+       * Format: date-time
+       */
+      granted_at: string;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
+      /** Granted By */
+      granted_by: number;
+      /** Updated By */
+      updated_by: number;
+      /** Revision */
+      revision: number;
+      /** Active */
+      active: boolean;
+    };
     /** HTTPValidationError */
     HTTPValidationError: {
       /** Detail */
@@ -3395,6 +3523,11 @@ export interface components {
     Items_FormTemplateView_: {
       /** Items */
       items: components["schemas"]["FormTemplateView"][];
+    };
+    /** Items[GuestOfficerView] */
+    Items_GuestOfficerView_: {
+      /** Items */
+      items: components["schemas"]["GuestOfficerView"][];
     };
     /** Items[OfficerView] */
     Items_OfficerView_: {
@@ -3645,6 +3778,24 @@ export interface components {
       driver_cap?: string | null;
       /** Coverage */
       coverage?: string | null;
+    };
+    /** OfficerAccess */
+    OfficerAccess: {
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "full" | "guest" | "none";
+      /** Permissions */
+      permissions: (
+        | "events"
+        | "participation"
+        | "members"
+        | "reimbursements"
+        | "board"
+      )[];
+      /** Expires At */
+      expires_at: string | null;
     };
     /** OfficerGrant */
     OfficerGrant: {
@@ -4223,6 +4374,8 @@ export interface components {
       published_recap?: {
         [key: string]: unknown;
       } | null;
+      /** Has Signups */
+      has_signups: boolean;
       /** Miles */
       miles: string;
       /** Gas Price */
@@ -4356,6 +4509,12 @@ export interface components {
     };
     /** SessionView */
     SessionView: {
+      officer_access: components["schemas"]["OfficerAccess"];
+      /**
+       * Server Time
+       * Format: date-time
+       */
+      server_time: string;
       member: components["schemas"]["MemberPrivate"] | null;
       /** Officer */
       officer: boolean;
@@ -4908,6 +5067,125 @@ export interface operations {
         };
         content: {
           "application/json": unknown;
+        };
+      };
+    };
+  };
+  list_guests_api_admin_guest_officers_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Items_GuestOfficerView_"];
+        };
+      };
+    };
+  };
+  grant_guest_api_admin_guest_officers_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GuestOfficerGrant"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GuestOfficerView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_guest_api_admin_guest_officers__mid__put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        mid: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GuestOfficerUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GuestOfficerView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  revoke_guest_api_admin_guest_officers__mid__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        mid: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };
@@ -6572,6 +6850,38 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["MemberPrivate"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  member_lookup_api_admin_member_lookup_get: {
+    parameters: {
+      query?: {
+        search?: string;
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MemberList"];
         };
       };
       /** @description Validation Error */

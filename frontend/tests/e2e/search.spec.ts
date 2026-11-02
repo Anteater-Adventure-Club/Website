@@ -174,7 +174,9 @@ test("sound-alike and accented names appear in the roster", async ({
   ]);
   await evidence(page, "roster-sound-alike", testInfo.project.name);
   await input.fill("Jose Garcia");
-  await expect(page.locator(".checkin-person strong")).toHaveText(["José García"]);
+  await expect(page.locator(".checkin-person strong")).toHaveText([
+    "José García",
+  ]);
   await page.getByRole("button", { name: /José García/ }).click();
   await expect(
     page
@@ -293,7 +295,7 @@ test("picker reports lookup failures separately from no matches and can retry", 
   page,
 }) => {
   let failures = true;
-  await page.route("**/api/admin/members?*", (route) =>
+  await page.route("**/api/admin/member-lookup?*", (route) =>
     failures
       ? route.fulfill({
           status: 503,

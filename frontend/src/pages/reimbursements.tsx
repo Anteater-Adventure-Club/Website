@@ -1,3 +1,5 @@
+import { can } from "../lib/access";
+import { useIdentity } from "../lib/context";
 import { useState } from "react";
 import { Link } from "react-router";
 import { useForm } from "react-hook-form";
@@ -22,6 +24,8 @@ import { rankPeople } from "../lib/person-search";
 
 type Driver = Schema<"DriverRow">;
 export function Reimbursements() {
+  const { session } = useIdentity();
+  const full = can(session);
   const { quarter } = useQuarter();
   const query = useAPI(
     "QuarterReport",
@@ -58,7 +62,7 @@ export function Reimbursements() {
     );
   const totals = data.totals;
   const frozen = data.state !== "open";
-  const activeStep = frozen ? 5 : step;
+  const activeStep = frozen ? 5 : !full && [1, 4, 5].includes(step) ? 2 : step;
   const drivers = rankPeople(
     data.drivers.filter(
       (d) =>
@@ -90,18 +94,19 @@ export function Reimbursements() {
       </PageHeading>
       <nav className="closeout-steps" aria-label="Quarter close-out steps">
         {["Budget", "Drivers", "Events", "Review", "Payments"].map(
-          (label, i) => (
-            <button
-              key={label}
-              aria-current={activeStep === i + 1 ? "step" : undefined}
-              disabled={frozen && i !== 4}
-              className={activeStep === i + 1 ? "selected" : ""}
-              onClick={() => setStep(i + 1)}
-            >
-              <span>{frozen && i < 4 ? <Check size={16} /> : i + 1}</span>
-              {label}
-            </button>
-          ),
+          (label, i) =>
+            (full || (frozen ? i === 4 : [1, 2].includes(i))) && (
+              <button
+                key={label}
+                aria-current={activeStep === i + 1 ? "step" : undefined}
+                disabled={frozen && i !== 4}
+                className={activeStep === i + 1 ? "selected" : ""}
+                onClick={() => setStep(i + 1)}
+              >
+                <span>{frozen && i < 4 ? <Check size={16} /> : i + 1}</span>
+                {label}
+              </button>
+            ),
         )}
       </nav>
       <div className="stat-grid section">
@@ -170,9 +175,11 @@ export function Reimbursements() {
                 </Empty>
               )}
             </div>
-            <Button className="section" onClick={() => setStep(4)}>
-              Next: Review Totals
-            </Button>
+            {full && (
+              <Button className="section" onClick={() => setStep(4)}>
+                Next: Review Totals
+              </Button>
+            )}
           </>
         ) : activeStep === 4 ? (
           <Panel>
@@ -213,7 +220,7 @@ export function Reimbursements() {
                   ? `${data.state === "archived" ? "Archived quarter" : "5. Record payments"}`
                   : "2. Review driver eligibility"}
               </h2>
-              {activeStep === 5 && data.state === "finalized" && (
+              {full && activeStep === 5 && data.state === "finalized" && (
                 <Button
                   variant="secondary"
                   disabled={!!pending.length}

@@ -503,10 +503,23 @@ test("J01 visitor links, event return path, board, and draft privacy", async ({
     .toBeGreaterThan(0);
   await dialog(page).getByRole("button", { name: "Close dialog" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  const date = new Date(fixture.events.Adventure.starts_at).toLocaleDateString(
-    "en-US",
-    { timeZone: "America/Los_Angeles", month: "long", day: "numeric" },
-  );
+  const eventDate = new Date(fixture.events.Adventure.starts_at);
+  const month = eventDate.toLocaleDateString("en-US", {
+    timeZone: "America/Los_Angeles",
+    month: "long",
+    year: "numeric",
+  });
+  // The fixture is four days ahead and can fall in the next calendar month.
+  const monthHeading = page.getByRole("heading", { name: month, exact: true });
+  if (!(await monthHeading.isVisible())) {
+    await page.getByRole("button", { name: "Next month", exact: true }).click();
+  }
+  await expect(monthHeading).toBeVisible();
+  const date = eventDate.toLocaleDateString("en-US", {
+    timeZone: "America/Los_Angeles",
+    month: "long",
+    day: "numeric",
+  });
   await page.getByRole("button", { name: new RegExp(`^${date},`) }).click();
   await expect(
     page.getByRole("heading", {

@@ -83,6 +83,7 @@ def events_projection(db, events, private=False):
         .where(Signup.event_id.in_(ids), Signup.role == "ride", Signup.cancelled.is_(False), Membership.status == "approved")
         .group_by(Signup.event_id)
     ).all())
+    participated = set(db.scalars(select(Signup.event_id).where(Signup.event_id.in_(ids)).distinct())) if private else set()
     recaps = {r.event_id: r.published for r in db.scalars(select(Recap).where(Recap.event_id.in_(ids)))}
     values = []
     for e in events:
@@ -102,6 +103,7 @@ def events_projection(db, events, private=False):
             published_recap=recaps.get(e.id),
         )
         if private:
+            data["has_signups"] = e.id in participated
             data.update({k: getattr(e, k) for k in EventPrivate.model_fields if k not in data})
         values.append((EventPrivate if private else EventPublic)(**data))
     return values
@@ -111,10 +113,12 @@ def event_projection(db, e, private=False):
     return events_projection(db, [e], private)[0]
 
 
-def signups_projection(db, signups, own=False, include_event=True):
+def signups_projection(db, signups, own=False, include_event=True, *, include_form_statuses=None):
     """Build rosters with grouped queries instead of a query per person."""
     from .services.event_forms import signup_form_statuses
-    form_statuses = signup_form_statuses(db, signups)
+    # Administrative callers must explicitly authorize access to follow-up status.
+    include_form_statuses = own if include_form_statuses is None else include_form_statuses
+    form_statuses = signup_form_statuses(db, signups) if include_form_statuses else {}
     if not signups:
         return []
     event_ids = {s.event_id for s in signups}
@@ -243,5 +247,5 @@ def signups_projection(db, signups, own=False, include_event=True):
     return result
 
 
-def signup_projection(db, signup, own=False, include_event=True):
-    return signups_projection(db, [signup], own, include_event)[0]
+def signup_projection(db, signup, own=False, include_event=True, *, include_form_statuses=None):
+    return signups_projection(db, [signup], own, include_event, include_form_statuses=include_form_statuses)[0]

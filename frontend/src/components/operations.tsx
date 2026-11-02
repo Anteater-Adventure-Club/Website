@@ -308,7 +308,7 @@ export function AddParticipantDialog({
   const [overrideReason, setOverrideReason] = useState("");
   const members = useAPI(
     "MemberList",
-    `/api/admin/members?limit=10&search=${encodeURIComponent(searchQuery)}`,
+    `/api/admin/member-lookup?limit=10&search=${encodeURIComponent(searchQuery)}`,
     { enabled: canSearch && !searching },
   );
   const cars = useAPI(

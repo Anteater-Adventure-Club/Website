@@ -180,3 +180,24 @@ Questions lock after the first response, including responses from subsequently c
 Under **Forms → Templates**, create reusable signup-question or event-follow-up templates. A signup template can be the default for any combination of regular events, retreats, meetings, and picnics. Defaults prefill new event and series editors; you can choose a different template or edit the copied questions. Applying a template replaces questions only after confirmation. Later template edits do not affect event copies. Follow-up templates also copy instructions, Required, and Allow Late Submissions, but each new form gets its own dates. Archiving a template removes its defaults without changing existing events.
 
 To export follow-ups, first configure the event’s **Google Sheets** integration, then open a form’s **Google Sheets** tab. Choose columns and **Enable form sync**. The form receives a protected tab in the existing event spreadsheet; there is no new account connection or separate sharing list. Exports include nonresponders and cancelled signups, and the Signup status and Response status columns are required. Each form can be paused independently; the event spreadsheet’s pause stops all its tabs. **Sync now**, retries, and connection/sharing status are managed from the event spreadsheet settings. Use Notes or your own tabs for manual work. Opening/deadline transitions queue updates even when no answers change.
+## Guest officer access
+
+Full officers can grant temporary access from **Officers → Guest officer access**. Choose an approved member with an email, select one or more permissions, and set the required expiry in Pacific time. The form starts at seven days; approved non-UCI members are eligible. Permissions apply across all quarters and events, subject to existing workflow locks and member restrictions.
+
+| Permission | Tools available |
+| --- | --- |
+| Events & Recaps | Event editing and publication, series, questions, images, recaps |
+| Check-in & Carpools | Signups, walk-ins, cards, attendance, carpools, participant imports/exports |
+| Members & Dues | Member records/imports, dues, external application reviews and reapplication |
+| Reimbursements | Drivers, eligibility, trips, mileage, payout records |
+| Board Profiles | Board years, profiles, ordering, visibility, photos |
+
+Guest navigation includes only the assigned tools. Full officers retain Dashboard, Settings, access management, bans and their private reasons, application-form configuration, Google Sheets, audit history, budgets, and quarter finalization/archival. Shared member pickers omit payout details; guests without Reimbursements cannot retrieve payout fields from member records.
+
+Expired grants remain listed for renewal. Revocation takes effect on subsequent API requests; expiry is checked on every protected request without a scheduled cleanup job. Open pages refresh access at expiry, on focus, every 30 seconds in officer tools, and on authorization errors. Losing officer access does not sign the member out. Grant and edit history is recorded in the audit log. Promoting an eligible UCI Guest to full officer removes the temporary grant.
+
+Event-form administration and templates require a full officer. Guest officers
+can continue editing signup questions manually under Events permission and
+managing attendance under Participation permission. Follow-up response statuses
+and missing-response filters are full-officer only. Guest officers who sign up
+for an event can access their own participant forms normally.

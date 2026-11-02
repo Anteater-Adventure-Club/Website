@@ -6,7 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import Response
 from sqlalchemy import func, select
-from ..auth import member, officer
+from ..auth import allowed, authorize, member, permission
 from ..db import get_db
 from ..domain import audit, default_quarter, ensure_member, fail, operational_event, page, require, utcnow
 from ..models import AttendanceAction, Audit, Card, Event, Member, Signup, Vehicle
@@ -88,7 +88,7 @@ def roster(
     form_status: str | None = None,
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
-    user=Depends(officer),
+    user=Depends(permission("participation")),
     db=Depends(get_db, scope="function"),
 ):
     e = require(db, Event, eid)
@@ -97,6 +97,8 @@ def roster(
     query = select(Signup).join(Member).where(Signup.event_id == eid)
     if role:
         query = query.where(Signup.role == role)
+    if form_status is not None:
+        authorize(db, user)
     if form_status == "no_response":
         from ..models import EventForm, EventFormResponse
         query = query.where(Signup.cancelled.is_(False), select(EventForm.id).where(
@@ -107,22 +109,22 @@ def roster(
                                                EventFormResponse.signup_id == Signup.id).correlate(EventForm, Signup).exists(),
         ).correlate(Signup).exists())
     result = ranked_page(db, query.order_by(Signup.joined_at, Signup.id), Signup, search, limit, offset)
-    result["items"] = signups_projection(db, result["items"])
+    result["items"] = signups_projection(db, result["items"], include_form_statuses=allowed(db, user))
     return result
 
 
 @router.post("/admin/events/{eid}/signups", response_model=SignupPrivate)
-def add_signup(eid: int, value: OfficerSignup, user=Depends(officer), db=Depends(get_db, scope="function")):
+def add_signup(eid: int, value: OfficerSignup, user=Depends(permission("participation")), db=Depends(get_db, scope="function")):
     e = operational_event(db, eid)
     target = require(db, Member, value.member_id)
     s = save_signup(db, e, target, value, True, "officer", actor=user,
                     capacity_override_reason=value.capacity_override_reason)
     audit(db, user, "signup.add", s.id)
-    return signup_projection(db, s)
+    return signup_projection(db, s, include_form_statuses=allowed(db, user))
 
 
 @router.delete("/admin/signups/{sid}")
-def remove_signup(sid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
+def remove_signup(sid: int, user=Depends(permission("participation")), db=Depends(get_db, scope="function")):
     s = require(db, Signup, sid)
     e = operational_event(db, s.event_id)
     db.refresh(s)
@@ -131,7 +133,7 @@ def remove_signup(sid: int, user=Depends(officer), db=Depends(get_db, scope="fun
 
 
 @router.get("/admin/events/{eid}/check-in", response_model=CheckInView)
-def check_in_state(eid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
+def check_in_state(eid: int, user=Depends(permission("participation")), db=Depends(get_db, scope="function")):
     e = require(db, Event, eid)
     if not e.signups_enabled:
         fail(409, "signups_disabled", "This event does not use attendance.")
@@ -147,7 +149,7 @@ def check_in_state(eid: int, user=Depends(officer), db=Depends(get_db, scope="fu
         "event": event_projection(db, e, True),
         "revision": e.revision,
         "server_time": utcnow(),
-        "signups": signups_projection(db, rows, include_event=False),
+        "signups": signups_projection(db, rows, include_event=False, include_form_statuses=allowed(db, user)),
         "counts": {
             role: {
                 "registered": sum(s.role == role for s in rows),
@@ -168,15 +170,15 @@ def check_in_state(eid: int, user=Depends(officer), db=Depends(get_db, scope="fu
 
 
 @router.post("/admin/signups/{sid}/check-in", response_model=SignupPrivate)
-def check_in(sid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
+def check_in(sid: int, user=Depends(permission("participation")), db=Depends(get_db, scope="function")):
     s = require(db, Signup, sid)
     e = operational_event(db, s.event_id)
     db.refresh(s)
-    return signup_projection(db, arrive(db, e, s, user))
+    return signup_projection(db, arrive(db, e, s, user), include_form_statuses=allowed(db, user))
 
 
 @router.delete("/admin/signups/{sid}/check-in")
-def undo_check_in(sid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
+def undo_check_in(sid: int, user=Depends(permission("participation")), db=Depends(get_db, scope="function")):
     s = require(db, Signup, sid)
     e = operational_event(db, s.event_id)
     db.refresh(s)
@@ -185,7 +187,7 @@ def undo_check_in(sid: int, user=Depends(officer), db=Depends(get_db, scope="fun
 
 
 @router.post("/admin/signups/{sid}/extension", response_model=SignupPrivate)
-def extend(sid: int, value: ExtensionWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
+def extend(sid: int, value: ExtensionWrite, user=Depends(permission("participation")), db=Depends(get_db, scope="function")):
     s = require(db, Signup, sid)
     e = operational_event(db, s.event_id)
     db.refresh(s)
@@ -197,11 +199,11 @@ def extend(sid: int, value: ExtensionWrite, user=Depends(officer), db=Depends(ge
     s.revision += 1
     e.revision += 1
     audit(db, user, "attendance.extension", s.id, {"until": value.until.isoformat(), "reason": value.reason})
-    return signup_projection(db, s)
+    return signup_projection(db, s, include_form_statuses=allowed(db, user))
 
 
 @router.put("/admin/events/{eid}/cards")
-def inventory(eid: int, value: CardsWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
+def inventory(eid: int, value: CardsWrite, user=Depends(permission("participation")), db=Depends(get_db, scope="function")):
     e = operational_event(db, eid, value.expected_revision)
     for role, count in (("general", value.general_cards), ("paid", value.paid_cards)):
         maximum = (
@@ -216,7 +218,7 @@ def inventory(eid: int, value: CardsWrite, user=Depends(officer), db=Depends(get
 
 
 @router.post("/admin/events/{eid}/cards/void")
-def void_card(eid: int, value: CardVoid, user=Depends(officer), db=Depends(get_db, scope="function")):
+def void_card(eid: int, value: CardVoid, user=Depends(permission("participation")), db=Depends(get_db, scope="function")):
     e = operational_event(db, eid, value.expected_revision)
     maximum = e.paid_cards if value.category == "paid" else e.general_cards
     if value.number > maximum:
@@ -234,17 +236,17 @@ def void_card(eid: int, value: CardVoid, user=Depends(officer), db=Depends(get_d
 
 
 @router.put("/admin/events/{eid}/carpools/{rider_id}")
-def seat_rider(eid: int, rider_id: int, value: AssignmentWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
+def seat_rider(eid: int, rider_id: int, value: AssignmentWrite, user=Depends(permission("participation")), db=Depends(get_db, scope="function")):
     e = operational_event(db, eid, value.expected_revision)
     s = require(db, Signup, rider_id)
     driver = require(db, Signup, value.driver_signup_id) if value.driver_signup_id else None
     assign(db, e, s, driver)
     audit(db, user, "carpool.assign", s.id, {"driver_signup_id": value.driver_signup_id})
-    return {"revision": e.revision, "signup": signup_projection(db, s)}
+    return {"revision": e.revision, "signup": signup_projection(db, s, include_form_statuses=allowed(db, user))}
 
 
 @router.post("/admin/events/{eid}/carpools/fill")
-def fill(eid: int, value: Revision, user=Depends(officer), db=Depends(get_db, scope="function")):
+def fill(eid: int, value: Revision, user=Depends(permission("participation")), db=Depends(get_db, scope="function")):
     e = operational_event(db, eid, value.expected_revision)
     count = fill_remaining(db, e)
     audit(db, user, "carpool.fill", eid, {"new_assignments": count})
@@ -252,12 +254,12 @@ def fill(eid: int, value: Revision, user=Depends(officer), db=Depends(get_db, sc
 
 
 @router.post("/admin/events/{eid}/walk-ins", response_model=SignupPrivate)
-def walk_in(eid: int, value: WalkInWrite, user=Depends(officer), db=Depends(get_db, scope="function")):
+def walk_in(eid: int, value: WalkInWrite, user=Depends(permission("participation")), db=Depends(get_db, scope="function")):
     e = operational_event(db, eid)
     key = hashlib.sha256(f"{eid}:{user.id}:{value.request_id}".encode()).hexdigest()
     previous = db.scalar(select(Audit).where(Audit.action == "attendance.walk-in", Audit.entity == key))
     if previous:
-        return signup_projection(db, require(db, Signup, previous.data["signup_id"]))
+        return signup_projection(db, require(db, Signup, previous.data["signup_id"]), include_form_statuses=allowed(db, user))
     target = (
         require(db, Member, value.member_id)
         if value.member_id
@@ -276,7 +278,7 @@ def walk_in(eid: int, value: WalkInWrite, user=Depends(officer), db=Depends(get_
                     capacity_override_reason=value.capacity_override_reason)
     arrive(db, e, s, user)
     audit(db, user, "attendance.walk-in", key, {"signup_id": s.id})
-    return signup_projection(db, s)
+    return signup_projection(db, s, include_form_statuses=allowed(db, user))
 
 
 @router.get("/admin/events/{eid}/check-in-log", response_model=Page[AttendanceLogRow])
@@ -284,7 +286,7 @@ def attendance_log(
     eid: int,
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
-    user=Depends(officer),
+    user=Depends(permission("participation")),
     db=Depends(get_db, scope="function"),
 ):
     require(db, Event, eid)
@@ -321,7 +323,7 @@ def attendance_log(
 
 
 @router.get("/admin/events/{eid}/questions", response_model=QuestionAnswers)
-def answers(eid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
+def answers(eid: int, user=Depends(permission("participation")), db=Depends(get_db, scope="function")):
     e = require(db, Event, eid)
     rows = list(
         db.execute(
@@ -354,7 +356,7 @@ def safe_cell(value):
 
 
 @router.get("/admin/events/{eid}/signups.csv")
-def export(eid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
+def export(eid: int, user=Depends(permission("participation")), db=Depends(get_db, scope="function")):
     e = require(db, Event, eid)
     output = io.StringIO()
     writer = csv.writer(output)

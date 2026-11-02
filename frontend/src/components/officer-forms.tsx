@@ -1,9 +1,11 @@
+import { can } from "../lib/access";
+import { useIdentity } from "../lib/context";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { request, useAction, useAPI } from "../lib/api";
 import type { Person, Schema } from "../lib/api";
-import { Button, Dialog, Field, Message, Pill } from "./ui";
+import { Button, Dialog, Empty, Field, Message, Pill } from "./ui";
 import { quarterURL } from "../lib/context";
 import { useSearchQuery } from "../lib/search-query";
 import { CapacityOverride } from "./signup-capacity";
@@ -103,14 +105,18 @@ export function DeleteEventButton({
 }
 
 export function PersonDialog({
+  selectOnly = false,
   onClose,
   onSelect,
   title = "Add a member",
 }: {
   onClose: () => void;
   onSelect?: (person: Person) => void;
+  selectOnly?: boolean;
   title?: string;
 }) {
+  const { session } = useIdentity();
+  const create = !selectOnly && can(session, "members", "participation");
   const form = useForm<Schema<"MemberInput">>({
     defaultValues: { name: "", email: "", phone: "", student: true },
   });
@@ -121,7 +127,7 @@ export function PersonDialog({
   const canSearch = !!onSelect && searchQuery.length > 1;
   const existing = useAPI(
     "MemberList",
-    `/api/admin/members?search=${encodeURIComponent(searchQuery)}&limit=10`,
+    `/api/admin/member-lookup?search=${encodeURIComponent(searchQuery)}&limit=10`,
     { enabled: canSearch && !searching },
   );
   async function directory() {
@@ -149,6 +155,7 @@ export function PersonDialog({
     <Dialog title={title} onClose={onClose}>
       <form
         onSubmit={form.handleSubmit(async (body) => {
+          if (!create) return;
           const value = { ...body, email: body.email?.trim() || null };
           await action
             .mutateAsync({ url: "/api/admin/members", body: value })
@@ -212,46 +219,50 @@ export function PersonDialog({
             <hr />
           </>
         )}
-        <Field
-          label="UCI email or other email"
-          type="email"
-          maxLength={254}
-          {...form.register("email")}
-          hint="A named walk-in can be added without an email."
-        />
-        <div className="actions">
-          <Button type="button" variant="secondary" onClick={directory}>
-            Look up in UCI directory
-          </Button>
-        </div>
-        {lookup && <Message>{lookup}</Message>}
-        <div className="form-grid">
-          <Field
-            label="Name"
-            required
-            maxLength={100}
-            autoComplete="name"
-            {...form.register("name")}
-          />
-          <Field
-            label="Phone"
-            type="tel"
-            maxLength={40}
-            autoComplete="tel"
-            {...form.register("phone")}
-          />
-        </div>
-        <label className="check-field">
-          <input type="checkbox" {...form.register("student")} />
-          UCI student
-        </label>
-        <Message error={action.error} />
-        <div className="sticky-actions">
-          <Button type="button" variant="quiet" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button disabled={action.isPending}>Save Member</Button>
-        </div>
+        {create && (
+          <>
+            <Field
+              label="UCI email or other email"
+              type="email"
+              maxLength={254}
+              {...form.register("email")}
+              hint="A named walk-in can be added without an email."
+            />
+            <div className="actions">
+              <Button type="button" variant="secondary" onClick={directory}>
+                Look up in UCI directory
+              </Button>
+            </div>
+            {lookup && <Message>{lookup}</Message>}
+            <div className="form-grid">
+              <Field
+                label="Name"
+                required
+                maxLength={100}
+                autoComplete="name"
+                {...form.register("name")}
+              />
+              <Field
+                label="Phone"
+                type="tel"
+                maxLength={40}
+                autoComplete="tel"
+                {...form.register("phone")}
+              />
+            </div>
+            <label className="check-field">
+              <input type="checkbox" {...form.register("student")} />
+              UCI student
+            </label>
+            <Message error={action.error} />
+            <div className="sticky-actions">
+              <Button type="button" variant="quiet" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button disabled={action.isPending}>Save Member</Button>
+            </div>
+          </>
+        )}
       </form>
     </Dialog>
   );
@@ -572,6 +583,13 @@ export function ImageUpload({
 }
 
 export function SetupQuarter() {
+  const { session } = useIdentity();
+  if (!can(session))
+    return (
+      <Empty title="No quarter available">
+        A full officer must set up a quarter first.
+      </Empty>
+    );
   return (
     <div className="notice">
       Set up your first quarter in <a href="/admin/settings">Settings</a> to

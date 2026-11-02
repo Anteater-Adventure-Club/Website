@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy import select
-from ..auth import authenticated_member, limited, officer
+from ..auth import authenticated_member, limited, officer, permission
 from ..db import get_db
 from ..domain import audit, fail, require, utcnow
 from ..models import ApprovalApplication, ApprovalApplicationHistory, FormDefinition, Member
@@ -73,12 +73,12 @@ def save_form(value: ApplicationFormWrite, user=Depends(officer), db=Depends(get
 
 
 @router.get("/admin/members/{mid}/application", response_model=ApplicationView)
-def review(mid: int, user=Depends(officer), db=Depends(get_db, scope="function")):
+def review(mid: int, user=Depends(permission("members")), db=Depends(get_db, scope="function")):
     return application_view(db, require(db, Member, mid), admin=True)
 
 
 @router.post("/admin/members/{mid}/application/decision", response_model=ApplicationView)
-def decide(mid: int, value: ApplicationDecision, user=Depends(officer), db=Depends(get_db, scope="function")):
+def decide(mid: int, value: ApplicationDecision, user=Depends(permission("members")), db=Depends(get_db, scope="function")):
     target = require(db, Member, mid, True)
     if target.approval_status != "pending":
         fail(409, "application_decided", "This application is no longer awaiting a decision. Refresh to see its status.")
@@ -93,7 +93,7 @@ def decide(mid: int, value: ApplicationDecision, user=Depends(officer), db=Depen
 
 
 @router.post("/admin/members/{mid}/application/reopen", response_model=ApplicationView)
-def reopen(mid: int, value: ApplicationReopen, user=Depends(officer), db=Depends(get_db, scope="function")):
+def reopen(mid: int, value: ApplicationReopen, user=Depends(permission("members")), db=Depends(get_db, scope="function")):
     target = require(db, Member, mid, True)
     if target.approval_status != "denied":
         fail(409, "application_changed", "Only a denied application can be reopened. Refresh to see its status.")

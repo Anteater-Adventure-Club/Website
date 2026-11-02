@@ -25,6 +25,7 @@ export default defineConfig({
       name: "phone",
       use: {
         ...devices["iPhone 13"],
+        screen: undefined,
         browserName: "webkit",
         viewport: { width: 390, height: 844 },
       },
@@ -33,6 +34,7 @@ export default defineConfig({
       name: "tablet",
       use: {
         ...devices["iPad Pro 11"],
+        screen: undefined,
         browserName: "webkit",
         viewport: { width: 834, height: 1112 },
       },

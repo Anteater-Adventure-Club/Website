@@ -23,11 +23,19 @@ export default defineConfig({
   projects: [
     {
       name: "chromium-android",
-      use: { ...devices["Pixel 5"], browserName: "chromium" },
+      use: {
+        ...devices["Pixel 5"],
+        screen: undefined,
+        browserName: "chromium",
+      },
     },
     {
       name: "webkit-iphone",
-      use: { ...devices["iPhone 13"], browserName: "webkit" },
+      use: {
+        ...devices["iPhone 13"],
+        screen: undefined,
+        browserName: "webkit",
+      },
     },
   ],
 });

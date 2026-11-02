@@ -155,3 +155,24 @@ Use `npm run test:e2e:forms` with the isolated fixture API/Vite environment. The
 `scripts/seed-event-forms-review.py` resets only that guarded browser database, then adds Yosemite form examples and `Form member`, `Form responded`, `Form missing`, `Form late`, and `Form new` synthetic identities. Their cookies and the event URL are in the ignored `artifacts/browser-fixtures.json`. Re-run the seeder after tests for a fresh manual preview. Form Sheets UI tests use synthetic API responses; backend tests exercise the real queue/worker/export logic with a fake Google transport and never contact Google.
 
 The additive `e91a7c403f28` migration extends form definitions for templates and adds event forms, responses, per-form sheet settings, immutable signup registration times, and the next spreadsheet form-transition timestamp. Deploy the migration before the updated API and Sheets worker. Existing application APIs, signup answers, spreadsheet IDs, and officer sharing remain in place. Form/question writes use revision checks; form mutations and submissions lock quarter → event → form, matching signup cancellation’s event lock. Response status is computed centrally rather than written into attendance state. The Sheets worker schedules time-only changes through its existing transactional outbox. Audit records contain IDs/revisions, not response answers.
+
+### Guest officer permissions
+
+Apply Alembic migration `e91f52a680bc` before deploying the new API. Existing full officers stay in `officers`; temporary grants are stored separately in `guest_officer_access` and do not satisfy the last-full-officer safeguard. `/api/session.officer` still means full officer; `officer_access` contains effective permissions and expiry, with `server_time` for the browser expiry clock.
+
+Protect newly delegated endpoints with `permission(...)` from `app.auth`; multiple permissions use **any-of** semantics. Keep full-only endpoints on `officer`. Shared imports recheck their stored mode on apply; private media checks its stored purpose; board edits with omitted `site_access` preserve access, while explicit access changes require a full officer. Update the permission matrix tests whenever extending a workflow.
+
+`backend/tests/test_guest_officers.py` runs against the disposable PostgreSQL test database described above. `npm run test:e2e:guests` runs synthetic API-backed browser journeys with Vite only, covering desktop Chromium, mobile Chromium, and mobile WebKit. It exercises tab filtering, shared dialogs, grant/renew/revoke, expiry, and changes to permissions on an open page. Traces are written under `artifacts/guest-access-traces`.
+
+### Integrating event forms and Guest access
+
+Migration `f02d8b7c91a4` joins the existing event-form and Guest-access revisions.
+Run `alembic upgrade head`; databases at either previous head retain their records
+and receive the other feature's additive migration. Do not rewrite or stamp over
+those existing revisions.
+
+Form administration, template selection, response statuses in administrative
+rosters, and form-status filtering require a full officer. Guests retain their
+existing event editing and participation tools; they can still respond to their
+own event forms as members. The browser CI matrix includes both forms and Guest
+access, with separate databases and artifacts for each job.

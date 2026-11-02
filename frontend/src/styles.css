@@ -521,6 +521,13 @@ form {
   padding: 2.7rem 3rem 3rem;
   min-height: calc(100vh - 160px);
 }
+.guest-access-notice {
+  background: #fff0ac;
+  color: #5b4c13;
+  width: 100%;
+  margin: 0;
+  padding: 0.5rem max(1rem, calc((100% - 1280px) / 2));
+}
 .page-heading {
   display: flex;
   align-items: flex-start;
