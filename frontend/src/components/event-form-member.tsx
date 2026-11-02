@@ -89,40 +89,66 @@ export function FormAttentionBanner() {
   );
 }
 
+function MemberEventFormList({
+  forms,
+  label,
+}: {
+  forms: EventForm[];
+  label: string;
+}) {
+  return (
+    <ul className="member-event-forms-list" aria-label={label}>
+      {forms.map((f) => (
+        <li className="member-event-form" key={f.id}>
+          <h3>{f.title}</h3>
+          <div className="member-event-form-status">
+            <Pill tone={f.status ? responseTone(f.status) : "green"}>
+              {f.status ? responseLabels[f.status] : phaseLabels[f.phase]}
+            </Pill>
+            {f.required && <small>Required</small>}
+          </div>
+          <p className="member-event-form-deadline muted">
+            {f.phase === "scheduled"
+              ? `Opens ${formTime(f.opens_at)}`
+              : `Due ${formTime(f.closes_at)}`}
+          </p>
+          <Link className="text-link member-event-form-action" to={formURL(f)}>
+            {f.can_submit
+              ? f.response
+                ? "Edit response"
+                : "Complete form"
+              : "View form"}
+            <ArrowRight size={16} aria-hidden="true" />
+            <span className="sr-only"> for {f.title}</span>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function MemberEventForms({ eventId }: { eventId: number }) {
   const query = useAPI("Items_EventFormView_", `/api/events/${eventId}/forms`);
   if (query.isPending) return <Loading />;
   if (query.error) return <Failure error={query.error} retry={query.refetch} />;
   if (!query.data.items.length) return null;
+  const pending = query.data.items.filter((form) => !form.response);
+  const responded = query.data.items.filter((form) => !!form.response);
   return (
-    <section className="section">
-      <h2>Event forms</h2>
-      <div className="stack">
-        {query.data.items.map((f) => (
-          <Panel className="event-form-card" key={f.id}>
-            <div className="actions">
-              <Pill tone={f.status ? responseTone(f.status) : "green"}>
-                {f.status ? responseLabels[f.status] : phaseLabels[f.phase]}
-              </Pill>
-              {f.required && <small>Required</small>}
-            </div>
-            <h3>{f.title}</h3>
-            <p className="muted">
-              {f.phase === "scheduled"
-                ? `Opens ${formTime(f.opens_at)}`
-                : `Due ${formTime(f.closes_at)}`}
-            </p>
-            <Link className="button secondary" to={formURL(f)}>
-              {f.can_submit
-                ? f.response
-                  ? "Edit response"
-                  : "Complete form"
-                : "View form"}
-              <ArrowRight size={16} />
-            </Link>
-          </Panel>
-        ))}
-      </div>
+    <section
+      className="panel member-event-forms"
+      aria-labelledby="event-forms-heading"
+    >
+      <h2 id="event-forms-heading">Event forms</h2>
+      {pending.length > 0 && (
+        <MemberEventFormList forms={pending} label="Pending forms" />
+      )}
+      {responded.length > 0 && (
+        <details className="member-event-forms-responded">
+          <summary>Responded ({responded.length})</summary>
+          <MemberEventFormList forms={responded} label="Responded forms" />
+        </details>
+      )}
     </section>
   );
 }

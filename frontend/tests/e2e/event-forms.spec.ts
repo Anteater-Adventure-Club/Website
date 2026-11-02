@@ -139,6 +139,18 @@ test("member reminders, conditional response, edits, late submission and access"
   await expect(
     page.getByRole("heading", { name: "Event forms", exact: true }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("list", { name: "Pending forms" }).getByRole("listitem"),
+  ).toHaveCount(1);
+  await expect(
+    page.locator(".member-event-forms-responded > summary"),
+  ).toHaveText("Responded (3)");
+  await expect(
+    page.getByRole("link", {
+      name: "Edit response for Yosemite gear check",
+      exact: true,
+    }),
+  ).toBeHidden();
   await capture(page, info.project.name, "event-page");
   await identity(context, "Form missing");
   await page.goto(base + "/form/2");
@@ -427,4 +439,185 @@ test("officer roster, responses, cancellation, and form spreadsheet controls", a
   await capture(page, info.project.name, "google-sheets");
   await page.getByRole("button", { name: "Enable form sync" }).click();
   await expect(page.getByText("Sync enabled", { exact: true })).toBeVisible();
+});
+
+test("event forms stay compact below signup across responsive layouts", async ({
+  page,
+  context,
+}, info) => {
+  await identity(context, "Form member");
+  await page.goto(fixture.event_forms.url);
+  const forms = page.getByRole("region", { name: "Event forms", exact: true });
+  const signup = page.locator(".signup-panel");
+  await expect(forms.getByRole("listitem")).toHaveCount(2);
+  await expect(
+    forms.getByRole("list", { name: "Responded forms" }),
+  ).toBeHidden();
+  await expect(forms.locator("summary")).toHaveText("Responded (2)");
+  await expect(forms.getByText("Not open yet", { exact: true })).toBeVisible();
+  await expect(forms.getByText(/^Opens /)).toBeVisible();
+  await expect(
+    forms.getByRole("list", { name: "Pending forms" }).getByText(/^Due /),
+  ).toHaveCount(1);
+  await page.evaluate(() => document.fonts.ready);
+  const viewports = [page.viewportSize()!];
+  if (info.project.name === "desktop") {
+    viewports.push(
+      ...[360, 1023, 1024].map((width) => ({ width, height: 900 })),
+    );
+  }
+  for (const viewport of viewports) {
+    await page.setViewportSize(viewport);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    const signupBox = (await signup.boundingBox())!;
+    const formsBox = (await forms.boundingBox())!;
+    expect(formsBox.y).toBeGreaterThanOrEqual(signupBox.y + signupBox.height);
+    expect(Math.abs(formsBox.x - signupBox.x)).toBeLessThan(1);
+    expect(Math.abs(formsBox.width - signupBox.width)).toBeLessThan(1);
+    // The four original cards occupied at least 845px at these device sizes.
+    expect(formsBox.height).toBeLessThan(507);
+    expect(
+      await forms.evaluate((el) =>
+        Boolean(
+          document.querySelector(".signup-panel")!.compareDocumentPosition(el) &
+            Node.DOCUMENT_POSITION_FOLLOWING,
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    for (const link of await forms.getByRole("link").all()) {
+      expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    }
+    await forms.scrollIntoViewIfNeeded();
+    const scrolledSignup = (await signup.boundingBox())!;
+    expect((await forms.boundingBox())!.y).toBeGreaterThanOrEqual(
+      scrolledSignup.y + scrolledSignup.height,
+    );
+  }
+  await page.setViewportSize(viewports[0]);
+  await capture(page, info.project.name, "compact-event-page");
+  await page.getByRole("button", { name: "Save Signup", exact: true }).focus();
+  await page.keyboard.press("Tab");
+  const complete = forms.getByRole("link", {
+    name: "Complete form for Yosemite gear check",
+    exact: true,
+  });
+  await expect(complete).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(
+    new RegExp(`${fixture.event_forms.url}/form/1$`),
+  );
+  await expect(
+    page.getByRole("heading", { name: "Yosemite gear check", exact: true }),
+  ).toBeVisible();
+});
+
+test("event form list handles long titles, optional forms, empty results and nonparticipants", async ({
+  page,
+  context,
+}, info) => {
+  await identity(context, "Form member");
+  const endpoint = `**/api/events/${fixture.event_forms.event_id}/forms`;
+  const longTitle =
+    "Yosemite packing and transportation details — " + "LongTitle".repeat(12);
+  await page.route(endpoint, async (route) => {
+    const response = await route.fetch();
+    const data = await response.json();
+    data.items[0].title = longTitle;
+    data.items[0].required = false;
+    await route.fulfill({ response, json: data });
+  });
+  await page.goto(fixture.event_forms.url);
+  const forms = page.getByRole("region", { name: "Event forms", exact: true });
+  await expect(
+    forms.getByRole("heading", { name: longTitle, exact: true }),
+  ).toBeVisible();
+  await expect(forms.getByText("Required", { exact: true })).toHaveCount(3);
+  await expect(
+    forms.getByRole("link", {
+      name: `Complete form for ${longTitle}`,
+      exact: true,
+    }),
+  ).toBeVisible();
+  await capture(page, info.project.name, "compact-long-title");
+  await page.unroute(endpoint);
+  await page.route(endpoint, (route) => route.fulfill({ json: { items: [] } }));
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "Save Signup", exact: true }),
+  ).toBeVisible();
+  await expect(forms).toHaveCount(0);
+  await page.unroute(endpoint);
+  await identity(context, "Member");
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Yosemite Fall Retreat", exact: true }),
+  ).toBeVisible();
+  await expect(forms).toHaveCount(0);
+});
+
+test("responded forms collapse by default and expand with the keyboard", async ({
+  page,
+  context,
+}, info) => {
+  await identity(context, "Form late");
+  const endpoint = `**/api/events/${fixture.event_forms.event_id}/forms`;
+  let show: "all" | "pending" | "responded" = "all";
+  await page.route(endpoint, async (route) => {
+    const response = await route.fetch();
+    const data = await response.json();
+    if (show !== "all")
+      data.items = data.items.filter((form: { response: unknown }) =>
+        show === "responded" ? !!form.response : !form.response,
+      );
+    await route.fulfill({ response, json: data });
+  });
+  await page.goto(fixture.event_forms.url);
+  const forms = page.getByRole("region", { name: "Event forms", exact: true });
+  const summary = forms.locator("summary");
+  const responded = forms.getByRole("list", { name: "Responded forms" });
+  await expect(summary).toHaveText("Responded (3)");
+  await expect(responded).toBeHidden();
+  await expect(forms.getByRole("listitem")).toHaveCount(1);
+  await summary.focus();
+  await page.keyboard.press("Enter");
+  await expect(responded).toBeVisible();
+  await expect(responded.getByRole("listitem")).toHaveCount(3);
+  await expect(
+    responded.getByText("Responded late", { exact: true }),
+  ).toBeVisible();
+  await capture(page, info.project.name, "responded-forms-expanded");
+  await summary.focus();
+  await page.keyboard.press("Space");
+  await expect(responded).toBeHidden();
+  await expect(
+    forms.getByRole("list", { name: "Pending forms" }),
+  ).toBeVisible();
+  await summary.click();
+  await responded
+    .getByRole("link", {
+      name: "Edit response for Yosemite gear check",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Edit response", exact: true }),
+  ).toBeVisible();
+  show = "responded";
+  await page.goto(fixture.event_forms.url);
+  await expect(summary).toHaveText("Responded (3)");
+  await expect(responded).toBeHidden();
+  await expect(forms.getByRole("list", { name: "Pending forms" })).toHaveCount(
+    0,
+  );
+  show = "pending";
+  await page.reload();
+  await expect(
+    forms.getByRole("list", { name: "Pending forms" }),
+  ).toBeVisible();
+  await expect(summary).toHaveCount(0);
 });
