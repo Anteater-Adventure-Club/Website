@@ -3067,11 +3067,9 @@ dialog::backdrop {
   @keyframes sheet-in {
     from {
       transform: translateY(15px);
-      opacity: 0.7;
     }
     to {
       transform: none;
-      opacity: 1;
     }
   }
 }

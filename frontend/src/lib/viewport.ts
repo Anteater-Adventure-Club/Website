@@ -8,6 +8,7 @@ export function useKeyboardViewport() {
     const root = document.documentElement;
     let frame = 0;
     let focusTimer = 0;
+    let revealPending = false;
     let height = viewport.height;
     let width = innerWidth;
     let appliedHeight = "";
@@ -86,7 +87,7 @@ export function useKeyboardViewport() {
       width = innerWidth;
       if (resized || event?.type === "focusin") {
         clearTimeout(focusTimer);
-        focusTimer = window.setTimeout(revealFocus, 120);
+        revealPending = true;
       }
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
@@ -118,6 +119,13 @@ export function useKeyboardViewport() {
           );
         if (nextOpen !== appliedOpen)
           root.classList.toggle("keyboard-open", (appliedOpen = nextOpen));
+        // Rendering can lag behind timers in WebKit. Start the focus delay
+        // after applying the new sheet geometry so it cannot scroll against
+        // the old layout and leave the input hidden when the sheet shrinks.
+        if (revealPending) {
+          revealPending = false;
+          focusTimer = window.setTimeout(revealFocus, 120);
+        }
       });
     }
     viewport.addEventListener("resize", update);
