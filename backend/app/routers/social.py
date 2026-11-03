@@ -198,6 +198,10 @@ def page_metadata(
         else:
             title = f"Event Unavailable | {SITE}"
             description = "Explore upcoming AAC adventures at UC Irvine."
+    elif re.fullmatch(r"/events/[^/]+/[1-9][0-9]{0,9}/form/[1-9][0-9]{0,9}", path):
+        title = f"Event Form | {SITE}"
+        description = "Sign in with the account you used to join this event to complete its form."
+        canonical = "/sign-in"
     elif path == "/admin" or path.startswith("/admin/"):
         title = f"Officer Tools | {SITE}"
         description = "Sign in with an authorized officer account to access AAC officer tools."

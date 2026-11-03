@@ -68,6 +68,14 @@ Choose additional suites for the affected behavior:
 
 Keyboard simulation does not replace a check on a physical phone. Test output stays in ignored `artifacts/`.
 
+CI runs browser suites in separate jobs, each with its own PostgreSQL service,
+API, and fixture files. The journey suite is also split by browser engine. Each
+job installs only its required browsers and keeps one Playwright worker, since
+mutating tests reset the fixture database. Do not run these suites concurrently
+against a shared local database. The existing **views** check reports the combined
+result and passes only when every browser job succeeds; failure artifacts are
+named by suite. The forms suite is included in this matrix.
+
 The bans suite uses the isolated browser database and reseeds it between tests.
 It captures WebKit at iPhone 390 × 844 and iPad 834 × 1112, and Chromium at
 desktop 1440 × 900. Review the PNGs under
@@ -137,8 +145,16 @@ This replaces the nine JPEGs in [assets/readme](../assets/readme/) using the loc
 
 With the isolated browser-fixture API and Vite running, run `npm run test:e2e:approvals` from `frontend/`. The suite uses `E2E_PYTHON` (or the repository’s `.venv/bin/python`) to run the guarded `scripts/seed-approval-review.py` seeder against `aac_browser`. It checks application submission, conditional fields, word limits, both officer decisions, denial restrictions, officer-controlled reapplication with preserved history, questionnaire editing, and live status updates. It also runs accessibility and overflow checks and captures phone (390 × 844), tablet (834 × 1112), and desktop (1440 × 900) previews under `artifacts/external-member-approval/screens/`.
 
-To leave populated examples for manual review, rerun `.venv/bin/python scripts/seed-approval-review.py` with the browser-fixture environment. The fixture JSON includes `Applicant`, `Approval pending`, `Approval denied`, `Approval approved`, and `officer` session cookies. Applicant states are at `/my-aac/application`; officer review is at `/admin/members?status=pending` and questionnaire settings are at `/admin/settings`. These fixtures reset only the guarded disposable browser database.
+To leave populated examples for manual review, rerun `.venv/bin/python scripts/seed-approval-review.py` with the browser-fixture environment. The fixture JSON includes `Applicant`, `Approval pending`, `Approval denied`, `Approval approved`, and `officer` session cookies. Applicant states are at `/my-aac/application`; officer review is at `/admin/members?status=pending` and questionnaire settings are at `/admin/forms?tab=application`. These fixtures reset only the guarded disposable browser database.
 
+
+### Event follow-up forms
+
+Use `npm run test:e2e:forms` with the isolated fixture API/Vite environment. The suite runs at phone (390 × 844), tablet (834 × 1112), and desktop (1440 × 900) sizes, checks accessibility/overflow, and saves screenshots under `artifacts/event-forms/screens/`. Set `E2E_PYTHON` if the fixture interpreter is outside `.venv`. Run this suite sequentially with other browser-fixture suites because they share the disposable `aac_browser` database.
+
+`scripts/seed-event-forms-review.py` resets only that guarded browser database, then adds Yosemite form examples and `Form member`, `Form responded`, `Form missing`, `Form late`, and `Form new` synthetic identities. Their cookies and the event URL are in the ignored `artifacts/browser-fixtures.json`. Re-run the seeder after tests for a fresh manual preview. Form Sheets UI tests use synthetic API responses; backend tests exercise the real queue/worker/export logic with a fake Google transport and never contact Google.
+
+The additive `e91a7c403f28` migration extends form definitions for templates and adds event forms, responses, per-form sheet settings, immutable signup registration times, and the next spreadsheet form-transition timestamp. Deploy the migration before the updated API and Sheets worker. Existing application APIs, signup answers, spreadsheet IDs, and officer sharing remain in place. Form/question writes use revision checks; form mutations and submissions lock quarter → event → form, matching signup cancellation’s event lock. Response status is computed centrally rather than written into attendance state. The Sheets worker schedules time-only changes through its existing transactional outbox. Audit records contain IDs/revisions, not response answers.
 
 ### Guest officer permissions
 
@@ -147,3 +163,16 @@ Apply Alembic migration `e91f52a680bc` before deploying the new API. Existing fu
 Protect newly delegated endpoints with `permission(...)` from `app.auth`; multiple permissions use **any-of** semantics. Keep full-only endpoints on `officer`. Shared imports recheck their stored mode on apply; private media checks its stored purpose; board edits with omitted `site_access` preserve access, while explicit access changes require a full officer. Update the permission matrix tests whenever extending a workflow.
 
 `backend/tests/test_guest_officers.py` runs against the disposable PostgreSQL test database described above. `npm run test:e2e:guests` runs synthetic API-backed browser journeys with Vite only, covering desktop Chromium, mobile Chromium, and mobile WebKit. It exercises tab filtering, shared dialogs, grant/renew/revoke, expiry, and changes to permissions on an open page. Traces are written under `artifacts/guest-access-traces`.
+
+### Integrating event forms and Guest access
+
+Migration `f02d8b7c91a4` joins the existing event-form and Guest-access revisions.
+Run `alembic upgrade head`; databases at either previous head retain their records
+and receive the other feature's additive migration. Do not rewrite or stamp over
+those existing revisions.
+
+Form administration, template selection, response statuses in administrative
+rosters, and form-status filtering require a full officer. Guests retain their
+existing event editing and participation tools; they can still respond to their
+own event forms as members. The browser CI matrix includes both forms and Guest
+access, with separate databases and artifacts for each job.

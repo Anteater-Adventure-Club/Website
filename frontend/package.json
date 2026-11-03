@@ -22,6 +22,7 @@
     "api:types": "openapi-typescript ../backend/openapi.json -o src/lib/api-schema.d.ts && prettier --write src/lib/api-schema.d.ts",
     "test:e2e:bans": "playwright test --config playwright.bans.config.ts",
     "test:e2e:approvals": "playwright test --config playwright.approvals.config.ts",
+    "test:e2e:forms": "playwright test --config playwright.forms.config.ts",
     "test:e2e:guests": "playwright test --config playwright.guests.config.ts"
   },
   "dependencies": {

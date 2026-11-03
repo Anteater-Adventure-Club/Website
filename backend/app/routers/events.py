@@ -259,6 +259,10 @@ def require_no_attendance(db, events):
 
 def remove_events(db, events):
     ids = [e.id for e in events]
+    from ..models import EventForm, EventFormResponse
+    if db.scalar(select(EventFormResponse.id).join(EventForm).where(EventForm.event_id.in_(ids)).limit(1)):
+        fail(409, "form_responses_exist", "Events with form responses must be kept for history.")
+    db.execute(delete(EventForm).where(EventForm.event_id.in_(ids)))
     db.execute(delete(Recap).where(Recap.event_id.in_(ids)))
     db.execute(delete(Signup).where(Signup.event_id.in_(ids)))
     for e in events:

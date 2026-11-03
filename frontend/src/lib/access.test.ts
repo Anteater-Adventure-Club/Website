@@ -41,12 +41,18 @@ describe("Guest navigation", () => {
         "carpools",
         "check-in-log",
         "questions",
+        "forms",
         "google-sheets",
         "trips",
         "recap",
       ])
         expect(eventTabAllowed(session, tab)).toBe(tabs.includes(tab));
-      for (const path of ["/admin/overview", "/admin/settings"])
+      for (const path of [
+        "/admin/overview",
+        "/admin/settings",
+        "/admin/forms",
+        "/admin/events/hike/3/form/1",
+      ])
         expect(canVisit(session, path)).toBe(false);
       expect(can(session)).toBe(false);
     },
@@ -64,6 +70,8 @@ describe("Guest navigation", () => {
   it("preserves full officer access and removes tools for expired or unapproved guests", () => {
     const full = { ...guest(), officer: true };
     expect(canVisit(full, "/admin/settings")).toBe(true);
+    expect(eventTabAllowed(full, "forms")).toBe(true);
+    expect(canVisit(full, "/admin/events/hike/3/form/1")).toBe(true);
     expect(officerHome(full)).toBe("/admin/overview");
     const expired = {
       ...guest(),

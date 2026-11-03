@@ -1,3 +1,5 @@
+import { EventFormsTab } from "../components/event-form-admin";
+import { responseLabels, responseTone } from "../lib/event-forms";
 import { can, eventTabAllowed } from "../lib/access";
 import { useIdentity } from "../lib/context";
 import { useState } from "react";
@@ -95,7 +97,8 @@ export function EventManagement() {
           ["signups", "Signups"],
           ["carpools", "Carpools"],
           ["check-in-log", "Check-in Log"],
-          ["questions", "Questions"],
+          ["questions", "Signup answers"],
+          ["forms", "Forms"],
           ["google-sheets", "Google Sheets"],
           ["trips", "Trips & Mileage"],
           ["recap", "Recap"],
@@ -228,6 +231,8 @@ export function EventManagement() {
       <div className="section">
         {tab === "signups" ? (
           <SignupRoster event={event} locked={!editable} />
+        ) : tab === "forms" ? (
+          <EventFormsTab event={event} />
         ) : tab === "carpools" ? (
           <EventCarpools event={event} locked={!operational} />
         ) : tab === "check-in-log" ? (
@@ -422,16 +427,18 @@ function SignupRoster({
   event: AdminEvent;
   locked: boolean;
 }) {
+  const { session } = useIdentity();
   const [search, setSearch] = useState("");
   const { query: searchQuery, pending: searching } = useSearchQuery(search);
   const [role, setRole] = useState("");
+  const [missingForm, setMissingForm] = useState(false);
   const [offset, setOffset] = useState(0);
   const [add, setAdd] = useState(false);
   const [importing, setImporting] = useState(false);
   const [remove, setRemove] = useState<Schema<"SignupPrivate"> | null>(null);
   const query = useAPI(
     "Page_SignupPrivate_",
-    `/api/admin/events/${event.id}/signups?limit=50&offset=${offset}&search=${encodeURIComponent(searchQuery)}${role ? `&role=${role}` : ""}`,
+    `/api/admin/events/${event.id}/signups?limit=50&offset=${offset}&search=${encodeURIComponent(searchQuery)}${role ? `&role=${role}` : ""}${can(session) && missingForm ? "&form_status=no_response" : ""}`,
     { enabled: !searching },
   );
   const action = useAction();
@@ -462,6 +469,19 @@ function SignupRoster({
             <option value="driver">Drivers</option>
             <option value="own">Own ride</option>
           </select>
+          {can(session) && (
+            <label className="check-field">
+              <input
+                type="checkbox"
+                checked={missingForm}
+                onChange={(e) => {
+                  setMissingForm(e.target.checked);
+                  setOffset(0);
+                }}
+              />
+              No Response to required forms
+            </label>
+          )}
         </div>
         <div className="actions">
           <a
@@ -517,6 +537,37 @@ function SignupRoster({
                     </td>
                     <td data-label="Status">
                       {s.released ? "Seat released" : attendanceLabel(s)}
+                      {can(session) && !!s.form_statuses?.length && (
+                        <div className="roster-form-status">
+                          {s.form_statuses.some(
+                            (f) => f.status === "no_response",
+                          ) && <Pill tone="yellow">No Response</Pill>}
+                          <details>
+                            <summary>
+                              {
+                                s.form_statuses.filter(
+                                  (f) =>
+                                    f.status === "responded" ||
+                                    f.status === "responded_late",
+                                ).length
+                              }{" "}
+                              / {s.form_statuses.length} forms answered
+                            </summary>
+                            {s.form_statuses.map((f) => (
+                              <small key={f.number}>
+                                <Link
+                                  to={`${eventURL(event, true)}/form/${f.number}`}
+                                >
+                                  <Pill tone={responseTone(f.status)}>
+                                    {responseLabels[f.status]}
+                                  </Pill>{" "}
+                                  {f.title}
+                                </Link>
+                              </small>
+                            ))}
+                          </details>
+                        </div>
+                      )}
                     </td>
                     <td data-label="Car / notes">
                       {s.role === "driver" && (

@@ -220,3 +220,36 @@ def test_network_error_on_write_is_uncertain():
         assert "secret" not in str(caught.value)
     finally:
         google.close()
+
+
+def test_form_tabs_have_stable_ids_and_leave_manual_tabs_untouched():
+    remote = [{"properties": {"sheetId": 7, "title": "Signups"}},
+              {"properties": {"sheetId": 8, "title": "Notes"}},
+              {"properties": {"sheetId": 9, "title": "Packing plans"}}]
+    operations = []
+    def handler(request):
+        if request.url.host == "oauth2.googleapis.com":
+            return token_response()
+        if request.method == "GET":
+            return httpx.Response(200, json={"sheets": remote})
+        body = json.loads(request.content)["requests"]
+        operations.extend(body)
+        for item in body:
+            if "addSheet" in item:
+                remote.append({"properties": item["addSheet"]["properties"], "protectedRanges": []})
+            if "addProtectedRange" in item:
+                protected = item["addProtectedRange"]["protectedRange"]
+                next(s for s in remote if s["properties"]["sheetId"] == protected["range"]["sheetId"])["protectedRanges"].append(protected)
+        return httpx.Response(200, json={})
+    google = client(handler)
+    try:
+        google.ensure_form_tab("file", 1000000001, "Form 1 — Gear / check", "club@example.com")
+        google.ensure_form_tab("file", 1000000001, "Form 1 — Gear / check", "club@example.com")
+        assert len([o for o in operations if "addSheet" in o]) == 1
+        assert len([o for o in operations if "addProtectedRange" in o]) == 1
+        assert [s["properties"]["title"] for s in remote[:3]] == ["Signups", "Notes", "Packing plans"]
+        protected = next(o["addProtectedRange"]["protectedRange"] for o in operations if "addProtectedRange" in o)
+        assert protected["editors"]["users"] == ["club@example.com"]
+        assert not protected["warningOnly"]
+    finally:
+        google.close()

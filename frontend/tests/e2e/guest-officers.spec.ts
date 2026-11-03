@@ -98,6 +98,13 @@ async function fixture(page: Page, permissions: string[], full = false) {
         },
         server_time: new Date().toISOString(),
       };
+    else if (
+      path === "/api/me/event-forms/attention" ||
+      path === "/api/admin/form-templates" ||
+      path === "/api/admin/event-forms" ||
+      /\/forms$/.test(path)
+    )
+      json = { items: [], total: 0 };
     else if (path === "/api/quarters" || path === "/api/admin/quarters")
       json = { items: [quarter], total: 1 };
     else if (path === "/api/admin/events")
@@ -277,7 +284,7 @@ for (const [permission, path, tabs] of [
         permission === "events"
           ? ["Recap"]
           : permission === "participation"
-            ? ["Signups", "Carpools", "Check-in Log", "Questions"]
+            ? ["Signups", "Carpools", "Check-in Log", "Signup answers"]
             : ["Trips & Mileage"];
       await expect(
         page
@@ -420,3 +427,79 @@ for (const reason of ["expiry", "revocation", "permission change"] as const) {
     expect(state.errors).toEqual([]);
   });
 }
+
+test("forms stay full-officer only when access changes on an open page", async ({
+  page,
+}) => {
+  const state = await fixture(page, [], true);
+  await page.route("**/api/admin/form-templates", (route) =>
+    route.fulfill({
+      json: {
+        items: [
+          {
+            key: "signup-template",
+            kind: "signup",
+            title: "Signup template",
+            questions: [],
+            instructions: "",
+            required: false,
+            allow_late: false,
+            archived: false,
+            default_event_kinds: [],
+            revision: 1,
+          },
+        ],
+      },
+    }),
+  );
+  await page.goto("/admin/events/club-hike/42/edit");
+  await page
+    .getByRole("tab", { name: "Signups & Carpools", exact: true })
+    .click();
+  await expect(
+    page.getByRole("combobox", { name: "Use a template" }),
+  ).toBeVisible();
+  state.full = false;
+  state.permissions = [
+    "events",
+    "participation",
+    "members",
+    "reimbursements",
+    "board",
+  ];
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await expect(
+    page.getByRole("combobox", { name: "Use a template" }),
+  ).toHaveCount(0);
+  state.requests.length = 0;
+  await page.goto("/admin/events/club-hike/42?tab=forms");
+  await expect(
+    page.getByRole("navigation", { name: "Event management tabs" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Forms", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByLabel("No Response to required forms")).toHaveCount(0);
+  await page.goto("/admin/events/club-hike/42/form/1");
+  await expect(page).toHaveURL(/\/admin\/events$/);
+  // The redirect updates the URL before the destination's lazy module loads.
+  // Wait for its content before another navigation can abort that import.
+  await expect(
+    page.getByRole("heading", { name: "Club hike", exact: true }),
+  ).toBeVisible();
+  await page.goto("/admin/forms");
+  await expect(page).toHaveURL(/\/admin\/events$/);
+  await expect(
+    page.getByRole("heading", { name: "Club hike", exact: true }),
+  ).toBeVisible();
+  expect(
+    state.requests.filter(
+      (p) =>
+        p.startsWith("/api/admin/") &&
+        (p.includes("/forms") ||
+          p.includes("/form-templates") ||
+          p.includes("/event-forms")),
+    ),
+  ).toEqual([]);
+  expect(state.errors).toEqual([]);
+});

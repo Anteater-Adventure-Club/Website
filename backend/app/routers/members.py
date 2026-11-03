@@ -320,7 +320,7 @@ def member_detail(mid: int, quarter_id: int | None = None, user=Depends(permissi
             membership_view(db, mid, qid)
             for qid in db.scalars(select(Membership.quarter_id).where(Membership.member_id == mid))
         ],
-        "signups": signups_projection(db, history),
+        "signups": signups_projection(db, history, include_form_statuses=allowed(db, user)),
         "officer": db.get(Officer, mid) is not None,
         "bans": [ban_view(b) for b in db.scalars(select(MemberBan).where(MemberBan.member_id == mid).order_by(MemberBan.created_at.desc()))] if full else [],
     }

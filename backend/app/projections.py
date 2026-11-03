@@ -113,8 +113,12 @@ def event_projection(db, e, private=False):
     return events_projection(db, [e], private)[0]
 
 
-def signups_projection(db, signups, own=False, include_event=True):
+def signups_projection(db, signups, own=False, include_event=True, *, include_form_statuses=None):
     """Build rosters with grouped queries instead of a query per person."""
+    from .services.event_forms import signup_form_statuses
+    # Administrative callers must explicitly authorize access to follow-up status.
+    include_form_statuses = own if include_form_statuses is None else include_form_statuses
+    form_statuses = signup_form_statuses(db, signups) if include_form_statuses else {}
     if not signups:
         return []
     event_ids = {s.event_id for s in signups}
@@ -205,6 +209,7 @@ def signups_projection(db, signups, own=False, include_event=True):
         result.append(
             {
                 "id": s.id,
+                "form_statuses": form_statuses.get(s.id, []),
                 "member_id": s.member_id,
                 "event_id": s.event_id,
                 "name": m.name,
@@ -242,5 +247,5 @@ def signups_projection(db, signups, own=False, include_event=True):
     return result
 
 
-def signup_projection(db, signup, own=False, include_event=True):
-    return signups_projection(db, [signup], own, include_event)[0]
+def signup_projection(db, signup, own=False, include_event=True, *, include_form_statuses=None):
+    return signups_projection(db, [signup], own, include_event, include_form_statuses=include_form_statuses)[0]

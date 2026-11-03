@@ -6,8 +6,9 @@ from uuid import uuid4
 from sqlalchemy import and_, or_, select, update
 from sqlalchemy.dialects.postgresql import insert
 from ..domain import utcnow
-from ..models import EventSheet, Member, Officer, SheetPermission, SheetsConnection
-from .sheets_export import signup_rows
+from ..models import EventForm, EventFormSheet, EventSheet, Member, Officer, SheetPermission, SheetsConnection
+from .sheets_export import form_rows, signup_rows
+from .sheets_queue import enqueue_data, schedule_form_transitions
 from .sheets_google import GoogleFailure, GoogleSheetsClient
 
 
@@ -38,6 +39,13 @@ def claim(sessions):
         connection = db.get(SheetsConnection, 1)
         if not connection or not connection.refresh_token or connection.error:
             return None
+        transitions = list(db.scalars(select(EventSheet).where(
+            EventSheet.enabled.is_(True), EventSheet.next_form_transition_at <= now,
+        ).with_for_update(skip_locked=True)))
+        if transitions:
+            enqueue_data(db.connection(), EventSheet.id.in_([s.id for s in transitions]), immediate=True)
+            schedule_form_transitions(db.connection(), [s.event_id for s in transitions if s.event_id])
+            now = utcnow()
         target = db.scalar(select(EventSheet).where(
             or_(EventSheet.claimed_until.is_(None), EventSheet.claimed_until < now),
             or_(
@@ -233,8 +241,17 @@ def process_job(sessions, settings, job, *, client_factory=GoogleSheetsClient, t
             guard()
             with sessions() as db:
                 rows = list(signup_rows(db, target.event_id, target.columns))
+                forms = [(form, config, list(form_rows(db, form, config.columns)))
+                         for form, config in db.execute(select(EventForm, EventFormSheet).join(EventFormSheet).where(
+                             EventForm.event_id == target.event_id, EventForm.state != "draft", EventFormSheet.enabled.is_(True),
+                         ).order_by(EventForm.number))]
             try:
                 client.write_snapshot(target.spreadsheet_id, target.sheet_id, target.columns, rows)
+                for form, config, response_rows in forms:
+                    guard()
+                    client.ensure_form_tab(target.spreadsheet_id, config.sheet_id,
+                                           f"Form {form.number} — {form.title}", client.owner_email)
+                    client.write_snapshot(target.spreadsheet_id, config.sheet_id, config.columns, response_rows)
                 guard()
                 finish(sessions, sid, token, target.requested)
             except GoogleFailure as error:

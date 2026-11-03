@@ -3,11 +3,23 @@ from datetime import timedelta
 from sqlalchemy import event, func, inspect, select, update
 from sqlalchemy.orm import Session
 from ..domain import utcnow
-from ..models import Event, EventSheet, Member, Officer, Signup
+from ..models import Event, EventForm, EventFormResponse, EventFormSheet, EventSheet, Member, Officer, Signup
 
 _installed = False
 MEMBER_FIELDS = ("name", "email", "phone")
-SIGNUP_FIELDS = ("role", "answers", "notes", "joined_at", "cancelled", "member_id", "event_id")
+SIGNUP_FIELDS = ("role", "answers", "notes", "joined_at", "registered_at", "cancelled", "member_id", "event_id")
+
+
+def schedule_form_transitions(connection, event_ids):
+    now = utcnow()
+    for eid in event_ids:
+        times = connection.execute(select(EventForm.opens_at, EventForm.closes_at).join(EventFormSheet).where(
+            EventForm.event_id == eid, EventForm.state == "published", EventFormSheet.enabled.is_(True),
+        )).all()
+        upcoming = [t for pair in times for t in pair if t > now]
+        connection.execute(update(EventSheet).where(EventSheet.event_id == eid).values(
+            next_form_transition_at=min(upcoming) if upcoming else None,
+        ))
 
 
 def enqueue_data(connection, condition, immediate=False):
@@ -36,10 +48,19 @@ def changed(obj, fields):
 
 def before_flush(db, context, instances):
     changes = db.info.setdefault("sheet_changes", {"events": set(), "members": set(), "questions": {},
-                                                "deleted_targets": set(), "officers": False})
+                                                "deleted_targets": set(), "officers": False, "form_config": set()})
     for obj in db.new.union(db.dirty).union(db.deleted):
         new_or_deleted = obj in db.new or obj in db.deleted
-        if isinstance(obj, Signup) and (new_or_deleted or changed(obj, SIGNUP_FIELDS)):
+        if isinstance(obj, EventForm):
+            changes["events"].add(obj.event_id)
+            changes["form_config"].add(obj.event_id)
+        elif isinstance(obj, (EventFormResponse, EventFormSheet)):
+            eid = db.connection().scalar(select(EventForm.event_id).where(EventForm.id == obj.form_id))
+            if eid:
+                changes["events"].add(eid)
+                if isinstance(obj, EventFormSheet):
+                    changes["form_config"].add(eid)
+        elif isinstance(obj, Signup) and (new_or_deleted or changed(obj, SIGNUP_FIELDS)):
             if obj.event_id is not None:
                 changes["events"].add(obj.event_id)
             changes["events"].update(inspect(obj).attrs.event_id.history.deleted)
@@ -70,6 +91,11 @@ def after_flush(db, context):
         )))
     if changes["events"]:
         enqueue_data(conn, EventSheet.event_id.in_(changes["events"]))
+    if changes["form_config"]:
+        conn.execute(update(EventSheet).where(EventSheet.event_id.in_(changes["form_config"])).values(
+            revision=EventSheet.revision + 1,
+        ))
+        schedule_form_transitions(conn, changes["form_config"])
     for eid, valid_questions in changes["questions"].items():
         rows = conn.execute(select(EventSheet.id, EventSheet.columns).where(
             EventSheet.event_id == eid

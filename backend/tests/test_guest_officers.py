@@ -340,3 +340,43 @@ def test_member_list_authorization_queries_do_not_scale_with_rows(api, engine, p
         assert 0 < counts[0] == counts[1] <= 4, counts
     finally:
         sqlalchemy_event.remove(engine, "before_cursor_execute", record_authorization)
+
+
+@pytest.mark.parametrize("permissions", [[p] for p in PERMISSIONS] + [list(PERMISSIONS)])
+def test_forms_require_full_officer_but_guests_keep_personal_forms(api, permissions):
+    from test_event_forms import create_form, respond, url
+
+    e = event(api, quarter(api))
+    helper = person(api)
+    s = signup(api, e, helper)
+    form = create_form(api, e)
+    assert api.get(f"/api/admin/events/{e['id']}/signups").json()["items"][0]["form_statuses"]
+    grant(api, helper, permissions)
+    login(api, helper["id"])
+    for path in [
+        "/api/admin/event-forms", "/api/admin/form-templates",
+        f"/api/admin/events/{e['id']}/forms", url(e, form, True),
+        url(e, form, True) + "/responses", url(e, form, True) + "/google-sheet",
+        f"/api/admin/events/{e['id']}/signups?form_status=no_response",
+    ]:
+        assert api.get(path).status_code == 403, path
+    for method, path in [
+        ("POST", "/api/admin/form-templates"),
+        ("PUT", "/api/admin/form-templates/template-test"),
+        ("POST", f"/api/admin/events/{e['id']}/forms"),
+        ("PUT", url(e, form, True)),
+        ("PUT", url(e, form, True) + "/google-sheet"),
+    ]:
+        assert api.request(method, path, json={}).status_code == 403, path
+    if "participation" in permissions:
+        assert api.get(f"/api/admin/events/{e['id']}/signups").json()["items"][0]["form_statuses"] == []
+        assert api.get(f"/api/admin/events/{e['id']}/check-in").json()["signups"][0]["form_statuses"] == []
+        result = api.post(f"/api/admin/events/{e['id']}/signups", json={"member_id": helper["id"], "role": "own"})
+        assert result.status_code == 200, result.text
+        assert result.json()["form_statuses"] == []
+    if "members" in permissions:
+        assert api.get(f"/api/admin/members/{helper['id']}").json()["signups"][0]["form_statuses"] == []
+    assert api.get(url(e, form)).status_code == 200
+    assert api.get("/api/me/signups").json()["items"][0]["id"] == s["id"]
+    assert api.get("/api/me/signups").json()["items"][0]["form_statuses"]
+    assert respond(api, e, form).status_code == 200

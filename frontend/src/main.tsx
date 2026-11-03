@@ -1,3 +1,4 @@
+import { FormAttentionBanner } from "./components/event-form-member";
 import React, { lazy, Suspense } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router";
@@ -77,6 +78,19 @@ const SeriesEditor = lazy(() =>
 const SeriesDetail = lazy(() =>
   import("./pages/event-editor").then((m) => ({ default: m.SeriesDetail })),
 );
+const Forms = lazy(() =>
+  import("./pages/forms").then((m) => ({ default: m.Forms })),
+);
+const EventFormPage = lazy(() =>
+  import("./components/event-form-member").then((m) => ({
+    default: m.EventFormPage,
+  })),
+);
+const AdminEventFormPage = lazy(() =>
+  import("./components/event-form-admin").then((m) => ({
+    default: m.AdminEventFormPage,
+  })),
+);
 const EventManagement = lazy(() =>
   import("./pages/event-management").then((m) => ({
     default: m.EventManagement,
@@ -133,6 +147,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                   />
                 </Route>
                 <Route element={<Guard />}>
+                  <Route
+                    path="events/:slug/:id/form/:number"
+                    element={<EventFormPage />}
+                  />
                   <Route element={<Workspace />}>
                     <Route path="my-aac" element={<MyOverview />} />
                     <Route path="my-aac/profile" element={<Profile />} />
@@ -173,6 +191,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                     />
                     <Route path="admin/officers" element={<Officers />} />
                     <Route path="admin/settings" element={<Settings />} />
+                    <Route path="admin/forms" element={<Forms />} />
+                    <Route
+                      path="admin/events/:slug/:id/form/:number"
+                      element={<AdminEventFormPage />}
+                    />
                   </Route>
                 </Route>
                 <Route path="*" element={<NotFound />} />
@@ -180,11 +203,21 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <Route element={<Guard officer />}>
                 <Route
                   path="admin/events/:slug/:id/check-in"
-                  element={<FieldDesk />}
+                  element={
+                    <>
+                      <FormAttentionBanner />
+                      <FieldDesk />
+                    </>
+                  }
                 />
                 <Route
                   path="admin/events/:slug/:id/seat"
-                  element={<FieldDesk seat />}
+                  element={
+                    <>
+                      <FormAttentionBanner />
+                      <FieldDesk seat />
+                    </>
+                  }
                 />
               </Route>
             </Routes>

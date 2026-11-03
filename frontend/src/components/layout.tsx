@@ -1,3 +1,4 @@
+import { FormAttentionBanner } from "./event-form-member";
 import { GuestAccessNotice } from "./guest-access-notice";
 import { canVisit, hasTools, officerHome } from "../lib/access";
 import { needsApproval, approvalLabel } from "../lib/approval";
@@ -35,6 +36,7 @@ const adminLinks = [
   ["/admin/events", "Events"],
   ["/admin/check-in", "Check In"],
   ["/admin/members", "Members"],
+  ["/admin/forms", "Forms"],
   ["/admin/reimbursements", "Reimbursements"],
   ["/admin/officers", "Officers"],
   ["/admin/settings", "Settings"],
@@ -229,6 +231,7 @@ export function Layout() {
           </nav>
         </Dialog>
       )}
+      <FormAttentionBanner />
       <main id="main">
         <Outlet />
       </main>
