@@ -8,6 +8,7 @@ import {
   Navigate,
   Outlet,
   useLocation,
+  useMatch,
   useNavigate,
 } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -75,6 +76,7 @@ export function Layout() {
   const cache = useQueryClient();
   const navigate = useNavigate();
   const location = useLocation();
+  const inOfficerTools = !!useMatch("/admin/*");
   const membership = useAPI(
     "MembershipView",
     `/api/me/memberships/${quarter?.id}`,
@@ -93,8 +95,31 @@ export function Layout() {
           ],
         ]
       : []),
-    ...(hasTools(session) ? [[officerHome(session), "Officer Tools"]] : []),
   ];
+  const primaryLinks = (
+    <>
+      {nav.map(([url, label]) => (
+        <NavLink
+          end={url === "/"}
+          key={url}
+          to={url}
+          onClick={() => setMenu(false)}
+        >
+          {label}
+        </NavLink>
+      ))}
+      {hasTools(session) && (
+        <Link
+          to={officerHome(session)}
+          className={inOfficerTools ? "active" : undefined}
+          aria-current={inOfficerTools ? "page" : undefined}
+          onClick={() => setMenu(false)}
+        >
+          Officer Tools
+        </Link>
+      )}
+    </>
+  );
   async function logout() {
     await request("/api/auth/logout", "POST");
     cache.clear();
@@ -137,19 +162,13 @@ export function Layout() {
       )}
       {hasTools(session) && (
         <Link
-          to={
-            location.pathname.startsWith("/admin")
-              ? "/my-aac"
-              : officerHome(session)
-          }
+          to={inOfficerTools ? "/my-aac" : officerHome(session)}
           onClick={() => {
             setAccount(false);
             setMenu(false);
           }}
         >
-          {location.pathname.startsWith("/admin")
-            ? "Member View"
-            : "Officer Tools"}
+          {inOfficerTools ? "Member View" : "Officer Tools"}
         </Link>
       )}
       <Button variant="quiet" onClick={logout}>
@@ -182,11 +201,7 @@ export function Layout() {
           <Menu />
         </Button>
         <nav aria-label="Main navigation" className="desktop-navigation">
-          {nav.map(([url, label]) => (
-            <NavLink end={url === "/"} key={url} to={url}>
-              {label}
-            </NavLink>
-          ))}
+          {primaryLinks}
         </nav>
         {session?.member ? (
           <div
@@ -220,16 +235,7 @@ export function Layout() {
       {menu && (
         <Dialog title="Explore AAC" onClose={() => setMenu(false)}>
           <nav className="drawer-navigation" aria-label="Mobile navigation">
-            {nav.map(([url, label]) => (
-              <NavLink
-                end={url === "/"}
-                key={url}
-                to={url}
-                onClick={() => setMenu(false)}
-              >
-                {label}
-              </NavLink>
-            ))}
+            {primaryLinks}
             {session?.member && accountContents}
           </nav>
         </Dialog>
