@@ -1,6 +1,10 @@
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
+from pathlib import Path
+from uuid import uuid4
 
+from alembic import command
+from alembic.config import Config
 from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 import pytest
@@ -209,6 +213,23 @@ def test_previous_api_handoffs_after_migration(api):
     state = api.get(ADMIN + "/inventory").json()
     assert [(h["copy_number"], h["kind"], h["holder_id"]) for h in state["holders"]] == [(2, "officer", 1)]
     assert state["items"][0]["revision"] == 10
+
+
+def test_upgrade_replaces_legacy_pickup_function_in_an_already_stamped_schema(engine):
+    config = Config(str(Path(__file__).resolve().parents[1] / "alembic.ini"))
+    definition = text("SELECT pg_get_functiondef('gear_number_legacy_pickup()'::regprocedure)")
+    schema = "gear_upgrade_" + uuid4().hex
+    with engine.connect() as connection:
+        # Disconnect rolls back this isolated schema and both transactional migrations.
+        connection.execute(text(f"CREATE SCHEMA {schema}"))
+        connection.execute(text(f"SET LOCAL search_path TO {schema}"))
+        config.attributes["connection"] = connection
+        command.upgrade(config, "26d3a747cc93")
+        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "26d3a747cc93"
+        assert "Select the numbered copy" not in connection.scalar(definition)
+        command.upgrade(config, "37e4b858dda4")
+        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "37e4b858dda4"
+        assert "Select the numbered copy" in connection.scalar(definition)
 
 
 def test_partial_handoffs_and_cancellation_privacy(api):
