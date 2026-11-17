@@ -202,8 +202,11 @@ def rental_lines(db, rid):
 
 
 def rental_or_404(db, rid, mid=None):
-    rental = require(db, GearRental, rid)
-    if mid is not None and rental.member_id != mid:
+    query = select(GearRental).where(GearRental.id == rid)
+    if mid is not None:
+        query = query.where(GearRental.member_id == mid)
+    rental = db.scalar(query)
+    if rental is None:
         fail(404, "not_found", "This rental could not be found.")
     return rental
 
@@ -353,11 +356,13 @@ def rental_views(db, mid=None, rid=None):
     current = today()
     upcoming_holds = defaultdict(list)
     overdue_items = set()
+    overdue_borrower_types = set()
     if rows:
         for hold in holds(db, current, date.max):
             upcoming_holds[hold.item_id].append(hold)
             if hold.status == "picked_up" and hold.end < current:
                 overdue_items.add(hold.item_id)
+                overdue_borrower_types.add((hold.member_id, hold.type_id))
     for rental, name, line, quantity in rows:
         if rental.id not in records:
             records[rental.id] = {
@@ -383,8 +388,14 @@ def rental_views(db, mid=None, rid=None):
             overdue=line.status == "picked_up" and rental.end < current,
             missed=waiting and rental.end < current,
             at_risk=waiting
-            and line.item_id in overdue_items
-            and peak(upcoming_holds[line.item_id], max(current, rental.start), rental.end) > quantity,
+            and rental.end >= current
+            and (
+                (rental.member_id, line.type_id) in overdue_borrower_types
+                or (
+                    line.item_id in overdue_items
+                    and peak(upcoming_holds[line.item_id], max(current, rental.start), rental.end) > quantity
+                )
+            ),
         )
         records[rental.id]["lines"].append(payload)
     for record in records.values():

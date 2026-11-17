@@ -1,7 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 
-from app.domain import today
+from app.domain import today, utcnow
 from app.models import GearRental
 from conftest import cookie, person, quarter
 
@@ -89,7 +89,10 @@ def test_partial_handoffs_and_cancellation_privacy(api):
     mid, other = [borrower(api, q, i) for i in range(2)]
     items = [inventory(api, n) for n in ("Tent", "Pad", "Bag")]
     rental = api.post(OWN, headers=headers(mid), json=body(items, 0, 6)).json()
-    assert api.get(f"{OWN}/{rental['id']}", headers=headers(other)).status_code == 404
+    private = api.get(f"{OWN}/{rental['id']}", headers=headers(other))
+    absent = api.get(f"{OWN}/{rental['id'] + 100}", headers=headers(other))
+    assert private.status_code == absent.status_code == 404
+    assert private.json() == absent.json()
 
     def cancel(who, rev):
         return api.post(
@@ -153,6 +156,9 @@ def test_overdue_stock_and_quarter_boundary(api):
     item = inventory(api, "Stove")
     r = api.post(ADMIN + "/rentals", json={**body([item]), "member_id": a}).json()
     out = action(api, r, "pickup", 0).json()
+    alternate = inventory(api, "Stove B", type_id=item["type_id"])
+    next_rental = api.post(OWN, json=body([alternate], 1, 2), headers=headers(a)).json()
+    detail = f"{OWN}/{next_rental['id']}"
     assert api.post(OWN, json=body([item], 1, 2), headers=headers(b)).is_success
     assert api.post(OWN, json=body([item], 2, 2), headers=headers(b)).status_code == 403
     with api.app.state.sessions() as db:
@@ -161,8 +167,10 @@ def test_overdue_stock_and_quarter_boundary(api):
         db.commit()
     future = api.get(OWN, headers=headers(b)).json()["items"][0]
     assert future["lines"][0]["at_risk"]
+    assert api.get(detail, headers=headers(a)).json()["lines"][0]["at_risk"]
     assert api.get("/api/gear", params=dates(4, 4), headers=headers(a)).json()["items"][0]["available"] == 0
     assert action(api, out, "return", 0).is_success
+    assert not api.get(detail, headers=headers(a)).json()["lines"][0]["at_risk"]
     assert not api.get(OWN, headers=headers(b)).json()["items"][0]["lines"][0]["at_risk"]
 
 
@@ -180,8 +188,6 @@ def test_inventory_edit_races_request_and_gear_permission_expires(api):
     assert 409 in (request.result().status_code, edit.result().status_code)
     assignments = {**body([item]), "member_id": mid}
     assert api.post(ADMIN + "/rentals", json=assignments, headers=headers(mid)).status_code == 403
-    from app.domain import utcnow
-
     grant = {
         "member_id": actor["id"],
         "permissions": ["gear"],
