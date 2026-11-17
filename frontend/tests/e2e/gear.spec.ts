@@ -61,24 +61,42 @@ test("request, approve, pick up and return an officer-owned tent", async ({
   ).toBeVisible();
 });
 test("inventory, membership gate and delegated access", async ({ page }) => {
+  const catalogReads: string[] = [];
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/api/gear")
+      catalogReads.push(request.url());
+  });
+  async function expectMembershipCardOnly() {
+    await expect(
+      page.getByRole("button", { name: "Request gear" }),
+    ).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "My rentals" })).toHaveCount(
+      0,
+    );
+    await expect(
+      page.getByRole("button", { name: "Check another pickup date" }),
+    ).toHaveCount(0);
+    await expect(page.getByLabel("Pickup date")).toHaveCount(0);
+    await expect(page.getByLabel("Return date")).toHaveCount(0);
+    await expect(page.getByRole("checkbox")).toHaveCount(0);
+    await expect(page.getByLabel("Search rentals")).toHaveCount(0);
+    expect(catalogReads).toEqual([]);
+  }
   await enter(page, "unpaid", "request");
   await expect(
     page.getByRole("link", { name: "Go to Membership Signup" }),
   ).toBeVisible();
-  await expect(page.getByRole("checkbox")).toHaveCount(0);
-  await expect(page.getByLabel("Pickup date")).toHaveCount(0);
-  await page.getByRole("button", { name: "Check another pickup date" }).click();
-  await expect(page.getByLabel("Pickup date")).toBeVisible();
-  await enter(page, "dues", "request");
+  await expectMembershipCardOnly();
+  await enter(page, "dues", "history");
   await expect(
     page.getByRole("link", { name: "View membership status" }),
   ).toBeVisible();
-  await expect(page.getByRole("checkbox")).toHaveCount(0);
+  await expectMembershipCardOnly();
   await enter(page, "applicant", "history");
   await expect(
     page.getByRole("link", { name: "Start application" }),
   ).toBeVisible();
-  await expect(page.getByRole("textbox")).toHaveCount(0);
+  await expectMembershipCardOnly();
   await enter(page, "other", "rentals");
   await expect(page).toHaveURL(/admin\/officers/);
   await enter(page, "helper", "inventory");

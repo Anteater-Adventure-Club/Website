@@ -10,13 +10,14 @@ export function GearWarning() {
 
 export function GearRequestForm({
   assign = false,
+  initialPickup = pacificDate(),
   onSaved,
 }: {
   assign?: boolean;
+  initialPickup?: string;
   onSaved: () => void;
 }) {
-  const [datesOpened, setDatesOpened] = useState(false);
-  const [start, setStart] = useState(pacificDate());
+  const [start, setStart] = useState(initialPickup);
   const [end, setEnd] = useState(start);
   const [search, setSearch] = useState("");
   const [person, setPerson] = useState<{ id: number; name: string } | null>(
@@ -122,72 +123,58 @@ export function GearRequestForm({
           )}
         </Panel>
       )}
-      {data && !data.eligible && (
-        <GearDuesCard catalog={data} assign={assign} />
-      )}
-      {!assign && data && !data.eligible && !datesOpened && (
-        <div>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => setDatesOpened(true)}
-          >
-            Check another pickup date
-          </Button>
+      <Panel>
+        <h2>Rental dates</h2>
+        <p className="muted">
+          Borrow for up to seven days, including pickup and return. Contact an
+          officer for a longer trip.
+        </p>
+        <div className="gear-fields">
+          <Field
+            label="Pickup date"
+            type="date"
+            required
+            min={pacificDate()}
+            value={start}
+            onChange={(e) => {
+              setStart(e.target.value);
+              if (end < e.target.value) setEnd(e.target.value);
+            }}
+          />
+          <Field
+            label="Return date"
+            type="date"
+            required
+            min={start}
+            value={end}
+            onChange={(e) => setEnd(e.target.value)}
+          />
         </div>
-      )}
-      {(assign ||
-        datesOpened ||
-        (data?.eligible ?? !ready) ||
-        catalog.isError) && (
-        <Panel>
-          <h2>Rental dates</h2>
-          <p className="muted">
-            Borrow for up to seven days, including pickup and return. Contact an
-            officer for a longer trip.
-          </p>
-          <div className="gear-fields">
+        {long &&
+          (assign ? (
             <Field
-              label="Pickup date"
-              type="date"
+              label="Reason for longer rental"
               required
-              min={pacificDate()}
-              value={start}
-              onChange={(e) => {
-                setDatesOpened(true);
-                setStart(e.target.value);
-                if (end < e.target.value) setEnd(e.target.value);
-              }}
+              maxLength={2000}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
             />
-            <Field
-              label="Return date"
-              type="date"
-              required
-              min={start}
-              value={end}
-              onChange={(e) => {
-                setDatesOpened(true);
-                setEnd(e.target.value);
-              }}
-            />
-          </div>
-          {long &&
-            (assign ? (
-              <Field
-                label="Reason for longer rental"
-                required
-                maxLength={2000}
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-              />
-            ) : (
-              <Message>
-                Choose up to seven calendar days or ask an officer about a
-                longer rental.
-              </Message>
-            ))}
-        </Panel>
-      )}
+          ) : (
+            <Message>
+              Choose up to seven calendar days or ask an officer about a longer
+              rental.
+            </Message>
+          ))}
+      </Panel>
+      {data &&
+        !data.eligible &&
+        (assign ? (
+          <GearDuesCard quarter={data} assign />
+        ) : (
+          <Message>
+            Choose a pickup date in a quarter for which your dues are approved.
+          </Message>
+        ))}
       {ready && catalog.isPending && <Loading />}
       {ready && catalog.error && <Message error={catalog.error} />}
       {data?.eligible && (

@@ -1754,6 +1754,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/me/gear-access": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Gear Access */
+    get: operations["gear_access_api_me_gear_access_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/me/gear-rentals": {
     parameters: {
       query?: never;
@@ -3042,6 +3059,17 @@ export interface components {
        * Format: date-time
        */
       ends_at: string;
+    };
+    /** GearAccess */
+    GearAccess: {
+      /** First Pickup */
+      first_pickup: string | null;
+      /** Quarter Id */
+      quarter_id: number | null;
+      /** Quarter Name */
+      quarter_name: string | null;
+      /** Has Rentals */
+      has_rentals: boolean;
     };
     /** GearAction */
     GearAction: {
@@ -9045,6 +9073,26 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  gear_access_api_me_gear_access_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GearAccess"];
         };
       };
     };

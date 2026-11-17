@@ -1,8 +1,9 @@
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 
+from sqlalchemy import select
 from app.domain import today, utcnow
-from app.models import GearRental
+from app.models import GearRental, Membership
 from conftest import cookie, person, quarter
 
 ADMIN = "/api/admin/gear"
@@ -50,6 +51,31 @@ def action(api, r, verb, *indices):
             "expected_revision": r["revision"],
         },
     )
+
+
+def test_member_access_follows_paid_quarters_and_keeps_existing_rentals_reachable(api):
+    def access(mid):
+        response = api.get("/api/me/gear-access", headers=headers(mid))
+        assert response.is_success, response.text
+        return response.json()
+
+    unpaid = person(api, 1)["id"]
+    assert access(unpaid) == dict(first_pickup=None, quarter_id=None, quarter_name=None, has_rentals=False)
+    current = quarter(api, ends_on=dates(0, 8)["end"])
+    future = quarter(api, name="Next quarter", starts_on=dates(9, 9)["start"])
+    assert access(unpaid) == dict(
+        first_pickup=None, quarter_id=current["id"], quarter_name=current["name"], has_rentals=False
+    )
+    mid = borrower(api, future, 2)
+    assert access(mid)["first_pickup"] == future["starts_on"]
+    assert access(mid)["quarter_id"] == future["id"]
+    item = inventory(api, "Tent")
+    assert api.post(OWN, json=body([item], 9, 9), headers=headers(mid)).is_success
+    with api.app.state.sessions.begin() as db:
+        db.scalar(select(Membership).where(Membership.member_id == mid)).status = "pending"
+    assert access(mid)["first_pickup"] is None
+    assert access(mid)["has_rentals"]
+    assert not access(unpaid)["has_rentals"]
 
 
 def test_quantities_and_type_races(api):

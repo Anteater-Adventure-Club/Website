@@ -4,7 +4,7 @@ from collections import Counter, defaultdict
 from datetime import date
 from sqlalchemy import func, or_, select
 from ..domain import advisory, audit, fail, paid, require, revision, today, utcnow
-from ..models import GearItem, GearLine, GearRental, GearType, Member, Quarter
+from ..models import GearItem, GearLine, GearRental, GearType, Member, Membership, Quarter
 from .approval import enforce_approval
 
 ACTIVE = ("pending", "approved", "picked_up")
@@ -20,6 +20,21 @@ TRANSITIONS = {
 def lock_gear(db):
     # All gear writers take this transaction lock before reading stock or revisions.
     advisory(db, 759)
+
+
+def member_access(db, mid):
+    day = today()
+    quarters = select(Quarter).where(Quarter.ends_on >= day).order_by(Quarter.starts_on).limit(1)
+    paid_quarter = db.scalar(
+        quarters.join(Membership).where(Membership.member_id == mid, Membership.status == "approved")
+    )
+    quarter = paid_quarter or db.scalar(quarters)
+    return {
+        "first_pickup": max(day, paid_quarter.starts_on) if paid_quarter else None,
+        "quarter_id": quarter.id if quarter else None,
+        "quarter_name": quarter.name if quarter else None,
+        "has_rentals": db.scalar(select(select(GearRental.id).where(GearRental.member_id == mid).exists())),
+    }
 
 
 def eligibility(db, mid, start, lock=False):

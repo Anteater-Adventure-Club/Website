@@ -80,6 +80,13 @@ class GearCatalog(DTO):
     items: list[GearChoice]
 
 
+class GearAccess(DTO):
+    first_pickup: date | None
+    quarter_id: int | None
+    quarter_name: str | None
+    has_rentals: bool
+
+
 class GearDates(DTO):
     start: date
     end: date

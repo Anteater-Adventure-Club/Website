@@ -18,6 +18,11 @@ def catalog(start: date, end: date, user=Depends(member), db=database):
     return gear.catalog(db, user.id, start, end)
 
 
+@router.get("/me/gear-access", response_model=s.GearAccess)
+def gear_access(user=Depends(member), db=database):
+    return gear.member_access(db, user.id)
+
+
 @router.get("/me/gear-rentals", response_model=Items[s.GearRentalView])
 def own_rentals(user=Depends(member), db=database):
     return {"items": gear.rental_views(db, mid=user.id)}

@@ -5,6 +5,7 @@ import type { Schema } from "../lib/api";
 import {
   Button,
   Dialog,
+  Failure,
   Field,
   Loading,
   Message,
@@ -15,7 +16,10 @@ import {
 import { GearRequestForm, GearWarning } from "../components/gear-request";
 import { useIdentity } from "../lib/context";
 import { needsApproval } from "../lib/approval";
-import { GearMembershipCard } from "../components/gear-membership";
+import {
+  GearDuesCard,
+  GearMembershipCard,
+} from "../components/gear-membership";
 import { GearInventory } from "../components/gear-inventory";
 
 type Rental = Schema<"GearRentalView">;
@@ -463,10 +467,7 @@ function Rentals({ admin = false }: { admin?: boolean }) {
   );
 }
 export function MemberGear() {
-  const [params, setParams] = useSearchParams();
-  const [notice, setNotice] = useState("");
   const { session } = useIdentity();
-  const history = params.get("tab") === "rentals";
   if (needsApproval(session?.member)) {
     const status = session?.member?.approval_status;
     const title =
@@ -493,6 +494,38 @@ export function MemberGear() {
       </div>
     );
   }
+  return <ApprovedMemberGear />;
+}
+
+function ApprovedMemberGear() {
+  const [params, setParams] = useSearchParams();
+  const [notice, setNotice] = useState("");
+  const history = params.get("tab") === "rentals";
+  const access = useAPI("GearAccess", "/api/me/gear-access", { poll: true });
+  if (access.error)
+    return <Failure error={access.error} retry={access.refetch} />;
+  if (!access.data) return <Loading />;
+  const { first_pickup, has_rentals } = access.data;
+  if (!first_pickup)
+    return (
+      <div className="stack">
+        <PageHeading title="Gear Rental" />
+        <GearDuesCard quarter={access.data} />
+        {has_rentals &&
+          (history ? (
+            <Rentals />
+          ) : (
+            <div>
+              <Button
+                variant="secondary"
+                onClick={() => setParams({ tab: "rentals" })}
+              >
+                View my rentals
+              </Button>
+            </div>
+          ))}
+      </div>
+    );
   return (
     <div className="stack">
       <PageHeading
@@ -521,6 +554,7 @@ export function MemberGear() {
         <Rentals />
       ) : (
         <GearRequestForm
+          initialPickup={first_pickup}
           onSaved={() => {
             setNotice(
               "Request submitted. Your gear is reserved pending officer approval.",

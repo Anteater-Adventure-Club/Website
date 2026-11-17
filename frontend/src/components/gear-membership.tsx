@@ -33,21 +33,26 @@ export function GearMembershipCard({
 }
 
 export function GearDuesCard({
-  catalog,
-  assign,
+  quarter,
+  assign = false,
 }: {
-  catalog: Schema<"GearCatalog">;
-  assign: boolean;
+  quarter: Pick<Schema<"GearAccess">, "quarter_id" | "quarter_name">;
+  assign?: boolean;
 }) {
-  const id = catalog.quarter_id;
+  const id = quarter.quarter_id;
   if (!id)
     return (
       <GearMembershipCard
-        eyebrow="Rental dates"
-        title="Choose a pickup date in a membership quarter"
+        eyebrow="Membership dues"
+        title={
+          assign
+            ? "Choose a pickup date in a membership quarter"
+            : "Gear rental is between quarters"
+        }
       >
-        No membership quarter covers the selected pickup date. Choose another
-        date or contact an officer.
+        {assign
+          ? "No membership quarter covers the selected pickup date. Choose another date or contact an officer."
+          : "Gear rental opens to paid members when the next membership quarter is available."}
       </GearMembershipCard>
     );
   if (assign)
@@ -56,11 +61,11 @@ export function GearDuesCard({
         eyebrow="Membership dues"
         title="Paid membership required"
       >
-        This member needs approved dues for {catalog.quarter_name} before you
+        This member needs approved dues for {quarter.quarter_name} before you
         can assign gear.
       </GearMembershipCard>
     );
-  return <MemberDuesCard id={id} name={catalog.quarter_name} />;
+  return <MemberDuesCard id={id} name={quarter.quarter_name} />;
 }
 
 function MemberDuesCard({ id, name }: { id: number; name: string | null }) {
@@ -119,7 +124,7 @@ function MemberDuesCard({ id, name }: { id: number; name: string | null }) {
       >
         {paused && quarter?.membership_pause_message
           ? quarter.membership_pause_message
-          : `Gear rental requires approved membership for ${name}. Choose another pickup date or contact an officer.`}
+          : `Gear rental requires approved membership for ${name}. Contact an officer for help with your membership.`}
       </GearMembershipCard>
     );
   return (
@@ -131,9 +136,8 @@ function MemberDuesCard({ id, name }: { id: number; name: string | null }) {
         label: "Go to Membership Signup",
       }}
     >
-      Gear rental is a paid membership benefit. Submit your payment details for
-      the pickup quarter to request club gear once an officer confirms your
-      dues.
+      Gear rental is a paid membership benefit. You can request club gear once
+      an officer confirms your dues for {name}.
     </GearMembershipCard>
   );
 }

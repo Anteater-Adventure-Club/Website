@@ -5402,6 +5402,24 @@
         }
       }
     },
+    "/api/me/gear-access": {
+      "get": {
+        "summary": "Gear Access",
+        "operationId": "gear_access_api_me_gear_access_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GearAccess"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/me/gear-rentals": {
       "get": {
         "summary": "Own Rentals",
@@ -9166,6 +9184,57 @@
           "ends_at"
         ],
         "title": "GalleryRow"
+      },
+      "GearAccess": {
+        "properties": {
+          "first_pickup": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Pickup"
+          },
+          "quarter_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quarter Id"
+          },
+          "quarter_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quarter Name"
+          },
+          "has_rentals": {
+            "type": "boolean",
+            "title": "Has Rentals"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "first_pickup",
+          "quarter_id",
+          "quarter_name",
+          "has_rentals"
+        ],
+        "title": "GearAccess"
       },
       "GearAction": {
         "properties": {
