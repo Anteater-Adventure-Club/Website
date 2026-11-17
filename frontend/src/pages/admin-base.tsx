@@ -2,7 +2,6 @@ import { can } from "../lib/access";
 import { approvalLabel, needsApproval } from "../lib/approval";
 import {
   ApplicationReview,
-  ApplicationSettings,
   AllowReapplicationDialog,
 } from "../components/application";
 import { useState } from "react";
@@ -540,7 +539,13 @@ export function Settings() {
           New Quarter
         </Button>
       </PageHeading>
-      <ApplicationSettings />
+      <p className="muted">
+        Application questions now live in{" "}
+        <Link className="inline-link" to="/admin/forms?tab=application">
+          Forms → External application
+        </Link>
+        .
+      </p>
       {query.data.items.length ? (
         <div className="stack">
           {query.data.items.map((q) => (

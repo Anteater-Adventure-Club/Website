@@ -1,3 +1,4 @@
+import { MemberEventForms } from "../components/event-form-member";
 import {
   matchesRestriction,
   RestrictionNotice,
@@ -756,7 +757,7 @@ export function EventDetail() {
             </section>
           )}
         </article>
-        <aside>
+        <aside className="event-signup-column">
           {needsApproval(session?.member) ? (
             <ApplicationNotice />
           ) : !e.signups_enabled ? (
@@ -865,6 +866,9 @@ export function EventDetail() {
               hasMembershipBenefits={membership.data?.status === "approved"}
               membershipSubmitted={membership.data?.status === "pending"}
             />
+          )}
+          {signup && !signup.cancelled && !needsApproval(session?.member) && (
+            <MemberEventForms eventId={e.id} />
           )}
         </aside>
       </div>

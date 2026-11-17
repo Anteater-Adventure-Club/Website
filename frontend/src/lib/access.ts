@@ -42,6 +42,11 @@ export function hasTools(session: Session) {
 export function canVisit(session: Session, path: string) {
   if (can(session)) return true;
   if (
+    path === "/admin/forms" ||
+    /^\/admin\/events\/[^/]+\/\d+\/form\//.test(path)
+  )
+    return false;
+  if (
     /^\/admin\/events\/.+\/(check-in|seat)$/.test(path) ||
     path === "/admin/check-in"
   )
@@ -74,6 +79,7 @@ export function officerHome(session: Session) {
   );
 }
 export function eventTabAllowed(session: Session, tab: string) {
+  if (tab === "forms") return can(session);
   if (tab === "recap") return can(session, "events");
   if (tab === "trips") return can(session, "reimbursements");
   if (tab === "google-sheets") return can(session);

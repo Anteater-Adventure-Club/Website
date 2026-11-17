@@ -6,7 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import Response
 from sqlalchemy import func, select
-from ..auth import member, permission
+from ..auth import allowed, authorize, member, permission
 from ..db import get_db
 from ..domain import audit, default_quarter, ensure_member, fail, operational_event, page, require, utcnow
 from ..models import AttendanceAction, Audit, Card, Event, Member, Signup, Vehicle
@@ -85,6 +85,7 @@ def roster(
     eid: int,
     search: str = "",
     role: str | None = None,
+    form_status: str | None = None,
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
     user=Depends(permission("participation")),
@@ -96,8 +97,19 @@ def roster(
     query = select(Signup).join(Member).where(Signup.event_id == eid)
     if role:
         query = query.where(Signup.role == role)
+    if form_status is not None:
+        authorize(db, user)
+    if form_status == "no_response":
+        from ..models import EventForm, EventFormResponse
+        query = query.where(Signup.cancelled.is_(False), select(EventForm.id).where(
+            EventForm.event_id == Signup.event_id, EventForm.state == "published", EventForm.required.is_(True),
+            EventForm.closes_at <= utcnow(),
+            EventForm.allow_late.is_(True) | (Signup.registered_at < EventForm.closes_at),
+            ~select(EventFormResponse.id).where(EventFormResponse.form_id == EventForm.id,
+                                               EventFormResponse.signup_id == Signup.id).correlate(EventForm, Signup).exists(),
+        ).correlate(Signup).exists())
     result = ranked_page(db, query.order_by(Signup.joined_at, Signup.id), Signup, search, limit, offset)
-    result["items"] = signups_projection(db, result["items"])
+    result["items"] = signups_projection(db, result["items"], include_form_statuses=allowed(db, user))
     return result
 
 
@@ -108,7 +120,7 @@ def add_signup(eid: int, value: OfficerSignup, user=Depends(permission("particip
     s = save_signup(db, e, target, value, True, "officer", actor=user,
                     capacity_override_reason=value.capacity_override_reason)
     audit(db, user, "signup.add", s.id)
-    return signup_projection(db, s)
+    return signup_projection(db, s, include_form_statuses=allowed(db, user))
 
 
 @router.delete("/admin/signups/{sid}")
@@ -137,7 +149,7 @@ def check_in_state(eid: int, user=Depends(permission("participation")), db=Depen
         "event": event_projection(db, e, True),
         "revision": e.revision,
         "server_time": utcnow(),
-        "signups": signups_projection(db, rows, include_event=False),
+        "signups": signups_projection(db, rows, include_event=False, include_form_statuses=allowed(db, user)),
         "counts": {
             role: {
                 "registered": sum(s.role == role for s in rows),
@@ -162,7 +174,7 @@ def check_in(sid: int, user=Depends(permission("participation")), db=Depends(get
     s = require(db, Signup, sid)
     e = operational_event(db, s.event_id)
     db.refresh(s)
-    return signup_projection(db, arrive(db, e, s, user))
+    return signup_projection(db, arrive(db, e, s, user), include_form_statuses=allowed(db, user))
 
 
 @router.delete("/admin/signups/{sid}/check-in")
@@ -187,7 +199,7 @@ def extend(sid: int, value: ExtensionWrite, user=Depends(permission("participati
     s.revision += 1
     e.revision += 1
     audit(db, user, "attendance.extension", s.id, {"until": value.until.isoformat(), "reason": value.reason})
-    return signup_projection(db, s)
+    return signup_projection(db, s, include_form_statuses=allowed(db, user))
 
 
 @router.put("/admin/events/{eid}/cards")
@@ -230,7 +242,7 @@ def seat_rider(eid: int, rider_id: int, value: AssignmentWrite, user=Depends(per
     driver = require(db, Signup, value.driver_signup_id) if value.driver_signup_id else None
     assign(db, e, s, driver)
     audit(db, user, "carpool.assign", s.id, {"driver_signup_id": value.driver_signup_id})
-    return {"revision": e.revision, "signup": signup_projection(db, s)}
+    return {"revision": e.revision, "signup": signup_projection(db, s, include_form_statuses=allowed(db, user))}
 
 
 @router.post("/admin/events/{eid}/carpools/fill")
@@ -247,7 +259,7 @@ def walk_in(eid: int, value: WalkInWrite, user=Depends(permission("participation
     key = hashlib.sha256(f"{eid}:{user.id}:{value.request_id}".encode()).hexdigest()
     previous = db.scalar(select(Audit).where(Audit.action == "attendance.walk-in", Audit.entity == key))
     if previous:
-        return signup_projection(db, require(db, Signup, previous.data["signup_id"]))
+        return signup_projection(db, require(db, Signup, previous.data["signup_id"]), include_form_statuses=allowed(db, user))
     target = (
         require(db, Member, value.member_id)
         if value.member_id
@@ -266,7 +278,7 @@ def walk_in(eid: int, value: WalkInWrite, user=Depends(permission("participation
                     capacity_override_reason=value.capacity_override_reason)
     arrive(db, e, s, user)
     audit(db, user, "attendance.walk-in", key, {"signup_id": s.id})
-    return signup_projection(db, s)
+    return signup_projection(db, s, include_form_statuses=allowed(db, user))
 
 
 @router.get("/admin/events/{eid}/check-in-log", response_model=Page[AttendanceLogRow])

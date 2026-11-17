@@ -49,6 +49,7 @@ test.beforeEach(async ({ page, baseURL }) => {
         profile_complete: true,
       },
       "/api/quarters": { items: [] },
+      "/api/me/event-forms/attention": { items: [] },
       "/api/site-settings": { discord: "" },
       "/api/admin/officers": { items: [] },
       "/api/admin/guest-officers": { items: [] },
@@ -121,7 +122,30 @@ const settle = (page: Page) => page.waitForTimeout(180);
 async function typeWithoutJumping(field: Locator, value: string) {
   await field.scrollIntoViewIfNeeded();
   await field.focus();
-  await settle(field.page());
+  // A fixed delay can expire before WebKit finishes the focus adjustment.
+  // Measure typing only once the field is clear of the sheet's sticky footer.
+  await expect
+    .poll(() =>
+      field.evaluate((element) => {
+        const box = element.getBoundingClientRect();
+        const viewport = window.visualViewport!;
+        const dialog = element.closest("dialog")!;
+        const sheetBox = dialog.getBoundingClientRect();
+        const footer = dialog.querySelector(".sticky-actions")!;
+        const top = Math.max(viewport.offsetTop, sheetBox.top);
+        const bottom = Math.min(
+          viewport.offsetTop + viewport.height,
+          footer.getBoundingClientRect().top,
+        );
+        return (
+          sheetBox.top >= viewport.offsetTop - 1 &&
+          sheetBox.bottom <= viewport.offsetTop + viewport.height + 1 &&
+          box.top >= top + 8 &&
+          box.bottom <= bottom - 8
+        );
+      }),
+    )
+    .toBe(true);
   const before = await field.evaluate((element) => ({
     top: element.getBoundingClientRect().top,
     pageY: window.scrollY,
@@ -142,10 +166,21 @@ async function typeWithoutJumping(field: Locator, value: string) {
   expect(after.pageY).toBe(before.pageY);
 }
 
-for (const mode of ["visual", "content"] as const) {
-  test(`board ${mode} keyboard preserves typed profile and submitted values`, async ({
+for (const [mode, delayedRendering] of [
+  ["visual", false],
+  ["content", false],
+  ["visual", true],
+] as const) {
+  test(`board ${mode} keyboard preserves typed profile and submitted values${delayedRendering ? " with delayed rendering" : ""}`, async ({
     page,
   }) => {
+    if (delayedRendering) {
+      await page.evaluate(() => {
+        window.requestAnimationFrame = (callback) =>
+          window.setTimeout(() => callback(performance.now()), 250);
+        window.cancelAnimationFrame = (id) => clearTimeout(id);
+      });
+    }
     const viewport = page.viewportSize()!;
     const name = sheet(page).getByLabel("Name", { exact: true });
     await name.focus();

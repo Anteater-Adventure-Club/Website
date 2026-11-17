@@ -128,6 +128,26 @@ describe("phone keyboard focus", () => {
     expect(sheet.scrollBy).toHaveBeenCalledTimes(1);
   });
 
+  it("applies the resized viewport before revealing focus when rendering is delayed", () => {
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) =>
+      window.setTimeout(() => callback(0), 200),
+    );
+    renderHook(useKeyboardViewport);
+    settle();
+    const { sheet, input } = fieldInSheet();
+    input.focus();
+    height = 480;
+    viewport.dispatchEvent(new Event("resize"));
+
+    act(() => vi.advanceTimersByTime(120));
+    expect(sheet.scrollBy).not.toHaveBeenCalled();
+    settle();
+    expect(
+      document.documentElement.style.getPropertyValue("--visible-height"),
+    ).toBe("480px");
+    expect(sheet.scrollBy).toHaveBeenCalledTimes(1);
+  });
+
   it("reserves a wrapped sticky footer and sheet padding when revealing a field", () => {
     renderHook(useKeyboardViewport);
     const { sheet, input } = fieldInSheet();
