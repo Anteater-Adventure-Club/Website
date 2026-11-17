@@ -4021,6 +4021,7 @@ dialog::backdrop {
 .gear-row-actions { gap: .4rem; }
 .gear-table .button.small { font-size: .8rem; }
 @media (max-width: 767px) {
+  .gear-table td[data-label]::before { flex-shrink: 0; }
   .gear-table .gear-detail-row { padding: 0; }
   .gear-table .gear-detail-row > td { display: block; text-align: left; }
   .gear-table .gear-detail-row > td::before { display: none; }
