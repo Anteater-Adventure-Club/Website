@@ -7,6 +7,12 @@ type Item = Schema<"GearItemView">;
 type Holder = Schema<"GearHolder">;
 type Officer = Schema<"GearOfficer">;
 
+export function hasCustody(inventory?: Schema<"GearInventory">) {
+  return (
+    Array.isArray(inventory?.holders) && Array.isArray(inventory?.officers)
+  );
+}
+
 function duplicateHolderNames(holders: Holder[]) {
   const owners = new Map<string, number>();
   const duplicates = new Set<string>();

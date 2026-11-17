@@ -21,7 +21,11 @@ import {
   GearMembershipCard,
 } from "../components/gear-membership";
 import { GearInventory } from "../components/gear-inventory";
-import { CopyPicker, OfficerOptions } from "../components/gear-custody";
+import {
+  CopyPicker,
+  hasCustody,
+  OfficerOptions,
+} from "../components/gear-custody";
 
 type Rental = Schema<"GearRentalView">;
 type Line = Schema<"GearLineView">;
@@ -87,6 +91,7 @@ function RentalDialog({
     enabled: handoff,
   });
   const { session } = useIdentity();
+  const trackCopies = hasCustody(inventory.data);
   const isDates = edit.action === "dates";
   const verb = isDates ? "Change rental dates" : actions[edit.action as Action];
   const long = (Date.parse(end) - Date.parse(start)) / 86400000 >= 7;
@@ -100,7 +105,7 @@ function RentalDialog({
           if (handoff && !inventory.data) return;
           const form = new FormData(e.currentTarget);
           const copies: Record<number, Schema<"GearPickupCopy">> = {};
-          if (edit.action === "pickup") {
+          if (edit.action === "pickup" && trackCopies) {
             for (const line of edit.lines) {
               const item = inventory.data?.items.find(
                 (i) => i.id === line.item_id,
@@ -126,10 +131,10 @@ function RentalDialog({
                   : {
                       line_ids: edit.lines.map((l) => l.id),
                       ...(admin ? { action: edit.action, message } : {}),
-                      ...(edit.action === "pickup"
+                      ...(edit.action === "pickup" && trackCopies
                         ? { pickup_copies: copies }
                         : {}),
-                      ...(edit.action === "return"
+                      ...(edit.action === "return" && trackCopies
                         ? { return_to: Number(form.get("receiver")) || null }
                         : {}),
                     }),
@@ -184,6 +189,7 @@ function RentalDialog({
             )}
             {handoff && !inventory.data && !inventory.error && <Loading />}
             {edit.action === "pickup" &&
+              trackCopies &&
               inventory.data &&
               edit.lines.map((line) => {
                 const item = inventory.data.items.find(
@@ -203,7 +209,7 @@ function RentalDialog({
                   )
                 );
               })}
-            {edit.action === "return" && inventory.data && (
+            {edit.action === "return" && trackCopies && inventory.data && (
               <label>
                 Received by
                 <select

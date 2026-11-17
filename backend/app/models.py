@@ -577,5 +577,6 @@ class GearLine(Base):
         Index("uq_gear_copy_checked_out", "item_id", "copy_number", unique=True,
               postgresql_where=text("status = 'picked_up'")),
         CheckConstraint("copy_number >= 1", name="ck_gear_lines_copy_number"),
+        CheckConstraint("status <> 'picked_up' OR copy_number IS NOT NULL", name="ck_gear_checked_out_copy"),
         UniqueConstraint("rental_id", "type_id"), CheckConstraint(
         "status IN ('pending','approved','denied','picked_up','returned','cancelled')"),)

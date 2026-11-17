@@ -97,7 +97,6 @@ def pickup(db, line, choice):
 def receive(db, line, receiver):
     if receiver is not None:
         db.add(GearCustodian(item_id=line.item_id, copy_number=line.copy_number, officer_id=receiver))
-    require(db, GearItem, line.item_id).revision += 1
     return {"copy": line.copy_number, "to_officer": receiver}
 
 

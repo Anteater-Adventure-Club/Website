@@ -297,6 +297,57 @@ test("a numbered tent moves from an officer to a borrower and back to Unknown", 
   await accessible(page);
 });
 
+test("inventory and handoffs work while the previous API is serving", async ({
+  page,
+}) => {
+  await page.route("**/api/admin/gear/inventory", async (route) => {
+    const response = await route.fetch();
+    const { types, items }: Schema<"GearInventory"> = await response.json();
+    await route.fulfill({ response, json: { types, items } });
+  });
+  await enter(page, "helper", "inventory");
+  await expect(
+    page.getByRole("table", { name: "Gear inventory" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Custody", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Edit", exact: true }).first(),
+  ).toBeVisible();
+  let status: "approved" | "picked_up" = "approved";
+  await page.route("**/api/admin/gear/rentals", async (route) => {
+    const response = await route.fetch();
+    const data: Schema<"Items_GearRentalView_"> = await response.json();
+    const rental = data.items[0];
+    rental.start = "2000-01-01";
+    rental.end = "2099-01-01";
+    rental.status = status;
+    rental.lines = [{ ...rental.lines[0], status, missed: false }];
+    await route.fulfill({ response, json: { items: [rental] } });
+  });
+  const writes: Record<string, unknown>[] = [];
+  await page.route("**/api/admin/gear/rentals/*/actions", (route) => {
+    writes.push(route.request().postDataJSON());
+    status = "picked_up";
+    return route.fulfill({ json: {} });
+  });
+  await page.getByRole("button", { name: "Rentals", exact: true }).click();
+  await page.getByRole("button", { name: "Details", exact: true }).click();
+  for (const verb of ["Record pickup", "Record return"]) {
+    await page.getByRole("button", { name: verb, exact: true }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByRole("combobox")).toHaveCount(0);
+    await dialog.getByRole("button", { name: verb, exact: true }).click();
+    await expect(dialog).toHaveCount(0);
+  }
+  expect(writes.map((body) => body.action)).toEqual(["pickup", "return"]);
+  for (const body of writes) {
+    expect(body).not.toHaveProperty("pickup_copies");
+    expect(body).not.toHaveProperty("return_to");
+  }
+});
+
 test("a gear helper adds inventory and assigns an approved rental", async ({
   page,
 }, info) => {

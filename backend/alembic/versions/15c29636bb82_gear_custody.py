@@ -10,6 +10,8 @@ depends_on = None
 
 
 def upgrade():
+    # Take the same lock as gear writers before the first table lock of the upgrade.
+    op.execute("SELECT pg_advisory_xact_lock(759)")
     op.create_table(
         "gear_custodians",
         sa.Column("item_id", sa.Integer(), sa.ForeignKey("gear_items.id"), primary_key=True),

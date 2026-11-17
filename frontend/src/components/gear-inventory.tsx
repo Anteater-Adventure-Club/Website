@@ -2,7 +2,7 @@ import { useState } from "react";
 import { dateLabel, pacificDate, useAPI, useAction } from "../lib/api";
 import type { Schema } from "../lib/api";
 import { Button, Dialog, Field, Loading, Message, Panel, Pill } from "./ui";
-import { CustodyDialog, custodySummary } from "./gear-custody";
+import { CustodyDialog, custodySummary, hasCustody } from "./gear-custody";
 
 type Item = Schema<"GearItemView">;
 type Kind = Schema<"GearTypeView">;
@@ -227,7 +227,8 @@ export function GearInventory() {
   const [filter, setFilter] = useState("active");
   if (query.error) return <Message error={query.error} />;
   if (!query.data) return <Loading />;
-  const { types, items, holders, officers } = query.data;
+  const { types, items, holders = [], officers = [] } = query.data;
+  const showCustody = hasCustody(query.data);
   const byItem = new Map<number, typeof holders>();
   for (const holder of holders) {
     const group = byItem.get(holder.item_id) ?? [];
@@ -242,7 +243,9 @@ export function GearInventory() {
     .map((item) => ({
       item,
       typeName: typeNames.get(item.type_id),
-      custody: custodySummary(item.quantity, byItem.get(item.id) ?? []),
+      custody: showCustody
+        ? custodySummary(item.quantity, byItem.get(item.id) ?? [])
+        : "",
       status: stockStatus(item, today),
     }))
     .filter(
@@ -299,7 +302,7 @@ export function GearInventory() {
                 <th scope="col">Equipment</th>
                 <th scope="col">Quantity</th>
                 <th scope="col">Ownership</th>
-                <th scope="col">Current holder</th>
+                {showCustody && <th scope="col">Current holder</th>}
                 <th scope="col">Status</th>
                 <th scope="col">Actions</th>
               </tr>
@@ -328,9 +331,11 @@ export function GearInventory() {
                       )}
                     </div>
                   </td>
-                  <td data-label="Current holder">
-                    <span>{custody}</span>
-                  </td>
+                  {showCustody && (
+                    <td data-label="Current holder">
+                      <span>{custody}</span>
+                    </td>
+                  )}
                   <td data-label="Status">
                     <div>
                       <Pill
@@ -348,7 +353,7 @@ export function GearInventory() {
                   </td>
                   <td data-label="Actions">
                     <div className="actions gear-row-actions">
-                      {!!i.quantity && (
+                      {showCustody && !!i.quantity && (
                         <Button
                           variant="secondary"
                           className="small"
@@ -383,7 +388,7 @@ export function GearInventory() {
           />
         )
       )}
-      {custodyItem && (
+      {showCustody && custodyItem && (
         <CustodyDialog
           item={custodyItem}
           holders={byItem.get(custodyItem.id) ?? []}

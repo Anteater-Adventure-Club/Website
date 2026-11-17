@@ -1,7 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from app.domain import today, utcnow
 from app.models import GearRental, Membership
 from conftest import cookie, person, quarter
@@ -162,6 +162,32 @@ def test_custody_is_per_copy_and_follows_handoffs(api):
     assert transfer(helper, 4, helper).is_success
     assert transfer(None, 5).is_success
     assert (iid, 2) not in state()
+
+
+def test_previous_api_handoffs_after_migration(api):
+    q = quarter(api)
+    members = [borrower(api, q, n) for n in (1, 2)]
+    item = inventory(api, "Tent", quantity=2)
+    assert api.put(f"{ADMIN}/inventory/{item['id']}/custody/2",
+                   json={"officer_id": 1, "expected_revision": 1}).is_success
+    rentals = [api.post(ADMIN + "/rentals", json={**body([item]), "member_id": mid}).json()
+               for mid in members]
+    # A previous API only wrote status, handoff time, and actor.
+    with api.app.state.sessions.begin() as db:
+        for rental in rentals:
+            db.execute(text("UPDATE gear_lines SET status='picked_up', picked_up_at=now(),"
+                            " picked_up_by=1 WHERE rental_id=:rid"), {"rid": rental["id"]})
+    state = api.get(ADMIN + "/inventory").json()
+    assert {(h["copy_number"], h["kind"], h["holder_id"]) for h in state["holders"]} == {
+        (2, "borrower", members[0]), (1, "borrower", members[1])
+    }
+    with api.app.state.sessions.begin() as db:
+        db.execute(text("UPDATE gear_lines SET status='returned', returned_by=1, returned_at=now() "
+                        "WHERE rental_id=:rid"), {"rid": rentals[0]["id"]})
+    assert action(api, rentals[1], "return", 0).is_success
+    state = api.get(ADMIN + "/inventory").json()
+    assert [(h["copy_number"], h["kind"], h["holder_id"]) for h in state["holders"]] == [(1, "officer", 1)]
+    assert state["items"][0]["revision"] == 6
 
 
 def test_partial_handoffs_and_cancellation_privacy(api):
