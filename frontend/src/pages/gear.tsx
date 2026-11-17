@@ -387,6 +387,13 @@ function Rentals({ admin = false }: { admin?: boolean }) {
   const status = params.get("status") || "all";
   if (data.error) return <Message error={data.error} />;
   if (!data.data) return <Loading />;
+  if (!admin && data.data.items.length === 0)
+    return (
+      <Panel>
+        <h2>No rentals yet</h2>
+        <p>Your gear rentals from every quarter will appear here.</p>
+      </Panel>
+    );
   const rows = data.data.items.filter(
     (r) =>
       [r.member_name, r.activity, ...r.lines.map((l) => l.name)]
@@ -502,47 +509,48 @@ function ApprovedMemberGear() {
   const [notice, setNotice] = useState("");
   const history = params.get("tab") === "rentals";
   const access = useAPI("GearAccess", "/api/me/gear-access", { poll: true });
-  if (access.error)
-    return <Failure error={access.error} retry={access.refetch} />;
-  if (!access.data) return <Loading />;
-  const { first_pickup, has_rentals } = access.data;
-  if (!first_pickup)
-    return (
-      <div className="stack">
-        <PageHeading title="Gear Rental" />
-        <GearDuesCard quarter={access.data} />
-        {has_rentals &&
-          (history ? (
-            <Rentals />
-          ) : (
-            <div>
-              <Button
-                variant="secondary"
-                onClick={() => setParams({ tab: "rentals" })}
-              >
-                View my rentals
-              </Button>
-            </div>
-          ))}
-      </div>
+  const pickup = access.data?.first_pickup;
+  let content;
+  if (history) content = <Rentals />;
+  else if (access.error)
+    content = <Failure error={access.error} retry={access.refetch} />;
+  else if (!access.data) content = <Loading />;
+  else if (!pickup) content = <GearDuesCard quarter={access.data} />;
+  else
+    content = (
+      <GearRequestForm
+        initialPickup={pickup}
+        onSaved={() => {
+          setNotice(
+            "Request submitted. Your gear is reserved pending officer approval.",
+          );
+          setParams({ tab: "rentals" });
+        }}
+      />
     );
   return (
     <div className="stack">
       <PageHeading
         title="Gear Rental"
-        subtitle="Borrow club equipment for your next trip."
+        subtitle={
+          pickup ? "Borrow club equipment for your next trip." : undefined
+        }
       />
       <div className="actions">
+        {access.data && (
+          <Button
+            aria-pressed={!history}
+            variant={history ? "secondary" : "primary"}
+            onClick={() => {
+              setNotice("");
+              setParams({});
+            }}
+          >
+            {pickup ? "Request gear" : "Membership status"}
+          </Button>
+        )}
         <Button
-          variant={history ? "secondary" : "primary"}
-          onClick={() => {
-            setNotice("");
-            setParams({});
-          }}
-        >
-          Request gear
-        </Button>
-        <Button
+          aria-pressed={history}
           variant={history ? "primary" : "secondary"}
           onClick={() => setParams({ tab: "rentals" })}
         >
@@ -550,19 +558,7 @@ function ApprovedMemberGear() {
         </Button>
       </div>
       <Message>{notice}</Message>
-      {history ? (
-        <Rentals />
-      ) : (
-        <GearRequestForm
-          initialPickup={first_pickup}
-          onSaved={() => {
-            setNotice(
-              "Request submitted. Your gear is reserved pending officer approval.",
-            );
-            setParams({ tab: "rentals" });
-          }}
-        />
-      )}
+      {content}
     </div>
   );
 }

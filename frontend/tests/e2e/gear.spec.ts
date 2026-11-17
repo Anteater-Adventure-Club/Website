@@ -66,37 +66,38 @@ test("inventory, membership gate and delegated access", async ({ page }) => {
     if (new URL(request.url()).pathname === "/api/gear")
       catalogReads.push(request.url());
   });
-  async function expectMembershipCardOnly() {
+  async function expectNoRequestControls() {
     await expect(
       page.getByRole("button", { name: "Request gear" }),
     ).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "My rentals" })).toHaveCount(
-      0,
-    );
     await expect(
       page.getByRole("button", { name: "Check another pickup date" }),
     ).toHaveCount(0);
     await expect(page.getByLabel("Pickup date")).toHaveCount(0);
     await expect(page.getByLabel("Return date")).toHaveCount(0);
     await expect(page.getByRole("checkbox")).toHaveCount(0);
-    await expect(page.getByLabel("Search rentals")).toHaveCount(0);
     expect(catalogReads).toEqual([]);
   }
   await enter(page, "unpaid", "request");
   await expect(
     page.getByRole("link", { name: "Go to Membership Signup" }),
   ).toBeVisible();
-  await expectMembershipCardOnly();
+  await expectNoRequestControls();
   await enter(page, "dues", "history");
+  await expect(
+    page.getByRole("heading", { name: "No rentals yet" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Membership status" }).click();
   await expect(
     page.getByRole("link", { name: "View membership status" }),
   ).toBeVisible();
-  await expectMembershipCardOnly();
+  await expectNoRequestControls();
   await enter(page, "applicant", "history");
   await expect(
     page.getByRole("link", { name: "Start application" }),
   ).toBeVisible();
-  await expectMembershipCardOnly();
+  await expectNoRequestControls();
+  await expect(page.getByRole("button", { name: "My rentals" })).toHaveCount(0);
   await enter(page, "other", "rentals");
   await expect(page).toHaveURL(/admin\/officers/);
   await enter(page, "helper", "inventory");
@@ -146,6 +147,32 @@ test("inventory, membership gate and delegated access", async ({ page }) => {
   await expect(
     page.getByRole("table", { name: "Gear rental requests" }),
   ).toBeVisible();
+  await accessible(page);
+});
+
+test("an unpaid member can open their previous quarter’s rental", async ({
+  page,
+}) => {
+  await enter(page, "unpaid", "request");
+  await expect(
+    page.getByRole("link", { name: "Go to Membership Signup" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "My rentals" }).click();
+  await expect(page).toHaveURL(/tab=rentals/);
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Joshua Tree campout" }),
+  ).toBeVisible();
+  await expect(
+    page.locator(".gear-lines").getByText("Returned", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Retreat camping" }),
+  ).toHaveCount(0);
+  await expect(page.getByLabel("Pickup date")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Request gear" })).toHaveCount(
+    0,
+  );
   await accessible(page);
 });
 

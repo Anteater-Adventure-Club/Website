@@ -2,7 +2,7 @@
 
 import os
 import sys
-from datetime import timedelta
+from datetime import datetime, time, timedelta
 from html import escape
 from pathlib import Path
 
@@ -19,12 +19,13 @@ sys.path.insert(0, str(ROOT / "backend"))
 from app.auth import bootstrap  # noqa: E402
 from app.config import Settings  # noqa: E402
 from app.db import Base, make_engine, session_factory  # noqa: E402
-from app.domain import today, utcnow  # noqa: E402
+from app.domain import PACIFIC, today, utcnow  # noqa: E402
 from app.gear_schemas import GearRequest, GearAssignment  # noqa: E402
 from app.main import create_app  # noqa: E402
 from app.models import (  # noqa: E402
     GearItem,
     GearLine,
+    GearRental,
     GearType,
     GuestOfficerAccess,
     Marker,
@@ -70,6 +71,30 @@ DESTINATIONS = {
     "overview": ("Dashboard notices", "/admin/overview"),
     "permissions": ("Guest permissions", "/admin/officers"),
 }
+
+
+def seed_previous_quarter_rental(db, current, member, officer, bag):
+    previous = Quarter(
+        name="Previous adventure quarter", state="archived",
+        starts_on=current.starts_on - timedelta(days=91), ends_on=current.starts_on - timedelta(days=1),
+    )
+    db.add(previous)
+    db.flush()
+    db.add(Membership(member_id=member.id, quarter_id=previous.id, status="approved", source="payment"))
+    pickup = datetime.combine(previous.ends_on - timedelta(days=3), time(12), PACIFIC)
+    returned = pickup + timedelta(days=2)
+    rental = GearRental(
+        member_id=member.id, created_by=member.id, created_at=pickup - timedelta(days=4),
+        start=pickup.date(), end=returned.date(), activity="Joshua Tree campout", comments="",
+    )
+    db.add(rental)
+    db.flush()
+    db.add(GearLine(
+        rental_id=rental.id, item_id=bag.id, type_id=bag.type_id, type_name="Sleeping bag",
+        name=bag.name, ownership=bag.ownership, status="returned",
+        reviewed_by=officer.id, reviewed_at=pickup - timedelta(days=3),
+        picked_up_by=officer.id, picked_up_at=pickup, returned_by=officer.id, returned_at=returned,
+    ))
 
 
 def seed():
@@ -186,6 +211,7 @@ def seed():
             utcnow() - timedelta(days=5),
             actor.id,
         )
+        seed_previous_quarter_rental(db, q, people["unpaid"], actor, gear["Big Agnes Anthracite 20 · Regular"])
 
 
 def launcher():
