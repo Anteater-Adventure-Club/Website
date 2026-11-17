@@ -2,6 +2,8 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 
 from sqlalchemy import select, text
+from sqlalchemy.exc import IntegrityError
+import pytest
 from app.domain import today, utcnow
 from app.models import GearRental, Membership
 from conftest import cookie, person, quarter
@@ -168,26 +170,45 @@ def test_previous_api_handoffs_after_migration(api):
     q = quarter(api)
     members = [borrower(api, q, n) for n in (1, 2)]
     item = inventory(api, "Tent", quantity=2)
-    assert api.put(f"{ADMIN}/inventory/{item['id']}/custody/2",
-                   json={"officer_id": 1, "expected_revision": 1}).is_success
     rentals = [api.post(ADMIN + "/rentals", json={**body([item]), "member_id": mid}).json()
                for mid in members]
     # A previous API only wrote status, handoff time, and actor.
-    with api.app.state.sessions.begin() as db:
-        for rental in rentals:
+    def legacy_pickup(rental):
+        with api.app.state.sessions.begin() as db:
             db.execute(text("UPDATE gear_lines SET status='picked_up', picked_up_at=now(),"
                             " picked_up_by=1 WHERE rental_id=:rid"), {"rid": rental["id"]})
+
+    helper = person(api, 3)["id"]
+    assert api.post("/api/admin/guest-officers", json={
+        "member_id": helper, "permissions": ["gear"],
+        "expires_at": (utcnow() + timedelta(days=1)).isoformat(),
+    }).is_success
+    def assign_copy(number, officer, rev):
+        assert api.put(f"{ADMIN}/inventory/{item['id']}/custody/{number}",
+                       json={"officer_id": officer, "expected_revision": rev}).is_success
+
+    assign_copy(1, 1, 1)
+    assign_copy(2, helper, 2)
+    before = api.get(ADMIN + "/inventory").json()
+    with pytest.raises(IntegrityError, match="Select the numbered copy"):
+        legacy_pickup(rentals[0])
+    assert api.get(ADMIN + "/inventory").json() == before
+    assign_copy(1, None, 3)
+    assign_copy(2, None, 4)
+    legacy_pickup(rentals[0])  # All available copies are Unknown.
+    assign_copy(2, helper, 6)
+    legacy_pickup(rentals[1])  # Only copy 2 can be handed out.
     state = api.get(ADMIN + "/inventory").json()
     assert {(h["copy_number"], h["kind"], h["holder_id"]) for h in state["holders"]} == {
-        (2, "borrower", members[0]), (1, "borrower", members[1])
+        (1, "borrower", members[0]), (2, "borrower", members[1])
     }
     with api.app.state.sessions.begin() as db:
         db.execute(text("UPDATE gear_lines SET status='returned', returned_by=1, returned_at=now() "
                         "WHERE rental_id=:rid"), {"rid": rentals[0]["id"]})
     assert action(api, rentals[1], "return", 0).is_success
     state = api.get(ADMIN + "/inventory").json()
-    assert [(h["copy_number"], h["kind"], h["holder_id"]) for h in state["holders"]] == [(1, "officer", 1)]
-    assert state["items"][0]["revision"] == 6
+    assert [(h["copy_number"], h["kind"], h["holder_id"]) for h in state["holders"]] == [(2, "officer", 1)]
+    assert state["items"][0]["revision"] == 10
 
 
 def test_partial_handoffs_and_cancellation_privacy(api):

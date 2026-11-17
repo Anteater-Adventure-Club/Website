@@ -225,12 +225,15 @@ export function GearInventory() {
   const [editing, setEditing] = useState<Item | "new" | "types" | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("active");
+  const [holderFilter, setHolderFilter] = useState("");
   if (query.error) return <Message error={query.error} />;
   if (!query.data) return <Loading />;
   const { types, items, holders = [], officers = [] } = query.data;
   const showCustody = hasCustody(query.data);
   const byItem = new Map<number, typeof holders>();
+  const people = new Map(officers.map((o) => [o.id, o.name]));
   for (const holder of holders) {
+    people.set(holder.holder_id, holder.name);
     const group = byItem.get(holder.item_id) ?? [];
     group.push(holder);
     byItem.set(holder.item_id, group);
@@ -239,7 +242,17 @@ export function GearInventory() {
   const today = pacificDate();
   const typeNames = new Map(types.map((type) => [type.id, type.name]));
   const term = search.toLowerCase();
+  const holderOptions = [...people].sort(
+    (a, b) => a[1].localeCompare(b[1]) || a[0] - b[0],
+  );
   const rows = items
+    .filter((item) => {
+      if (!showCustody || !holderFilter) return true;
+      const known = byItem.get(item.id) ?? [];
+      return holderFilter === "unknown"
+        ? known.length < item.quantity
+        : known.some((h) => h.holder_id === Number(holderFilter));
+    })
     .map((item) => ({
       item,
       typeName: typeNames.get(item.type_id),
@@ -271,7 +284,11 @@ export function GearInventory() {
           </Button>
         </div>
       </div>
-      <div className="gear-filters">
+      <div
+        className={
+          showCustody ? "gear-filters gear-inventory-filters" : "gear-filters"
+        }
+      >
         <Field
           label="Search inventory"
           value={search}
@@ -289,6 +306,33 @@ export function GearInventory() {
             <option value="all">All inventory</option>
           </select>
         </label>
+        {showCustody && (
+          <label className="field">
+            Held by
+            <select
+              value={holderFilter}
+              onChange={(e) => setHolderFilter(e.target.value)}
+            >
+              <option value="">All holders</option>
+              <option value="unknown">Unknown</option>
+              {holderOptions.map(([id, name]) => (
+                <option key={id} value={id}>
+                  {name}
+                  {holderOptions.some(
+                    ([other, label]) => other !== id && label === name,
+                  )
+                    ? ` · #${id}`
+                    : ""}
+                </option>
+              ))}
+              {!!holderFilter &&
+                holderFilter !== "unknown" &&
+                !people.has(Number(holderFilter)) && (
+                  <option value={holderFilter}>Previous holder</option>
+                )}
+            </select>
+          </label>
+        )}
       </div>
       {!rows.length && <Panel>No matching equipment.</Panel>}
       {rows.length > 0 && (

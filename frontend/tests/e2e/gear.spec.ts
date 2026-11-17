@@ -255,6 +255,13 @@ test("a numbered tent moves from an officer to a borrower and back to Unknown", 
   });
   await dialog.getByRole("button", { name: "Save custody" }).click();
   await expect(dialog).toHaveCount(0);
+  await page.getByLabel("Held by").selectOption({ label: "Jamie Chen" });
+  await expect(
+    page.getByText("VEVOR 4-person tent", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Expired officer tent", { exact: true }),
+  ).toHaveCount(0);
   await page.getByRole("button", { name: "Assign gear" }).click();
   await page.getByLabel("Search members").fill("Alex Rivera");
   await page.getByRole("button", { name: /Alex Rivera ·/ }).click();

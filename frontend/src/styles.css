@@ -4019,8 +4019,12 @@ dialog::backdrop {
 .gear-request-detail .gear-lines > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
 .gear-request-detail .gear-lines + .actions { margin-top: .5rem; }
 .gear-row-actions { gap: .4rem; }
-.gear-table .button.small { font-size: .8rem; }
+.gear-table .button.small { font-size: .8rem; overflow-wrap: normal; }
+@media (min-width: 768px) {
+  .gear-inventory-filters { grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)); }
+}
 @media (max-width: 767px) {
+  .gear-inventory-filters { grid-template-columns: minmax(0,1fr); }
   .gear-table td[data-label]::before { flex-shrink: 0; }
   .gear-table .gear-detail-row { padding: 0; }
   .gear-table .gear-detail-row > td { display: block; text-align: left; }
