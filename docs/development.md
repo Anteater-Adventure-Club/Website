@@ -169,3 +169,5 @@ export SESSION_SECRET="$(openssl rand -hex 32)"
 Open [the demo launcher](http://127.0.0.1:5178/demo). Each button starts a fresh session for that synthetic account and opens the indicated page. To repeat a scenario from scratch, rerun the seed command against the demo database. This replaces its fixtures. The same server serves the regenerated data immediately. The launcher lives under `artifacts/gear-demo/`; its sign-in controls exist only in the local demo process.
 
 With the demo running, use `npx playwright test --config playwright.gear.config.ts` from `frontend/` for phone, tablet and desktop journeys. Run the backend integration suite separately with `TEST_DATABASE_URL` explicitly set to the disposable `aac_test` database.
+
+To run browser journeys alongside an interactive demo, use a separate migrated database named `aac_gear_demo_test`, set `GEAR_DEMO_PORT=5179` for both the demo process and Playwright, and match `APP_URL` to that loopback origin. Set `GEAR_CHROMIUM_PATH` to an installed host Chromium executable when using a locally managed browser.

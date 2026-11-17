@@ -28,14 +28,14 @@ test("request, approve, pick up and return an officer-owned tent", async ({
   const tent = page.getByRole("checkbox", { name: /Naturehike Cloud Up 2/ });
   await tent.check();
   await expect(page.getByRole("checkbox", { name: /VEVOR/ })).toBeDisabled();
-  await expect(
-    page.getByRole("checkbox", { name: /Expired officer/ }),
-  ).toBeDisabled();
+  await expect(page.getByText("Expired officer tent")).toHaveCount(0);
   await expect(page.getByText("Staff expedition tent")).toHaveCount(0);
   await expect(
     page.getByText("Officer owned / not guaranteed", { exact: true }).first(),
   ).toBeVisible();
-  await page.getByLabel("Trip or activity").fill(activity);
+  await page
+    .getByRole("textbox", { name: /Please briefly describe the activities/ })
+    .fill(activity);
   await accessible(page);
   await page.getByRole("button", { name: "Submit gear request" }).click();
   await expect(page.getByRole("heading", { name: activity })).toBeVisible();
@@ -45,6 +45,7 @@ test("request, approve, pick up and return an officer-owned tent", async ({
   ).toBeDisabled();
   await enter(page, "helper", "rentals");
   await page.getByLabel("Search rentals").fill(activity);
+  await page.getByRole("button", { name: "Details", exact: true }).click();
   for (const verb of ["Approve", "Record pickup", "Record return"]) {
     await page.getByRole("button", { name: verb, exact: true }).click();
     const dialog = page.getByRole("dialog");
@@ -61,11 +62,31 @@ test("request, approve, pick up and return an officer-owned tent", async ({
 test("inventory, membership gate and delegated access", async ({ page }) => {
   await enter(page, "unpaid", "request");
   await expect(
-    page.getByRole("link", { name: "View membership" }),
+    page.getByRole("link", { name: "Go to Membership Signup" }),
   ).toBeVisible();
+  await expect(page.getByRole("checkbox")).toHaveCount(0);
+  await expect(page.getByLabel("Pickup date")).toHaveCount(0);
+  await page.getByRole("button", { name: "Check another pickup date" }).click();
+  await expect(page.getByLabel("Pickup date")).toBeVisible();
+  await enter(page, "dues", "request");
+  await expect(
+    page.getByRole("link", { name: "View membership status" }),
+  ).toBeVisible();
+  await expect(page.getByRole("checkbox")).toHaveCount(0);
+  await enter(page, "applicant", "history");
+  await expect(
+    page.getByRole("link", { name: "Start application" }),
+  ).toBeVisible();
+  await expect(page.getByRole("textbox")).toHaveCount(0);
   await enter(page, "other", "rentals");
   await expect(page).toHaveURL(/admin\/officers/);
   await enter(page, "helper", "inventory");
+  await expect(
+    page
+      .getByRole("table", { name: "Gear inventory" })
+      .getByText("Expired officer tent"),
+  ).toBeVisible();
+  await accessible(page);
   await page.getByRole("button", { name: "Add equipment" }).click();
   const dialog = page.getByRole("dialog");
   await dialog
@@ -85,6 +106,16 @@ test("inventory, membership gate and delegated access", async ({ page }) => {
     .getByRole("link", { name: /Gear rentals waiting for approval/ })
     .click();
   await expect(page.getByLabel("Rental status")).toHaveValue("pending");
+  const search = await page.getByLabel("Search rentals").boundingBox();
+  const filter = await page.getByLabel("Rental status").boundingBox();
+  if (!search || !filter) throw new Error("Rental filters are not visible");
+  if (page.viewportSize()!.width > 560)
+    expect(Math.abs(search.y - filter.y)).toBeLessThan(1);
+  else expect(search.x).toBe(filter.x);
+  await expect(
+    page.getByRole("table", { name: "Gear rental requests" }),
+  ).toBeVisible();
+  await accessible(page);
 });
 
 test("a gear helper adds inventory and assigns an approved rental", async ({
@@ -110,11 +141,15 @@ test("a gear helper adds inventory and assigns an approved rental", async ({
   await page.getByLabel("Search members").fill("Alex Rivera");
   await page.getByRole("button", { name: /Alex Rivera ·/ }).click();
   await page.getByRole("checkbox", { name: new RegExp(model) }).check();
-  await page.getByLabel("Trip or activity").fill(model);
+  await page
+    .getByRole("textbox", { name: /Please briefly describe the activities/ })
+    .fill(model);
   await page.getByRole("button", { name: "Assign and approve rental" }).click();
   await page.getByLabel("Search rentals").fill(model);
   await expect(
-    page.locator(".gear-lines").getByText("Approved", { exact: true }),
+    page
+      .getByRole("table", { name: "Gear rental requests" })
+      .getByText("Approved", { exact: true }),
   ).toBeVisible();
   await enter(page, "member", "history");
   await page.getByLabel("Search rentals").fill(model);

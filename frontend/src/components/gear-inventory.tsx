@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { dateLabel, useAPI, useAction } from "../lib/api";
+import { dateLabel, pacificDate, useAPI, useAction } from "../lib/api";
 import type { Schema } from "../lib/api";
-import { Button, Dialog, Field, Loading, Message, Panel } from "./ui";
+import { Button, Dialog, Field, Loading, Message, Panel, Pill } from "./ui";
 
 type Item = Schema<"GearItemView">;
 type Kind = Schema<"GearTypeView">;
@@ -240,13 +240,13 @@ export function GearInventory() {
           </Button>
         </div>
       </div>
-      <div className="gear-fields">
+      <div className="gear-filters">
         <Field
           label="Search inventory"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <label>
+        <label className="field">
           Show inventory
           <select value={filter} onChange={(e) => setFilter(e.target.value)}>
             {["active", "rentable", "non-rentable", "archived", "all"].map(
@@ -260,31 +260,89 @@ export function GearInventory() {
         </label>
       </div>
       {!rows.length && <Panel>No matching equipment.</Panel>}
-      {rows.map((i) => (
-        <Panel key={i.id}>
-          <div className="toolbar">
-            <div>
-              <small>{types.find((t) => t.id === i.type_id)?.name}</small>
-              <h3>{i.name}</h3>
-            </div>
-            <Button variant="quiet" onClick={() => setEditing(i)}>
-              Edit
-            </Button>
-          </div>
-          <p>
-            {i.quantity} total ·{" "}
-            {i.archived ? "Archived" : i.rentable ? "Rentable" : "Not rentable"}{" "}
-            ·{" "}
-            {i.ownership === "club" ? "Club owned" : "On loan from " + i.owner}
-          </p>
-          {i.description && <p>{i.description}</p>}
-          {i.loan_start && i.loan_end && (
-            <p>
-              Loan period · {dateLabel(i.loan_start)} – {dateLabel(i.loan_end)}
-            </p>
-          )}
-        </Panel>
-      ))}
+      {rows.length > 0 && (
+        <div className="table-wrapper">
+          <table
+            className="record-table gear-table"
+            aria-label="Gear inventory"
+          >
+            <thead>
+              <tr>
+                <th scope="col">Equipment</th>
+                <th scope="col">Quantity</th>
+                <th scope="col">Ownership</th>
+                <th scope="col">Status</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((i) => {
+                const expired = !!i.loan_end && i.loan_end < pacificDate();
+                const status = i.archived
+                  ? "Archived"
+                  : expired
+                    ? "Loan expired"
+                    : i.rentable
+                      ? "Rentable"
+                      : "Not rentable";
+                return (
+                  <tr key={i.id}>
+                    <td data-label="Equipment">
+                      <div>
+                        <strong>{i.name}</strong>
+                        <small>
+                          {types.find((t) => t.id === i.type_id)?.name}
+                        </small>
+                        {i.description && <small>{i.description}</small>}
+                      </div>
+                    </td>
+                    <td data-label="Quantity">{i.quantity}</td>
+                    <td data-label="Ownership">
+                      <div>
+                        {i.ownership === "club"
+                          ? "Club owned"
+                          : "Officer · " + i.owner}
+                        {i.loan_start && i.loan_end && (
+                          <small>
+                            {dateLabel(i.loan_start, { dateStyle: "medium" })} –{" "}
+                            {dateLabel(i.loan_end, { dateStyle: "medium" })}
+                          </small>
+                        )}
+                      </div>
+                    </td>
+                    <td data-label="Status">
+                      <div>
+                        <Pill
+                          tone={
+                            expired
+                              ? "yellow"
+                              : status === "Rentable"
+                                ? "green"
+                                : "neutral"
+                          }
+                        >
+                          {status}
+                        </Pill>
+                      </div>
+                    </td>
+                    <td data-label="Actions">
+                      <div className="actions gear-row-actions">
+                        <Button
+                          variant="secondary"
+                          className="small"
+                          onClick={() => setEditing(i)}
+                        >
+                          Edit
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
       {editing === "types" ? (
         <TypeEditor types={types} close={() => setEditing(null)} />
       ) : (

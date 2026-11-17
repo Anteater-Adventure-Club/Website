@@ -31,6 +31,10 @@ const memberLinks = [
   ["/my-aac/profile", "Profile & Cars"],
   ["/my-aac/reimbursements", "Reimbursements"],
 ];
+const applicantLinks = [
+  ["/my-aac/application", "Your application"],
+  ["/my-aac/gear", "Gear Rental"],
+];
 const adminLinks = [
   ["/admin/overview", "Dashboard"],
   ["/admin/events", "Events"],
@@ -117,21 +121,20 @@ export function Layout() {
           {quarter && !needsApproval(session?.member) && ` · ${quarter.name}`}
         </Pill>
       </div>
-      {(needsApproval(session?.member)
-        ? [["/my-aac/application", "Your application"]]
-        : memberLinks
-      ).map(([url, label]) => (
-        <Link
-          key={url}
-          to={quarterURL(url, quarter?.id)}
-          onClick={() => {
-            setAccount(false);
-            setMenu(false);
-          }}
-        >
-          {label}
-        </Link>
-      ))}
+      {(needsApproval(session?.member) ? applicantLinks : memberLinks).map(
+        ([url, label]) => (
+          <Link
+            key={url}
+            to={quarterURL(url, quarter?.id)}
+            onClick={() => {
+              setAccount(false);
+              setMenu(false);
+            }}
+          >
+            {label}
+          </Link>
+        ),
+      )}
       {hasTools(session) && (
         <Link
           to={
@@ -325,7 +328,9 @@ export function Workspace({ admin = false }: { admin?: boolean }) {
   const { session } = useIdentity();
   const links = admin
     ? adminLinks.filter(([url]) => canVisit(session, url))
-    : memberLinks;
+    : needsApproval(session?.member)
+      ? applicantLinks
+      : memberLinks;
   const [sections, setSections] = useState(false);
   const location = useLocation();
   const globalGear = ["/my-aac/gear", "/admin/gear"].includes(

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { GearDuesCard } from "./gear-membership";
 import { useAPI, useAction, pacificDate } from "../lib/api";
 import { useSearchQuery } from "../lib/search-query";
 import { Button, Field, Loading, Message, Panel } from "./ui";
@@ -15,6 +15,7 @@ export function GearRequestForm({
   assign?: boolean;
   onSaved: () => void;
 }) {
+  const [datesOpened, setDatesOpened] = useState(false);
   const [start, setStart] = useState(pacificDate());
   const [end, setEnd] = useState(start);
   const [search, setSearch] = useState("");
@@ -121,69 +122,77 @@ export function GearRequestForm({
           )}
         </Panel>
       )}
-      <Panel>
-        <h2>Rental dates</h2>
-        <p className="muted">
-          Borrow for up to seven days, including pickup and return. Contact an
-          officer for a longer trip.
-        </p>
-        <div className="gear-fields">
-          <Field
-            label="Pickup date"
-            type="date"
-            required
-            min={pacificDate()}
-            value={start}
-            onChange={(e) => {
-              setStart(e.target.value);
-              if (end < e.target.value) setEnd(e.target.value);
-            }}
-          />
-          <Field
-            label="Return date"
-            type="date"
-            required
-            min={start}
-            value={end}
-            onChange={(e) => setEnd(e.target.value)}
-          />
+      {data && !data.eligible && (
+        <GearDuesCard catalog={data} assign={assign} />
+      )}
+      {!assign && data && !data.eligible && !datesOpened && (
+        <div>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setDatesOpened(true)}
+          >
+            Check another pickup date
+          </Button>
         </div>
-        {long &&
-          (assign ? (
+      )}
+      {(assign ||
+        datesOpened ||
+        (data?.eligible ?? !ready) ||
+        catalog.isError) && (
+        <Panel>
+          <h2>Rental dates</h2>
+          <p className="muted">
+            Borrow for up to seven days, including pickup and return. Contact an
+            officer for a longer trip.
+          </p>
+          <div className="gear-fields">
             <Field
-              label="Reason for longer rental"
+              label="Pickup date"
+              type="date"
               required
-              maxLength={2000}
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
+              min={pacificDate()}
+              value={start}
+              onChange={(e) => {
+                setDatesOpened(true);
+                setStart(e.target.value);
+                if (end < e.target.value) setEnd(e.target.value);
+              }}
             />
-          ) : (
-            <Message>
-              Choose up to seven calendar days or ask an officer about a longer
-              rental.
-            </Message>
-          ))}
-      </Panel>
+            <Field
+              label="Return date"
+              type="date"
+              required
+              min={start}
+              value={end}
+              onChange={(e) => {
+                setDatesOpened(true);
+                setEnd(e.target.value);
+              }}
+            />
+          </div>
+          {long &&
+            (assign ? (
+              <Field
+                label="Reason for longer rental"
+                required
+                maxLength={2000}
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+              />
+            ) : (
+              <Message>
+                Choose up to seven calendar days or ask an officer about a
+                longer rental.
+              </Message>
+            ))}
+        </Panel>
+      )}
       {ready && catalog.isPending && <Loading />}
       {ready && catalog.error && <Message error={catalog.error} />}
-      {data && (
+      {data?.eligible && (
         <Panel>
           <h2>Choose gear</h2>
-          {!data.eligible && (
-            <Message>
-              {data.quarter_id
-                ? `Approved paid membership in ${data.quarter_name} is required.`
-                : "No membership quarter covers this pickup date."}
-              {!assign && data.quarter_id && (
-                <>
-                  {" "}
-                  <Link to={`/membership?quarter=${data.quarter_id}`}>
-                    View membership
-                  </Link>
-                </>
-              )}
-            </Message>
-          )}
           <p className="muted">
             Choose one item per type. Your request holds a unit while an officer
             reviews it.
@@ -199,7 +208,6 @@ export function GearRequestForm({
                 .map((i) => {
                   const checked = ids.includes(i.id);
                   const blocked =
-                    !data.eligible ||
                     !i.available ||
                     i.type_reserved ||
                     selected.some((s) => s.type_id === typeId);
@@ -252,17 +260,24 @@ export function GearRequestForm({
         <Panel>
           <h2>Rental details</h2>
           <label>
-            Trip or activity
+            Please briefly describe the activities / trip that you are borrowing
+            the gear for (e.g. "Backpacking Mt. Whitney" or "Camping in Big
+            Bear")
             <textarea
               required
               maxLength={2000}
               value={activity}
-              placeholder="Camping in Big Bear"
+              aria-describedby="gear-trip-hint"
               onChange={(e) => setActivity(e.target.value)}
             />
           </label>
+          <p id="gear-trip-hint" className="muted">
+            You may elaborate more if you think we would find your plans
+            interesting, we love to hear what members are up to :)
+          </p>
           <label>
-            Logistical comments (optional)
+            Is there anything else you would like us to know about your rental
+            request? <small>(optional)</small>
             <textarea
               maxLength={2000}
               value={comments}

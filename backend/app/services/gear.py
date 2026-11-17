@@ -103,16 +103,27 @@ def stock(db, mid, start, end, exclude=None):
 def catalog(db, mid, start, end):
     validate_dates(start, end)
     quarter, eligible = eligibility(db, mid, start)
+    result = dict(
+        quarter_id=quarter.id if quarter else None,
+        quarter_name=quarter.name if quarter else None,
+        eligible=eligible,
+        items=[],
+    )
+    if not eligible:
+        return result
     by_item, member_types = stock(db, mid, start, end)
-    items = []
     for item, kind in db.execute(
         select(GearItem, GearType)
         .join(GearType)
-        .where(GearItem.rentable, ~GearItem.archived)
+        .where(
+            GearItem.rentable,
+            ~GearItem.archived,
+            or_(GearItem.ownership == "club", (GearItem.loan_start <= start) & (GearItem.loan_end >= end)),
+        )
         .order_by(GearType.name, GearItem.name, GearItem.id)
     ):
-        remaining = item.quantity - peak(by_item[item.id], start, end) if loan_covers(item, start, end) else 0
-        items.append(
+        remaining = item.quantity - peak(by_item[item.id], start, end)
+        result["items"].append(
             dict(
                 id=item.id,
                 type_id=kind.id,
@@ -124,12 +135,7 @@ def catalog(db, mid, start, end):
                 type_reserved=item.type_id in member_types,
             )
         )
-    return dict(
-        quarter_id=quarter.id if quarter else None,
-        quarter_name=quarter.name if quarter else None,
-        eligible=eligible,
-        items=items,
-    )
+    return result
 
 
 def check_items(db, mid, start, end, items, *, exclude=None, new=False):

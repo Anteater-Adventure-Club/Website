@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import { useSearchParams } from "react-router";
 import { dateLabel, pacificDate, useAction, useAPI } from "../lib/api";
 import type { Schema } from "../lib/api";
@@ -13,6 +13,9 @@ import {
   Pill,
 } from "../components/ui";
 import { GearRequestForm, GearWarning } from "../components/gear-request";
+import { useIdentity } from "../lib/context";
+import { needsApproval } from "../lib/approval";
+import { GearMembershipCard } from "../components/gear-membership";
 import { GearInventory } from "../components/gear-inventory";
 
 type Rental = Schema<"GearRentalView">;
@@ -39,6 +42,12 @@ const actions: Record<Action, string> = {
 };
 const prettyDate = (v: string) =>
   dateLabel(v, { month: "short", day: "numeric", year: "numeric" });
+const rentalPeriod = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  timeZone: "UTC",
+});
 function allowed(line: Line, r: Rental, admin: boolean): Action[] {
   if (line.status === "picked_up") return admin ? ["return"] : [];
   if (line.status === "pending")
@@ -158,6 +167,210 @@ function RentalDialog({
     </Dialog>
   );
 }
+type RentalActionsProps = {
+  r: Rental;
+  admin: boolean;
+  setEdit: (value: Edit) => void;
+};
+function RentalItems({ r, admin, setEdit }: RentalActionsProps) {
+  return (
+    <>
+      {" "}
+      <div className="gear-lines">
+        {r.lines.map((l) => (
+          <div key={l.id}>
+            <div>
+              <strong>{l.name}</strong> · {l.type_name}
+              {l.ownership === "officer" && <GearWarning />}
+              <small>
+                {labels[l.status]}
+                {l.overdue
+                  ? " · Overdue"
+                  : l.missed
+                    ? " · Missed pickup"
+                    : l.at_risk
+                      ? " · At risk from an overdue return"
+                      : ""}
+              </small>
+              {l.message && <p>{l.message}</p>}
+            </div>
+            <div className="actions gear-row-actions">
+              {allowed(l, r, admin).map((a) => (
+                <Button
+                  key={a}
+                  variant={
+                    a === "approve" || a === "pickup" || a === "return"
+                      ? "primary"
+                      : "secondary"
+                  }
+                  className="small"
+                  onClick={() => setEdit({ r, action: a, lines: [l] })}
+                >
+                  {actions[a]}
+                </Button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      {admin && (
+        <div className="actions">
+          {(["approve", "pickup", "return"] as Action[]).map((a) => {
+            const lines = r.lines.filter((l) =>
+              allowed(l, r, true).includes(a),
+            );
+            return (
+              lines.length > 1 && (
+                <Button
+                  key={a}
+                  variant="secondary"
+                  onClick={() => setEdit({ r, action: a, lines })}
+                >
+                  {a === "approve"
+                    ? "Approve all pending"
+                    : actions[a] + " for all eligible items"}
+                </Button>
+              )
+            );
+          })}
+          {r.lines.some((l) =>
+            ["pending", "approved", "picked_up"].includes(l.status),
+          ) && (
+            <Button
+              variant="secondary"
+              onClick={() => setEdit({ r, action: "dates", lines: r.lines })}
+            >
+              Change dates
+            </Button>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
+function OfficerRentalTable({
+  rows,
+  setEdit,
+}: {
+  rows: Rental[];
+  setEdit: (value: Edit) => void;
+}) {
+  const [expanded, setExpanded] = useState<number | null>(null);
+  return (
+    <div className="table-wrapper">
+      <table
+        className="record-table gear-table"
+        aria-label="Gear rental requests"
+      >
+        <thead>
+          <tr>
+            <th scope="col">Borrower / trip</th>
+            <th scope="col">Rental period</th>
+            <th scope="col">Gear</th>
+            <th scope="col">Status</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => {
+            const open = expanded === r.id;
+            const flagged = [
+              ...new Set(
+                r.lines.flatMap((l) =>
+                  l.overdue
+                    ? ["Overdue"]
+                    : l.missed
+                      ? ["Missed pickup"]
+                      : l.at_risk
+                        ? ["At risk"]
+                        : [],
+                ),
+              ),
+            ];
+            const canApprove = r.lines.filter((l) =>
+              allowed(l, r, true).includes("approve"),
+            );
+            return (
+              <Fragment key={r.id}>
+                <tr>
+                  <td data-label="Borrower / trip">
+                    <div>
+                      <strong>{r.member_name}</strong>
+                      <small>
+                        #{r.id} · {r.activity}
+                      </small>
+                    </div>
+                  </td>
+                  <td data-label="Rental period">
+                    <span>
+                      {rentalPeriod.formatRange(
+                        new Date(r.start),
+                        new Date(r.end),
+                      )}
+                    </span>
+                  </td>
+                  <td data-label="Gear">
+                    <span>{r.lines.map((l) => l.name).join(", ")}</span>
+                  </td>
+                  <td data-label="Status">
+                    <div>
+                      <Pill tone={r.status === "pending" ? "yellow" : "green"}>
+                        {labels[r.status]}
+                      </Pill>
+                      {flagged.length > 0 && (
+                        <small>{flagged.join(" · ")}</small>
+                      )}
+                    </div>
+                  </td>
+                  <td data-label="Actions">
+                    <div className="actions gear-row-actions">
+                      {!!canApprove.length && !open && (
+                        <Button
+                          className="small"
+                          onClick={() =>
+                            setEdit({ r, action: "approve", lines: canApprove })
+                          }
+                        >
+                          {canApprove.length === 1 ? "Approve" : "Approve all"}
+                        </Button>
+                      )}
+                      <Button
+                        className="small"
+                        variant="secondary"
+                        aria-expanded={open}
+                        aria-controls={
+                          open ? `gear-details-${r.id}` : undefined
+                        }
+                        onClick={() => setExpanded(open ? null : r.id)}
+                      >
+                        {open ? "Hide details" : "Details"}
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+                {open && (
+                  <tr className="gear-detail-row">
+                    <td colSpan={5} id={`gear-details-${r.id}`}>
+                      <div className="gear-request-detail">
+                        <h3>
+                          Rental #{r.id} · {r.member_name}
+                        </h3>
+                        {r.comments && <p>{r.comments}</p>}
+                        <RentalItems r={r} admin setEdit={setEdit} />
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function Rentals({ admin = false }: { admin?: boolean }) {
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState("");
@@ -188,13 +401,13 @@ function Rentals({ admin = false }: { admin?: boolean }) {
   );
   return (
     <div className="stack">
-      <div className="gear-fields">
+      <div className="gear-filters">
         <Field
           label="Search rentals"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <label>
+        <label className="field">
           Rental status
           <select
             value={status}
@@ -221,92 +434,28 @@ function Rentals({ admin = false }: { admin?: boolean }) {
           <p>Requests and their decisions will appear here.</p>
         </Panel>
       )}
-      {rows.map((r) => (
-        <Panel key={r.id}>
-          <div className="toolbar">
-            <div>
-              <small>
-                Rental #{r.id}
-                {admin && " · " + r.member_name}
-              </small>
-              <h2>{r.activity}</h2>
-            </div>
-            <Pill tone={r.status === "pending" ? "yellow" : "green"}>
-              {labels[r.status]}
-            </Pill>
-          </div>
-          <p>
-            {prettyDate(r.start)} – {prettyDate(r.end)}
-          </p>
-          {r.comments && <p>{r.comments}</p>}
-          <div className="gear-lines">
-            {r.lines.map((l) => (
-              <div key={l.id}>
-                <div>
-                  <strong>{l.name}</strong> · {l.type_name}
-                  {l.ownership === "officer" && <GearWarning />}
-                  <small>
-                    {labels[l.status]}
-                    {l.overdue
-                      ? " · Overdue"
-                      : l.missed
-                        ? " · Missed pickup"
-                        : l.at_risk
-                          ? " · At risk from an overdue return"
-                          : ""}
-                  </small>
-                  {l.message && <p>{l.message}</p>}
-                </div>
-                <div className="actions">
-                  {allowed(l, r, admin).map((a) => (
-                    <Button
-                      key={a}
-                      variant="quiet"
-                      onClick={() => setEdit({ r, action: a, lines: [l] })}
-                    >
-                      {actions[a]}
-                    </Button>
-                  ))}
-                </div>
+      {!!rows.length && admin && (
+        <OfficerRentalTable rows={rows} setEdit={setEdit} />
+      )}
+      {!admin &&
+        rows.map((r) => (
+          <Panel key={r.id}>
+            <div className="toolbar">
+              <div>
+                <small>Rental #{r.id}</small>
+                <h2>{r.activity}</h2>
               </div>
-            ))}
-          </div>
-          {admin && (
-            <div className="actions">
-              {(["approve", "pickup", "return"] as Action[]).map((a) => {
-                const lines = r.lines.filter((l) =>
-                  allowed(l, r, true).includes(a),
-                );
-                return (
-                  lines.length > 1 && (
-                    <Button
-                      key={a}
-                      variant="secondary"
-                      onClick={() => setEdit({ r, action: a, lines })}
-                    >
-                      {a === "approve"
-                        ? "Approve all pending"
-                        : actions[a] + " for all eligible items"}
-                    </Button>
-                  )
-                );
-              })}
-              {r.lines.some((l) =>
-                ["pending", "approved", "picked_up"].includes(l.status),
-              ) && (
-                <Button
-                  variant="quiet"
-                  onClick={() =>
-                    setEdit({ r, action: "dates", lines: r.lines })
-                  }
-                >
-                  Change dates
-                </Button>
-              )}
+              <Pill tone={r.status === "pending" ? "yellow" : "green"}>
+                {labels[r.status]}
+              </Pill>
             </div>
-          )}
-        </Panel>
-      ))}
+            <p>
+              {prettyDate(r.start)} – {prettyDate(r.end)}
+            </p>
+            {r.comments && <p>{r.comments}</p>}
+            <RentalItems r={r} admin={false} setEdit={setEdit} />
+          </Panel>
+        ))}
       {edit && (
         <RentalDialog edit={edit} admin={admin} close={() => setEdit(null)} />
       )}
@@ -316,7 +465,34 @@ function Rentals({ admin = false }: { admin?: boolean }) {
 export function MemberGear() {
   const [params, setParams] = useSearchParams();
   const [notice, setNotice] = useState("");
+  const { session } = useIdentity();
   const history = params.get("tab") === "rentals";
+  if (needsApproval(session?.member)) {
+    const status = session?.member?.approval_status;
+    const title =
+      status === "pending"
+        ? "Your application is being reviewed"
+        : status === "denied"
+          ? "Your application was not approved"
+          : "Apply for AAC membership";
+    return (
+      <div className="stack">
+        <PageHeading title="Gear Rental" />
+        <GearMembershipCard
+          eyebrow="Club membership"
+          title={title}
+          link={{
+            to: "/my-aac/application",
+            label:
+              status === "required" ? "Start application" : "View application",
+          }}
+        >
+          Gear rental is available to approved club members who have paid dues
+          for the pickup quarter.
+        </GearMembershipCard>
+      </div>
+    );
+  }
   return (
     <div className="stack">
       <PageHeading

@@ -134,6 +134,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 <Route path="terms" element={<TermsOfService />} />
                 <Route path="sign-in" element={<SignIn />} />
                 <Route element={<Guard allowUnapproved />}>
+                  <Route element={<Workspace />}>
+                    <Route path="my-aac/gear" element={<MemberGear />} />
+                  </Route>
                   <Route
                     path="my-aac/application"
                     element={<ApplicationPage />}
@@ -142,7 +145,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 <Route element={<Guard />}>
                   <Route element={<Workspace />}>
                     <Route path="my-aac" element={<MyOverview />} />
-                    <Route path="my-aac/gear" element={<MemberGear />} />
                     <Route path="my-aac/profile" element={<Profile />} />
                     <Route path="my-aac/signups" element={<MySignups />} />
                     <Route

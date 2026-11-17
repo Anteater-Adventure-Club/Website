@@ -5,7 +5,11 @@ export default defineConfig({
   testDir: "./tests/e2e",
   testMatch: "gear.spec.ts",
   workers: 1,
-  use: { baseURL: "http://127.0.0.1:5178", trace: "retain-on-failure" },
+  use: {
+    baseURL: `http://127.0.0.1:${process.env.GEAR_DEMO_PORT || "5178"}`,
+    launchOptions: { executablePath: process.env.GEAR_CHROMIUM_PATH },
+    trace: "retain-on-failure",
+  },
   outputDir: "../artifacts/gear-demo/traces",
   projects: [
     { name: "phone", use: { viewport: { width: 390, height: 844 } } },

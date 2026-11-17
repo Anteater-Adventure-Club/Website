@@ -156,7 +156,7 @@ Run the [production proxy checks](development.md#production-proxy-checks) after 
 
 New Google signups without a UCI email must complete an application before using member tools, signing up for events, or submitting dues. Existing member records are grandfathered in, including imported members who have not signed in. New members deliberately added by officers or imported from a roster are admitted automatically. Adding or importing an existing applicant does not override their application status.
 
-Until an application is approved, direct visits to any My AAC member tab redirect to the application page. This covers Overview, My Signups, Membership, Profile & Cars, and Reimbursements. Member APIs and event signups also reject these accounts, while public pages remain available. Pending payment confirmation is separate and does not impose this application restriction.
+Until an application is approved, direct visits to protected My AAC member tabs redirect to the application page. This covers Overview, My Signups, Membership, Profile & Cars, and Reimbursements. The Gear Rental tab shows an application card with a link to the next step. Member APIs and event signups also reject these accounts, while public pages remain available. Pending payment confirmation is separate and does not impose this application restriction.
 
 Open **Settings → External Member Application → Edit application questions** to change the questionnaire. It uses the same question editor and validation as event forms, including email fields, word limits, and conditions based on an earlier yes/no or multiple-choice answer. Submitted applications retain their original questions and answers. An applicant filling an older version must review the updated questions before submitting.
 

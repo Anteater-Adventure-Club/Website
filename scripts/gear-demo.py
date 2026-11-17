@@ -34,13 +34,13 @@ from app.models import (  # noqa: E402
 )
 from app.services.gear import create  # noqa: E402
 
-PORT = 5178
+PORT = int(os.environ.get("GEAR_DEMO_PORT", "5178"))
 ORIGIN = f"http://127.0.0.1:{PORT}"
 settings = Settings()
 url = make_url(settings.database_url)
 if (
     url.host != "127.0.0.1"
-    or url.database != "aac_gear_demo"
+    or url.database not in {"aac_gear_demo", "aac_gear_demo_test"}
     or settings.environment != "development"
     or settings.app_url != ORIGIN
     or settings.initial_officers != "officer@uci.edu"
@@ -55,6 +55,8 @@ ROLES = {
     "member": ("Alex Rivera", "Paid member", "alex@example.test"),
     "second": ("Riley Park", "Second paid member", "riley@example.test"),
     "unpaid": ("Casey Lee", "Unpaid member", "casey@example.test"),
+    "applicant": ("Taylor Brooks", "Club applicant", "taylor@example.test"),
+    "dues": ("Drew Green", "Dues awaiting approval", "drew@example.test"),
     "officer": ("Jamie Chen", "Full officer", "officer@uci.edu"),
     "helper": ("Quinn Lee", "Gear helper", "quinn@example.test"),
     "other": ("Robin West", "Helper without Gear", "robin@example.test"),
@@ -103,7 +105,11 @@ def seed():
                 db.add(person)
             person.name = name
             people[role] = person
+        people["applicant"].approval_status = "required"
         db.flush()
+        db.add(
+            Membership(member_id=people["dues"].id, quarter_id=q.id, status="pending", submitted_at=utcnow())
+        )
         for role in ("member", "second", "helper", "officer"):
             db.add(
                 Membership(member_id=people[role].id, quarter_id=q.id, status="approved", source="payment")
@@ -185,7 +191,11 @@ def seed():
 def launcher():
     groups = []
     for key, (name, label, _) in ROLES.items():
-        links = ["request", "history"] if key in ("member", "second", "unpaid") else ["rentals"]
+        links = (
+            ["request", "history"]
+            if key in ("member", "second", "unpaid", "dues", "applicant")
+            else ["rentals"]
+        )
         if key in ("officer", "helper"):
             links += ["inventory", "assign"]
         if key == "officer":

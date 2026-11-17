@@ -124,6 +124,15 @@ def test_loan_period_membership_and_extension(api):
         loan_start=dates()["start"],
         loan_end=dates(0, 8)["end"],
     )
+
+    def catalog_for(mid, start, end):
+        return api.get("/api/gear", params=dates(start, end), headers=headers(mid)).json()["items"]
+
+    assert catalog_for(spare, 0, 2) == []
+    assert [i["id"] for i in catalog_for(mid, 7, 8)] == [item["id"]]
+    assert catalog_for(mid, 8, 9) == []
+    assert catalog_for(mid, 9, 10) == []
+    assert any(i["id"] == item["id"] for i in api.get(ADMIN + "/inventory").json()["items"])
     assert api.post(OWN, json=body([item]), headers=headers(spare)).status_code == 403
     assert api.post(OWN, json=body([item], 0, 7), headers=headers(mid)).status_code == 422
     assert (
@@ -168,7 +177,7 @@ def test_overdue_stock_and_quarter_boundary(api):
     future = api.get(OWN, headers=headers(b)).json()["items"][0]
     assert future["lines"][0]["at_risk"]
     assert api.get(detail, headers=headers(a)).json()["lines"][0]["at_risk"]
-    assert api.get("/api/gear", params=dates(4, 4), headers=headers(a)).json()["items"][0]["available"] == 0
+    assert api.get("/api/gear", params=dates(1, 1), headers=headers(a)).json()["items"][0]["available"] == 0
     assert action(api, out, "return", 0).is_success
     assert not api.get(detail, headers=headers(a)).json()["lines"][0]["at_risk"]
     assert not api.get(OWN, headers=headers(b)).json()["items"][0]["lines"][0]["at_risk"]
