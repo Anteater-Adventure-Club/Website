@@ -56,6 +56,13 @@ const EventDetail = lazy(() =>
   import("./pages/event-detail").then((m) => ({ default: m.EventDetail })),
 );
 
+const MemberGear = lazy(() =>
+  import("./pages/gear").then((m) => ({ default: m.MemberGear })),
+);
+const AdminGear = lazy(() =>
+  import("./pages/gear").then((m) => ({ default: m.AdminGear })),
+);
+
 const AdminOverview = lazy(() =>
   import("./pages/admin-base").then((m) => ({ default: m.AdminOverview })),
 );
@@ -135,6 +142,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 <Route element={<Guard />}>
                   <Route element={<Workspace />}>
                     <Route path="my-aac" element={<MyOverview />} />
+                    <Route path="my-aac/gear" element={<MemberGear />} />
                     <Route path="my-aac/profile" element={<Profile />} />
                     <Route path="my-aac/signups" element={<MySignups />} />
                     <Route
@@ -150,6 +158,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 <Route element={<Guard officer />}>
                   <Route element={<Workspace admin />}>
                     <Route path="admin/overview" element={<AdminOverview />} />
+                    <Route path="admin/gear" element={<AdminGear />} />
                     <Route path="admin/events" element={<AdminEvents />} />
                     <Route path="admin/events/new" element={<EventEditor />} />
                     <Route

@@ -180,3 +180,11 @@ Full officers can grant temporary access from **Officers → Guest officer acces
 Guest navigation includes only the assigned tools. Full officers retain Dashboard, Settings, access management, bans and their private reasons, application-form configuration, Google Sheets, audit history, budgets, and quarter finalization/archival. Shared member pickers omit payout details; guests without Reimbursements cannot retrieve payout fields from member records.
 
 Expired grants remain listed for renewal. Revocation takes effect on subsequent API requests; expiry is checked on every protected request without a scheduled cleanup job. Open pages refresh access at expiry, on focus, every 30 seconds in officer tools, and on authorization errors. Losing officer access does not sign the member out. Grant and edit history is recorded in the audit log. Promoting an eligible UCI Guest to full officer removes the temporary grant.
+
+## Gear rentals
+
+Full officers can open **Officer Tools → Gear → Inventory** to add equipment and manage gear types. Use the same type for different models of the same equipment, such as all tents. Enter the number of interchangeable units, then enable **Available for member rental**. Record officer-owned stock separately with the lender and their inclusive loan dates. Disable rentability to stop new requests. Resolve outstanding commitments before reducing capacity below reserved stock, changing ownership or archiving equipment.
+
+Members use **My AAC → Gear Rental**. Pickup and return both count toward the seven-day limit. The pickup date determines the membership quarter. Approved reservations, pending requests and checked-out gear all count toward stock for overlapping dates. A borrower can hold one item of each type across all their requests. Cancel an item before pickup to release its hold.
+
+Use **Officer Tools → Gear → Rentals** to approve or deny individual items, record pickups and returns, or adjust dates. Include a message when a borrower needs an explanation. **Assign gear** creates an approved rental on behalf of a paid member. Longer rentals require an officer’s reason. When an item is overdue, record its actual return or resolve competing reservations before handing out gear. The dashboard links to pending and overdue rentals. Full officers can delegate Gear under the existing temporary guest permissions.

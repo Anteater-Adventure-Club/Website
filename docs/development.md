@@ -147,3 +147,25 @@ Apply Alembic migration `e91f52a680bc` before deploying the new API. Existing fu
 Protect newly delegated endpoints with `permission(...)` from `app.auth`; multiple permissions use **any-of** semantics. Keep full-only endpoints on `officer`. Shared imports recheck their stored mode on apply; private media checks its stored purpose; board edits with omitted `site_access` preserve access, while explicit access changes require a full officer. Update the permission matrix tests whenever extending a workflow.
 
 `backend/tests/test_guest_officers.py` runs against the disposable PostgreSQL test database described above. `npm run test:e2e:guests` runs synthetic API-backed browser journeys with Vite only, covering desktop Chromium, mobile Chromium, and mobile WebKit. It exercises tab filtering, shared dialogs, grant/renew/revoke, expiry, and changes to permissions on an open page. Traces are written under `artifacts/guest-access-traces`.
+
+## Gear rental demo and checks
+
+Apply the gear migration before starting the updated API and frontend. It creates five gear types. Officers populate production inventory from their records.
+
+The local HTML launcher serves the production frontend build and FastAPI application with synthetic accounts. Create a dedicated PostgreSQL database called `aac_gear_demo` on loopback. From the repository root, with the repository Python and Node runtimes installed:
+
+```bash
+export DATABASE_URL=postgresql+psycopg://aac:aac@127.0.0.1:55432/aac_gear_demo
+export APP_ENV=development
+export APP_URL=http://127.0.0.1:5178
+export INITIAL_OFFICER_EMAILS=officer@uci.edu
+export SESSION_SECRET="$(openssl rand -hex 32)"
+(cd backend && ../.venv/bin/alembic upgrade head)
+(cd frontend && npm run build)
+.venv/bin/python scripts/gear-demo.py seed
+.venv/bin/python scripts/gear-demo.py serve
+```
+
+Open [the demo launcher](http://127.0.0.1:5178/demo). Each button starts a fresh session for that synthetic account and opens the indicated page. To repeat a scenario from scratch, rerun the seed command against the demo database. This replaces its fixtures. The same server serves the regenerated data immediately. The launcher lives under `artifacts/gear-demo/`; its sign-in controls exist only in the local demo process.
+
+With the demo running, use `npx playwright test --config playwright.gear.config.ts` from `frontend/` for phone, tablet and desktop journeys. Run the backend integration suite separately with `TEST_DATABASE_URL` explicitly set to the disposable `aac_test` database.

@@ -27,6 +27,7 @@ const memberLinks = [
   ["/my-aac", "Overview"],
   ["/my-aac/signups", "My Signups"],
   ["/my-aac/membership", "Membership"],
+  ["/my-aac/gear", "Gear Rental"],
   ["/my-aac/profile", "Profile & Cars"],
   ["/my-aac/reimbursements", "Reimbursements"],
 ];
@@ -34,6 +35,7 @@ const adminLinks = [
   ["/admin/overview", "Dashboard"],
   ["/admin/events", "Events"],
   ["/admin/check-in", "Check In"],
+  ["/admin/gear", "Gear"],
   ["/admin/members", "Members"],
   ["/admin/reimbursements", "Reimbursements"],
   ["/admin/officers", "Officers"],
@@ -326,6 +328,9 @@ export function Workspace({ admin = false }: { admin?: boolean }) {
     : memberLinks;
   const [sections, setSections] = useState(false);
   const location = useLocation();
+  const globalGear = ["/my-aac/gear", "/admin/gear"].includes(
+    location.pathname,
+  );
   const selected =
     links.find(([url]) => location.pathname === url)?.[1] ||
     (admin ? "Officer Tools" : "My AAC");
@@ -351,7 +356,7 @@ export function Workspace({ admin = false }: { admin?: boolean }) {
           {selected} <Menu size={18} />
         </Button>
         <div className="workspace-controls">
-          <QuarterPicker />
+          {!globalGear && <QuarterPicker />}
           {hasTools(session) && (
             <Link
               className="mode-switch"
@@ -382,7 +387,7 @@ export function Workspace({ admin = false }: { admin?: boolean }) {
         </Dialog>
       )}
       <div className="page workspace-page">
-        {invalid ? (
+        {invalid && !globalGear ? (
           <Empty title="Quarter not found">
             Choose an available quarter from the menu above.
           </Empty>

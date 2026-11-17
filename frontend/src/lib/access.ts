@@ -2,6 +2,7 @@ import type { Schema } from "./api";
 
 export type Permission = Schema<"OfficerAccess">["permissions"][number];
 export const permissionLabels: Record<Permission, string> = {
+  gear: "Gear",
   events: "Events & Recaps",
   participation: "Check-in & Carpools",
   members: "Members & Dues",
@@ -9,6 +10,7 @@ export const permissionLabels: Record<Permission, string> = {
   board: "Board Profiles",
 };
 export const permissionDescriptions: Record<Permission, string> = {
+  gear: "Manage inventory, approve and assign rentals, and record pickups and returns.",
   events: "Edit and publish events, recurring schedules, photos, and recaps.",
   participation:
     "Manage signups, walk-ins, check-in, cards, carpools, and participant imports/exports.",
@@ -52,6 +54,7 @@ export function canVisit(session: Session, path: string) {
     return can(session, "events");
   if (path === "/admin/events" || path.startsWith("/admin/events/"))
     return can(session, "events", "participation", "reimbursements");
+  if (path === "/admin/gear") return can(session, "gear");
   if (path === "/admin/members") return can(session, "members");
   if (path === "/admin/reimbursements") return can(session, "reimbursements");
   if (path === "/admin/officers") return can(session, "board");
@@ -66,6 +69,7 @@ export function officerHome(session: Session) {
       "/admin/members",
       "/admin/reimbursements",
       "/admin/officers",
+      "/admin/gear",
     ].find((path) => canVisit(session, path)) || "/my-aac"
   );
 }

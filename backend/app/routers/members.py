@@ -288,7 +288,7 @@ def admin_person(target, *, include_payouts=False, lookup=False):
 
 @router.get("/admin/member-lookup", response_model=MemberList)
 def member_lookup(search: str = "", limit: Annotated[int, Query(ge=1, le=50)] = 10,
-                  user=Depends(permission("members", "participation", "reimbursements", "board")),
+                  user=Depends(permission("members", "participation", "reimbursements", "board", "gear")),
                   db=Depends(get_db, scope="function")):
     result = ranked_page(db, select(Member).order_by(Member.name, Member.id), Member, search, limit, 0)
     result["items"] = [{"member": admin_person(m, lookup=True), "membership": None,

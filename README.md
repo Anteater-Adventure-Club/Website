@@ -23,7 +23,7 @@ Screenshots show the actual application with synthetic events and accounts; name
 | [![Board page with synthetic officer profiles](assets/readme/board.jpg)](assets/readme/board.jpg) | [![Public membership page explaining benefits and dues](assets/readme/membership.jpg)](assets/readme/membership.jpg) |
 | **Board:** interactive polaroids introduce the student leaders behind AAC, with an archive of previous boards. | **Membership:** what it costs to join, the benefits of being a member, and how dues support club gear, trips, and events. |
 | [![My AAC overview with a synthetic member's signups and membership](assets/readme/my-aac.jpg)](assets/readme/my-aac.jpg) | [![Officer dashboard with synthetic events, dues, and tasks](assets/readme/officer-dashboard.jpg)](assets/readme/officer-dashboard.jpg) |
-| **My AAC:** membership, signups, profile, cars, and reimbursements. | **Officer tools:** events, members, dues approvals, carpools, check-in, and quarter finances. |
+| **My AAC:** membership, signups, profile, cars, gear rentals, and reimbursements. | **Officer tools:** events, members, dues approvals, carpools, check-in, and quarter finances. |
 
 <p align="center">
   <a href="assets/readme/mobile-membership.jpg"><img src="assets/readme/mobile-membership.jpg" alt="Phone view of a synthetic member's paid membership" width="260"></a>

@@ -3988,3 +3988,19 @@ dialog::backdrop {
     padding: 1rem;
   }
 }
+
+.gear-form, .gear-lines, .gear-options { overflow-wrap: anywhere; }
+.gear-form .panel > * + *, .gear-form label > textarea { margin-top: .65rem; }
+.gear-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 1rem; }
+.gear-fields > *, .gear-form input[type=date] { min-width: 0; }
+.gear-options { margin: 1rem 0; padding: .8rem; border: 1px solid var(--line, #ccd3ca); border-radius: .65rem; }
+.gear-options legend { font-weight: 700; padding: 0 .35rem; }
+.gear-options label { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .75rem; padding: .6rem .25rem; }
+.gear-options label:has(:checked) { background: #edf5ec; }
+.gear-options label small, .gear-lines small, .gear-warning { display: block; }
+.gear-warning { color: #794907; }
+.gear-lines > div { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem; padding: .8rem 0; border-top: 1px solid var(--line, #ccd3ca); }
+@media (max-width: 600px) {
+  .gear-options label { grid-template-columns: auto minmax(0, 1fr); }
+  .gear-options label > small { grid-column: 2; }
+}

@@ -501,3 +501,67 @@ class RateLimit(Base):
     key: Mapped[str] = mapped_column(String(100), primary_key=True)
     window: Mapped[int]
     count: Mapped[int] = mapped_column(default=1)
+
+
+class GearType(Base):
+    __tablename__ = "gear_types"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), unique=True)
+    revision: Mapped[int] = mapped_column(default=1)
+
+
+class GearItem(Base):
+    __tablename__ = "gear_items"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    type_id: Mapped[int] = mapped_column(ForeignKey("gear_types.id"))
+    name: Mapped[str] = mapped_column(String(100))
+    description: Mapped[str] = mapped_column(Text, default="")
+    quantity: Mapped[int]
+    rentable: Mapped[bool]
+    archived: Mapped[bool] = mapped_column(default=False)
+    ownership: Mapped[str] = mapped_column(String(10))
+    owner: Mapped[str] = mapped_column(String(100), default="")
+    loan_start: Mapped[date | None]
+    loan_end: Mapped[date | None]
+    revision: Mapped[int] = mapped_column(default=1)
+    __table_args__ = (
+        CheckConstraint("quantity >= 0"),
+        CheckConstraint("(ownership = 'club' AND owner = '' AND loan_start IS NULL AND loan_end IS NULL) OR "
+                        "(ownership = 'officer' AND owner <> '' AND loan_start IS NOT NULL AND "
+                        "loan_end IS NOT NULL AND loan_end >= loan_start)"),
+    )
+
+
+class GearRental(Base):
+    __tablename__ = "gear_rentals"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    member_id: Mapped[int] = mapped_column(ForeignKey("members.id"), index=True)
+    created_by: Mapped[int] = mapped_column(ForeignKey("members.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    start: Mapped[date]
+    end: Mapped[date]
+    activity: Mapped[str] = mapped_column(Text)
+    comments: Mapped[str] = mapped_column(Text)
+    revision: Mapped[int] = mapped_column(default=1)
+    __table_args__ = (CheckConstraint('"end" >= start'),)
+
+
+class GearLine(Base):
+    __tablename__ = "gear_lines"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    rental_id: Mapped[int] = mapped_column(ForeignKey("gear_rentals.id"), index=True)
+    item_id: Mapped[int] = mapped_column(ForeignKey("gear_items.id"), index=True)
+    type_id: Mapped[int] = mapped_column(ForeignKey("gear_types.id"))
+    name: Mapped[str] = mapped_column(String(100))
+    type_name: Mapped[str] = mapped_column(String(100))
+    ownership: Mapped[str] = mapped_column(String(10))
+    status: Mapped[str] = mapped_column(String(16))
+    message: Mapped[str] = mapped_column(Text, default="")
+    reviewed_by: Mapped[int | None] = mapped_column(ForeignKey("members.id"))
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    picked_up_by: Mapped[int | None] = mapped_column(ForeignKey("members.id"))
+    picked_up_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    returned_by: Mapped[int | None] = mapped_column(ForeignKey("members.id"))
+    returned_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    __table_args__ = (UniqueConstraint("rental_id", "type_id"), CheckConstraint(
+        "status IN ('pending','approved','denied','picked_up','returned','cancelled')"),)
