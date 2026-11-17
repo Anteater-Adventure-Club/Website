@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import type { Schema } from "../../src/lib/api";
 
 async function enter(page: Page, role: string, destination: string) {
   await page.goto("/demo");
@@ -87,6 +88,18 @@ test("inventory, membership gate and delegated access", async ({ page }) => {
       .getByText("Expired officer tent"),
   ).toBeVisible();
   await accessible(page);
+  const inventoryFilter = page.getByLabel("Show inventory");
+  await inventoryFilter.selectOption("rentable");
+  await expect(page.getByText("Expired officer tent")).toHaveCount(0);
+  await inventoryFilter.selectOption("expired");
+  await expect(page.getByText("Expired officer tent")).toBeVisible();
+  await expect(
+    page
+      .getByRole("table", { name: "Gear inventory" })
+      .getByText("Loan expired", { exact: true })
+      .first(),
+  ).toBeVisible();
+  await inventoryFilter.selectOption("active");
   await page.getByRole("button", { name: "Add equipment" }).click();
   const dialog = page.getByRole("dialog");
   await dialog
@@ -116,6 +129,64 @@ test("inventory, membership gate and delegated access", async ({ page }) => {
     page.getByRole("table", { name: "Gear rental requests" }),
   ).toBeVisible();
   await accessible(page);
+});
+
+test("dues cards reflect signup availability and payment holds", async ({
+  page,
+}) => {
+  let paused = true;
+  await page.route("**/api/quarters?*", async (route) => {
+    const response = await route.fetch();
+    const data: Schema<"Page_QuarterPublic_"> = await response.json();
+    for (const quarter of data.items) {
+      quarter.state = paused ? "open" : "finalized";
+      quarter.membership_signups_paused = paused;
+    }
+    await route.fulfill({ response, json: data });
+  });
+  await enter(page, "unpaid", "request");
+  await expect(
+    page.getByRole("heading", {
+      name: "Membership signups are temporarily paused",
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Go to Membership Signup" }),
+  ).toHaveCount(0);
+  paused = false;
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Membership signup unavailable" }),
+  ).toBeVisible();
+  await page.route("**/api/me/restrictions", (route) =>
+    route.fulfill({
+      json: {
+        items: [
+          {
+            id: 1,
+            all_events: false,
+            event_kinds: [],
+            events: [],
+            membership: true,
+            created_at: new Date().toISOString(),
+            expires_at: null,
+            message: "",
+          },
+        ],
+      } satisfies Schema<"Items_RestrictionView_">,
+    }),
+  );
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Membership signup is restricted" }),
+  ).toBeVisible();
+  await enter(page, "dues", "request");
+  await expect(
+    page.getByRole("heading", { name: "Your payment submission is on hold" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "View membership status" }),
+  ).toHaveAttribute("href", /\/my-aac\/membership\?quarter=\d+/);
 });
 
 test("a gear helper adds inventory and assigns an approved rental", async ({

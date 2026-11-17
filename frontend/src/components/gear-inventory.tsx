@@ -5,6 +5,21 @@ import { Button, Dialog, Field, Loading, Message, Panel, Pill } from "./ui";
 
 type Item = Schema<"GearItemView">;
 type Kind = Schema<"GearTypeView">;
+
+const stockStatuses = {
+  rentable: "Rentable",
+  "non-rentable": "Not rentable",
+  expired: "Loan expired",
+  upcoming: "Loan starts later",
+  archived: "Archived",
+};
+
+function stockStatus(item: Item, today: string): keyof typeof stockStatuses {
+  if (item.archived) return "archived";
+  if (item.loan_end && item.loan_end < today) return "expired";
+  if (item.loan_start && item.loan_start > today) return "upcoming";
+  return item.rentable ? "rentable" : "non-rentable";
+}
 function ItemEditor({
   item,
   types,
@@ -209,24 +224,25 @@ export function GearInventory() {
   if (query.error) return <Message error={query.error} />;
   if (!query.data) return <Loading />;
   const { types, items } = query.data;
-  const rows = items.filter(
-    (i) =>
-      (
-        i.name +
-        " " +
-        types.find((t) => t.id === i.type_id)?.name +
-        " " +
-        i.owner
-      )
-        .toLowerCase()
-        .includes(search.toLowerCase()) &&
-      (filter === "all" ||
-        (filter === "archived"
-          ? i.archived
-          : !i.archived &&
-            (filter === "active" ||
-              (filter === "rentable" ? i.rentable : !i.rentable)))),
-  );
+  const today = pacificDate();
+  const typeNames = new Map(types.map((type) => [type.id, type.name]));
+  const term = search.toLowerCase();
+  const rows = items
+    .map((item) => ({
+      item,
+      typeName: typeNames.get(item.type_id),
+      status: stockStatus(item, today),
+    }))
+    .filter(
+      ({ item, typeName, status }) =>
+        [item.name, typeName, item.owner]
+          .join(" ")
+          .toLowerCase()
+          .includes(term) &&
+        (filter === "all" ||
+          filter === status ||
+          (filter === "active" && !item.archived)),
+    );
   return (
     <div className="stack">
       <div className="toolbar">
@@ -249,13 +265,13 @@ export function GearInventory() {
         <label className="field">
           Show inventory
           <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-            {["active", "rentable", "non-rentable", "archived", "all"].map(
-              (f) => (
-                <option key={f} value={f}>
-                  {f}
-                </option>
-              ),
-            )}
+            <option value="active">Active inventory</option>
+            {Object.entries(stockStatuses).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+            <option value="all">All inventory</option>
           </select>
         </label>
       </div>
@@ -276,69 +292,57 @@ export function GearInventory() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((i) => {
-                const expired = !!i.loan_end && i.loan_end < pacificDate();
-                const status = i.archived
-                  ? "Archived"
-                  : expired
-                    ? "Loan expired"
-                    : i.rentable
-                      ? "Rentable"
-                      : "Not rentable";
-                return (
-                  <tr key={i.id}>
-                    <td data-label="Equipment">
-                      <div>
-                        <strong>{i.name}</strong>
+              {rows.map(({ item: i, typeName, status }) => (
+                <tr key={i.id}>
+                  <td data-label="Equipment">
+                    <div>
+                      <strong>{i.name}</strong>
+                      <small>{typeName}</small>
+                      {i.description && <small>{i.description}</small>}
+                    </div>
+                  </td>
+                  <td data-label="Quantity">{i.quantity}</td>
+                  <td data-label="Ownership">
+                    <div>
+                      {i.ownership === "club"
+                        ? "Club owned"
+                        : "Officer · " + i.owner}
+                      {i.loan_start && i.loan_end && (
                         <small>
-                          {types.find((t) => t.id === i.type_id)?.name}
+                          {dateLabel(i.loan_start, { dateStyle: "medium" })} –{" "}
+                          {dateLabel(i.loan_end, { dateStyle: "medium" })}
                         </small>
-                        {i.description && <small>{i.description}</small>}
-                      </div>
-                    </td>
-                    <td data-label="Quantity">{i.quantity}</td>
-                    <td data-label="Ownership">
-                      <div>
-                        {i.ownership === "club"
-                          ? "Club owned"
-                          : "Officer · " + i.owner}
-                        {i.loan_start && i.loan_end && (
-                          <small>
-                            {dateLabel(i.loan_start, { dateStyle: "medium" })} –{" "}
-                            {dateLabel(i.loan_end, { dateStyle: "medium" })}
-                          </small>
-                        )}
-                      </div>
-                    </td>
-                    <td data-label="Status">
-                      <div>
-                        <Pill
-                          tone={
-                            expired
-                              ? "yellow"
-                              : status === "Rentable"
-                                ? "green"
-                                : "neutral"
-                          }
-                        >
-                          {status}
-                        </Pill>
-                      </div>
-                    </td>
-                    <td data-label="Actions">
-                      <div className="actions gear-row-actions">
-                        <Button
-                          variant="secondary"
-                          className="small"
-                          onClick={() => setEditing(i)}
-                        >
-                          Edit
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                      )}
+                    </div>
+                  </td>
+                  <td data-label="Status">
+                    <div>
+                      <Pill
+                        tone={
+                          status === "expired" || status === "upcoming"
+                            ? "yellow"
+                            : status === "rentable"
+                              ? "green"
+                              : "neutral"
+                        }
+                      >
+                        {stockStatuses[status]}
+                      </Pill>
+                    </div>
+                  </td>
+                  <td data-label="Actions">
+                    <div className="actions gear-row-actions">
+                      <Button
+                        variant="secondary"
+                        className="small"
+                        onClick={() => setEditing(i)}
+                      >
+                        Edit
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
