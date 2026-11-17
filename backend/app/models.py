@@ -14,6 +14,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 from .db import Base
@@ -546,6 +547,14 @@ class GearRental(Base):
     __table_args__ = (CheckConstraint('"end" >= start'),)
 
 
+class GearCustodian(Base):
+    __tablename__ = "gear_custodians"
+    item_id: Mapped[int] = mapped_column(ForeignKey("gear_items.id"), primary_key=True)
+    copy_number: Mapped[int] = mapped_column(primary_key=True)
+    officer_id: Mapped[int] = mapped_column(ForeignKey("members.id"))
+    __table_args__ = (CheckConstraint("copy_number >= 1"),)
+
+
 class GearLine(Base):
     __tablename__ = "gear_lines"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -556,6 +565,7 @@ class GearLine(Base):
     type_name: Mapped[str] = mapped_column(String(100))
     ownership: Mapped[str] = mapped_column(String(10))
     status: Mapped[str] = mapped_column(String(16))
+    copy_number: Mapped[int | None]
     message: Mapped[str] = mapped_column(Text, default="")
     reviewed_by: Mapped[int | None] = mapped_column(ForeignKey("members.id"))
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -563,5 +573,9 @@ class GearLine(Base):
     picked_up_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     returned_by: Mapped[int | None] = mapped_column(ForeignKey("members.id"))
     returned_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    __table_args__ = (UniqueConstraint("rental_id", "type_id"), CheckConstraint(
+    __table_args__ = (
+        Index("uq_gear_copy_checked_out", "item_id", "copy_number", unique=True,
+              postgresql_where=text("status = 'picked_up'")),
+        CheckConstraint("copy_number >= 1", name="ck_gear_lines_copy_number"),
+        UniqueConstraint("rental_id", "type_id"), CheckConstraint(
         "status IN ('pending','approved','denied','picked_up','returned','cancelled')"),)

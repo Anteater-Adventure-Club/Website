@@ -110,6 +110,60 @@ def test_peak_overlap_and_atomicity(api):
     assert api.post(OWN, json=body([tent], 1, 3), headers=headers(c)).is_success
 
 
+def test_custody_is_per_copy_and_follows_handoffs(api):
+    q = quarter(api)
+    mid = borrower(api, q, 1)
+    helper = person(api, 2)["id"]
+    assert api.post("/api/admin/guest-officers", json={
+        "member_id": helper, "permissions": ["gear"],
+        "expires_at": (utcnow() + timedelta(days=1)).isoformat(),
+    }).is_success
+    tent = inventory(api, "Tent", quantity=3)
+    bag = inventory(api, "Bag")
+    iid = tent["id"]
+    custody_url = f"{ADMIN}/inventory/{iid}/custody/2"
+
+    def state():
+        data = api.get(ADMIN + "/inventory").json()
+        return {(h["item_id"], h["copy_number"]): (h["kind"], h["holder_id"]) for h in data["holders"]}
+
+    def transfer(to, rev, actor=1):
+        return api.put(custody_url, headers=headers(actor), json={"expected_revision": rev, "officer_id": to})
+
+    assert state() == {}
+    assert transfer(helper, 1, mid).status_code == 403
+    assert transfer(mid, 1).status_code == 422
+    assert transfer(helper, 1).is_success
+    assert transfer(None, 1).status_code == 409
+    assert state() == {(iid, 2): ("officer", helper)}
+    values = {k: v for k, v in tent.items() if k not in ("revision", "id")}
+    assert api.put(ADMIN + f"/inventory/{iid}", json={
+        **values, "quantity": 1, "expected_revision": 2,
+    }).status_code == 409
+    rental = api.post(ADMIN + "/rentals", json={**body([tent, bag]), "member_id": mid}).json()
+    tent_line, bag_line = [line["id"] for line in rental["lines"]]
+    url = f"{ADMIN}/rentals/{rental['id']}/actions"
+    pickup = dict(action="pickup", expected_revision=1, line_ids=[tent_line, bag_line])
+    assert api.post(url, json=pickup).status_code == 409
+    copies = {str(tent_line): {"copy_number": 2, "expected_revision": 2},
+              str(bag_line): {"copy_number": 9, "expected_revision": 1}}
+    assert api.post(url, json={**pickup, "pickup_copies": copies}).status_code == 409
+    assert state() == {(iid, 2): ("officer", helper)}
+    copies[str(bag_line)]["copy_number"] = 1
+    assert api.post(url, json={**pickup, "pickup_copies": copies}).is_success
+    assert state() == {(iid, 2): ("borrower", mid), (bag["id"], 1): ("borrower", mid)}
+    assert transfer(1, 3).status_code == 409
+    returned = dict(action="return", line_ids=[tent_line], expected_revision=2)
+    assert api.post(url, json={**returned, "return_to": mid}).status_code == 422
+    assert api.post(url, json={**returned, "return_to": None}).is_success
+    assert (iid, 2) not in state()
+    assert api.post(url, json={**returned, "line_ids": [bag_line], "expected_revision": 3}).is_success
+    assert state() == {(bag["id"], 1): ("officer", 1)}
+    assert transfer(helper, 4, helper).is_success
+    assert transfer(None, 5).is_success
+    assert (iid, 2) not in state()
+
+
 def test_partial_handoffs_and_cancellation_privacy(api):
     q = quarter(api)
     mid, other = [borrower(api, q, i) for i in range(2)]

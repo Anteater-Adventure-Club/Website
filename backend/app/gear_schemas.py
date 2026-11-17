@@ -57,9 +57,28 @@ class GearItemView(GearItemWrite):
     revision: int
 
 
+class GearOfficer(DTO):
+    id: int
+    name: str
+
+
+class GearHolder(DTO):
+    item_id: int
+    copy_number: int
+    holder_id: int
+    name: str
+    kind: Literal["officer", "borrower"]
+
+
+class GearCustodyEdit(GearEdit):
+    officer_id: int | None
+
+
 class GearInventory(DTO):
     types: list[GearTypeView]
     items: list[GearItemView]
+    holders: list[GearHolder]
+    officers: list[GearOfficer]
 
 
 class GearChoice(DTO):
@@ -111,14 +130,21 @@ class GearSelection(GearEdit):
     line_ids: list[int] = Field(min_length=1, max_length=100)
 
 
+class GearPickupCopy(GearEdit):
+    copy_number: int = Field(ge=1)
+
+
 class GearAction(GearSelection):
     action: Literal["approve", "deny", "cancel", "pickup", "return"]
     message: Description = ""
+    pickup_copies: dict[int, GearPickupCopy] = Field(default_factory=dict)
+    return_to: int | None = None
 
 
 class GearLineView(DTO):
     id: int
     item_id: int
+    copy_number: int | None
     name: str
     type_name: str
     ownership: Ownership

@@ -1875,6 +1875,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/admin/gear/inventory/{iid}/custody/{number}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Transfer Custody */
+    put: operations["transfer_custody_api_admin_gear_inventory__iid__custody__number__put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/admin/gear/types/{tid}": {
     parameters: {
       query?: never;
@@ -3087,6 +3104,12 @@ export interface components {
        * @default
        */
       message: string;
+      /** Pickup Copies */
+      pickup_copies?: {
+        [key: string]: components["schemas"]["GearPickupCopy"];
+      };
+      /** Return To */
+      return_to?: number | null;
     };
     /** GearAssignment */
     GearAssignment: {
@@ -3150,12 +3173,39 @@ export interface components {
       /** Type Reserved */
       type_reserved: boolean;
     };
+    /** GearCustodyEdit */
+    GearCustodyEdit: {
+      /** Expected Revision */
+      expected_revision: number;
+      /** Officer Id */
+      officer_id: number | null;
+    };
+    /** GearHolder */
+    GearHolder: {
+      /** Item Id */
+      item_id: number;
+      /** Copy Number */
+      copy_number: number;
+      /** Holder Id */
+      holder_id: number;
+      /** Name */
+      name: string;
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "officer" | "borrower";
+    };
     /** GearInventory */
     GearInventory: {
       /** Types */
       types: components["schemas"]["GearTypeView"][];
       /** Items */
       items: components["schemas"]["GearItemView"][];
+      /** Holders */
+      holders: components["schemas"]["GearHolder"][];
+      /** Officers */
+      officers: components["schemas"]["GearOfficer"][];
     };
     /** GearItemEdit */
     GearItemEdit: {
@@ -3286,6 +3336,8 @@ export interface components {
       id: number;
       /** Item Id */
       item_id: number;
+      /** Copy Number */
+      copy_number: number | null;
       /** Name */
       name: string;
       /** Type Name */
@@ -3314,6 +3366,20 @@ export interface components {
       missed: boolean;
       /** At Risk */
       at_risk: boolean;
+    };
+    /** GearOfficer */
+    GearOfficer: {
+      /** Id */
+      id: number;
+      /** Name */
+      name: string;
+    };
+    /** GearPickupCopy */
+    GearPickupCopy: {
+      /** Expected Revision */
+      expected_revision: number;
+      /** Copy Number */
+      copy_number: number;
     };
     /** GearRentalView */
     GearRentalView: {
@@ -9322,6 +9388,42 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["GearTypeView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  transfer_custody_api_admin_gear_inventory__iid__custody__number__put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        iid: number;
+        number: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GearCustodyEdit"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GearItemView"];
         };
       };
       /** @description Validation Error */

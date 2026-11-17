@@ -24,6 +24,7 @@ from app.gear_schemas import GearRequest, GearAssignment  # noqa: E402
 from app.main import create_app  # noqa: E402
 from app.models import (  # noqa: E402
     GearItem,
+    GearCustodian,
     GearLine,
     GearRental,
     GearType,
@@ -190,6 +191,11 @@ def seed():
                 return create(db, actor, GearAssignment(**values, member_id=people[role].id), assigned=True)
             return create(db, people[role], GearRequest(**values))
 
+        tent = gear["VEVOR 4-person tent"]
+        db.add_all([
+            GearCustodian(item_id=tent.id, copy_number=1, officer_id=actor.id),
+            GearCustodian(item_id=tent.id, copy_number=2, officer_id=people["helper"].id),
+        ])
         rental("second", "Retreat camping", ["VEVOR 4-person tent", "Big Agnes Anthracite 20 · Long"], 0)
         mixed = rental(
             "member",
@@ -206,8 +212,9 @@ def seed():
         rental("second", "Camp cooking", ["Ozark Trail stove"], 4, True)
         late.start, late.end = today() - timedelta(days=5), today() - timedelta(days=1)
         stove = db.scalar(select(GearLine).where(GearLine.rental_id == late.id))
-        stove.status, stove.picked_up_at, stove.picked_up_by = (
+        stove.status, stove.copy_number, stove.picked_up_at, stove.picked_up_by = (
             "picked_up",
+            1,
             utcnow() - timedelta(days=5),
             actor.id,
         )

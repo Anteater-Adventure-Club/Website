@@ -21,6 +21,7 @@ import {
   GearMembershipCard,
 } from "../components/gear-membership";
 import { GearInventory } from "../components/gear-inventory";
+import { CopyPicker, OfficerOptions } from "../components/gear-custody";
 
 type Rental = Schema<"GearRentalView">;
 type Line = Schema<"GearLineView">;
@@ -80,6 +81,12 @@ function RentalDialog({
   const [start, setStart] = useState(edit.r.start);
   const [end, setEnd] = useState(edit.r.end);
   const [message, setMessage] = useState("");
+  const handoff =
+    admin && (edit.action === "pickup" || edit.action === "return");
+  const inventory = useAPI("GearInventory", "/api/admin/gear/inventory", {
+    enabled: handoff,
+  });
+  const { session } = useIdentity();
   const isDates = edit.action === "dates";
   const verb = isDates ? "Change rental dates" : actions[edit.action as Action];
   const long = (Date.parse(end) - Date.parse(start)) / 86400000 >= 7;
@@ -90,6 +97,21 @@ function RentalDialog({
         className="stack gear-form"
         onSubmit={async (e) => {
           e.preventDefault();
+          if (handoff && !inventory.data) return;
+          const form = new FormData(e.currentTarget);
+          const copies: Record<number, Schema<"GearPickupCopy">> = {};
+          if (edit.action === "pickup") {
+            for (const line of edit.lines) {
+              const item = inventory.data?.items.find(
+                (i) => i.id === line.item_id,
+              );
+              if (!item) return;
+              copies[line.id] = {
+                copy_number: Number(form.get(`copy-${line.id}`)),
+                expected_revision: item.revision,
+              };
+            }
+          }
           const base =
             (admin ? "/api/admin/gear/rentals/" : "/api/me/gear-rentals/") +
             edit.r.id;
@@ -104,6 +126,12 @@ function RentalDialog({
                   : {
                       line_ids: edit.lines.map((l) => l.id),
                       ...(admin ? { action: edit.action, message } : {}),
+                      ...(edit.action === "pickup"
+                        ? { pickup_copies: copies }
+                        : {}),
+                      ...(edit.action === "return"
+                        ? { return_to: Number(form.get("receiver")) || null }
+                        : {}),
                     }),
               },
             })
@@ -145,9 +173,47 @@ function RentalDialog({
           <>
             <ul>
               {edit.lines.map((l) => (
-                <li key={l.id}>{l.name}</li>
+                <li key={l.id}>
+                  {l.name}
+                  {l.copy_number && ` · Copy ${l.copy_number}`}
+                </li>
               ))}
             </ul>
+            {handoff && inventory.error && (
+              <Failure error={inventory.error} retry={inventory.refetch} />
+            )}
+            {handoff && !inventory.data && !inventory.error && <Loading />}
+            {edit.action === "pickup" &&
+              inventory.data &&
+              edit.lines.map((line) => {
+                const item = inventory.data.items.find(
+                  (i) => i.id === line.item_id,
+                );
+                return (
+                  item && (
+                    <CopyPicker
+                      key={`${line.id}-${item.revision}`}
+                      name={`copy-${line.id}`}
+                      pickup
+                      item={item}
+                      holders={inventory.data.holders.filter(
+                        (h) => h.item_id === item.id,
+                      )}
+                    />
+                  )
+                );
+              })}
+            {edit.action === "return" && inventory.data && (
+              <label>
+                Received by
+                <select
+                  name="receiver"
+                  defaultValue={session?.member?.id ?? ""}
+                >
+                  <OfficerOptions officers={inventory.data.officers} />
+                </select>
+              </label>
+            )}
             {admin && ["approve", "deny", "cancel"].includes(edit.action) && (
               <label>
                 Message for member (optional)
@@ -162,7 +228,9 @@ function RentalDialog({
         )}
         <Message error={mutation.error} />
         <div className="actions">
-          <Button disabled={mutation.isPending}>{verb}</Button>
+          <Button disabled={mutation.isPending || (handoff && !inventory.data)}>
+            {verb}
+          </Button>
           <Button type="button" variant="quiet" onClick={close}>
             Close
           </Button>
@@ -185,6 +253,7 @@ function RentalItems({ r, admin, setEdit }: RentalActionsProps) {
           <div key={l.id}>
             <div>
               <strong>{l.name}</strong> · {l.type_name}
+              {l.copy_number && ` · Copy ${l.copy_number}`}
               {l.ownership === "officer" && <GearWarning />}
               <small>
                 {labels[l.status]}

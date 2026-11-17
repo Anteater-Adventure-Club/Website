@@ -6,6 +6,7 @@ from sqlalchemy import func, or_, select
 from ..domain import advisory, audit, fail, paid, require, revision, today, utcnow
 from ..models import GearItem, GearLine, GearRental, GearType, Member, Membership, Quarter
 from .approval import enforce_approval
+from . import gear_custody as custody
 
 ACTIVE = ("pending", "approved", "picked_up")
 TRANSITIONS = {
@@ -17,9 +18,9 @@ TRANSITIONS = {
 }
 
 
-def lock_gear(db):
+def lock_gear(db, *, shared=False):
     # All gear writers take this transaction lock before reading stock or revisions.
-    advisory(db, 759)
+    advisory(db, 759, shared=shared)
 
 
 def member_access(db, mid):
@@ -256,18 +257,26 @@ def change(db, actor, rid, value, *, own=False):
             exclude=rid,
         )
     message = "" if own else value.message
+    handoffs = {}
+    if action == "return":
+        receiver = value.return_to if "return_to" in value.model_fields_set else actor.id
+        custody.check_officer(db, receiver)
+    if action == "pickup" and value.pickup_copies.keys() - set(value.line_ids):
+        fail(422, "gear_copy", "Select copies only for the items being picked up.")
     for line in selected:
-        line.status = target
         if action in {"approve", "deny"}:
             line.reviewed_at, line.reviewed_by, line.message = utcnow(), actor.id, message
         elif action == "pickup":
+            handoffs[line.id] = custody.pickup(db, line, value.pickup_copies.get(line.id))
             line.picked_up_at, line.picked_up_by = utcnow(), actor.id
         elif action == "return":
+            handoffs[line.id] = custody.receive(db, line, receiver)
             line.returned_at, line.returned_by = utcnow(), actor.id
         elif message:
             line.message = message
+        line.status = target
     rental.revision += 1
-    audit(db, actor, f"gear.{action}", rid, {"line_ids": value.line_ids, "message": message})
+    audit(db, actor, f"gear.{action}", rid, {"line_ids": value.line_ids, "message": message, "handoffs": handoffs})
     db.flush()
     return rental
 
@@ -337,6 +346,7 @@ def write_item(db, actor, value, iid=None):
     item = require(db, GearItem, iid) if iid else GearItem()
     if iid:
         revision(item, value.expected_revision)
+        custody.check_reduction(db, item, value.quantity)
         reservations = [row for row in holds(db, today(), date.max) if row.item_id == iid]
         if reservations and (
             value.archived
@@ -403,7 +413,7 @@ def rental_views(db, mid=None, rid=None):
         waiting = line.status in ("approved", "pending")
         payload = {
             key: getattr(line, key)
-            for key in ("id", "item_id", "name", "type_name", "ownership", "message", "status")
+            for key in ("id", "item_id", "copy_number", "name", "type_name", "ownership", "message", "status")
         }
         payload.update(
             overdue=line.status == "picked_up" and rental.end < current,

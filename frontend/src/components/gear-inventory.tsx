@@ -2,6 +2,7 @@ import { useState } from "react";
 import { dateLabel, pacificDate, useAPI, useAction } from "../lib/api";
 import type { Schema } from "../lib/api";
 import { Button, Dialog, Field, Loading, Message, Panel, Pill } from "./ui";
+import { CustodyDialog, custodySummary } from "./gear-custody";
 
 type Item = Schema<"GearItemView">;
 type Kind = Schema<"GearTypeView">;
@@ -217,13 +218,23 @@ function TypeEditor({ types, close }: { types: Kind[]; close: () => void }) {
   );
 }
 export function GearInventory() {
-  const query = useAPI("GearInventory", "/api/admin/gear/inventory");
+  const [custodyId, setCustodyId] = useState<number | null>(null);
+  const query = useAPI("GearInventory", "/api/admin/gear/inventory", {
+    poll: custodyId === null,
+  });
   const [editing, setEditing] = useState<Item | "new" | "types" | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("active");
   if (query.error) return <Message error={query.error} />;
   if (!query.data) return <Loading />;
-  const { types, items } = query.data;
+  const { types, items, holders, officers } = query.data;
+  const byItem = new Map<number, typeof holders>();
+  for (const holder of holders) {
+    const group = byItem.get(holder.item_id) ?? [];
+    group.push(holder);
+    byItem.set(holder.item_id, group);
+  }
+  const custodyItem = items.find((item) => item.id === custodyId);
   const today = pacificDate();
   const typeNames = new Map(types.map((type) => [type.id, type.name]));
   const term = search.toLowerCase();
@@ -231,11 +242,12 @@ export function GearInventory() {
     .map((item) => ({
       item,
       typeName: typeNames.get(item.type_id),
+      custody: custodySummary(item.quantity, byItem.get(item.id) ?? []),
       status: stockStatus(item, today),
     }))
     .filter(
-      ({ item, typeName, status }) =>
-        [item.name, typeName, item.owner]
+      ({ item, typeName, status, custody }) =>
+        [item.name, typeName, item.owner, custody]
           .join(" ")
           .toLowerCase()
           .includes(term) &&
@@ -287,12 +299,13 @@ export function GearInventory() {
                 <th scope="col">Equipment</th>
                 <th scope="col">Quantity</th>
                 <th scope="col">Ownership</th>
+                <th scope="col">Current holder</th>
                 <th scope="col">Status</th>
                 <th scope="col">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map(({ item: i, typeName, status }) => (
+              {rows.map(({ item: i, typeName, status, custody }) => (
                 <tr key={i.id}>
                   <td data-label="Equipment">
                     <div>
@@ -315,6 +328,9 @@ export function GearInventory() {
                       )}
                     </div>
                   </td>
+                  <td data-label="Current holder">
+                    <span>{custody}</span>
+                  </td>
                   <td data-label="Status">
                     <div>
                       <Pill
@@ -332,6 +348,15 @@ export function GearInventory() {
                   </td>
                   <td data-label="Actions">
                     <div className="actions gear-row-actions">
+                      {!!i.quantity && (
+                        <Button
+                          variant="secondary"
+                          className="small"
+                          onClick={() => setCustodyId(i.id)}
+                        >
+                          Custody
+                        </Button>
+                      )}
                       <Button
                         variant="secondary"
                         className="small"
@@ -357,6 +382,14 @@ export function GearInventory() {
             close={() => setEditing(null)}
           />
         )
+      )}
+      {custodyItem && (
+        <CustodyDialog
+          item={custodyItem}
+          holders={byItem.get(custodyItem.id) ?? []}
+          officers={officers}
+          close={() => setCustodyId(null)}
+        />
       )}
     </div>
   );

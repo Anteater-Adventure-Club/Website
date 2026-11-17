@@ -7,6 +7,8 @@ from .. import gear_schemas as s
 from ..models import GearType, GearItem
 from ..schemas import Items
 from ..services import gear
+from ..services import gear_custody as custody
+from ..domain import require
 
 router = APIRouter(prefix="/api")
 database = Depends(get_db, scope="function")
@@ -53,15 +55,26 @@ def member_catalog(member_id: int, start: date, end: date, user=officer, db=data
 
 @router.get("/admin/gear/inventory", response_model=s.GearInventory)
 def inventory(user=officer, db=database):
+    gear.lock_gear(db, shared=True)
     return {
         "types": list(db.scalars(select(GearType).order_by(GearType.name))),
         "items": list(db.scalars(select(GearItem).order_by(GearItem.name, GearItem.id))),
+        "holders": custody.holders(db),
+        "officers": custody.officers(db),
     }
 
 
 @router.post("/admin/gear/types", response_model=s.GearTypeView, status_code=201)
 def create_type(value: s.GearTypeWrite, user=officer, db=database):
     return gear.write_type(db, user, value)
+
+
+@router.put("/admin/gear/inventory/{iid}/custody/{number}", response_model=s.GearItemView)
+def transfer_custody(iid: int, number: int, value: s.GearCustodyEdit, user=officer, db=database):
+    gear.lock_gear(db)
+    item = require(db, GearItem, iid)
+    custody.transfer(db, user, item, number, value)
+    return item
 
 
 @router.put("/admin/gear/types/{tid}", response_model=s.GearTypeView)

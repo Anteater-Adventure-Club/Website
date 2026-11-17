@@ -5713,6 +5713,64 @@
         }
       }
     },
+    "/api/admin/gear/inventory/{iid}/custody/{number}": {
+      "put": {
+        "summary": "Transfer Custody",
+        "operationId": "transfer_custody_api_admin_gear_inventory__iid__custody__number__put",
+        "parameters": [
+          {
+            "name": "iid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Iid"
+            }
+          },
+          {
+            "name": "number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GearCustodyEdit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GearItemView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/gear/types/{tid}": {
       "put": {
         "summary": "Update Type",
@@ -9268,6 +9326,24 @@
             "maxLength": 2000,
             "title": "Message",
             "default": ""
+          },
+          "pickup_copies": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/GearPickupCopy"
+            },
+            "type": "object",
+            "title": "Pickup Copies"
+          },
+          "return_to": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return To"
           }
         },
         "additionalProperties": false,
@@ -9433,6 +9509,71 @@
         ],
         "title": "GearChoice"
       },
+      "GearCustodyEdit": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "officer_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Officer Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision",
+          "officer_id"
+        ],
+        "title": "GearCustodyEdit"
+      },
+      "GearHolder": {
+        "properties": {
+          "item_id": {
+            "type": "integer",
+            "title": "Item Id"
+          },
+          "copy_number": {
+            "type": "integer",
+            "title": "Copy Number"
+          },
+          "holder_id": {
+            "type": "integer",
+            "title": "Holder Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "officer",
+              "borrower"
+            ],
+            "title": "Kind"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "item_id",
+          "copy_number",
+          "holder_id",
+          "name",
+          "kind"
+        ],
+        "title": "GearHolder"
+      },
       "GearInventory": {
         "properties": {
           "types": {
@@ -9448,13 +9589,29 @@
             },
             "type": "array",
             "title": "Items"
+          },
+          "holders": {
+            "items": {
+              "$ref": "#/components/schemas/GearHolder"
+            },
+            "type": "array",
+            "title": "Holders"
+          },
+          "officers": {
+            "items": {
+              "$ref": "#/components/schemas/GearOfficer"
+            },
+            "type": "array",
+            "title": "Officers"
           }
         },
         "additionalProperties": false,
         "type": "object",
         "required": [
           "types",
-          "items"
+          "items",
+          "holders",
+          "officers"
         ],
         "title": "GearInventory"
       },
@@ -9733,6 +9890,17 @@
             "type": "integer",
             "title": "Item Id"
           },
+          "copy_number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Copy Number"
+          },
           "name": {
             "type": "string",
             "title": "Name"
@@ -9783,6 +9951,7 @@
         "required": [
           "id",
           "item_id",
+          "copy_number",
           "name",
           "type_name",
           "ownership",
@@ -9793,6 +9962,46 @@
           "at_risk"
         ],
         "title": "GearLineView"
+      },
+      "GearOfficer": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "GearOfficer"
+      },
+      "GearPickupCopy": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "copy_number": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Copy Number"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision",
+          "copy_number"
+        ],
+        "title": "GearPickupCopy"
       },
       "GearRentalView": {
         "properties": {

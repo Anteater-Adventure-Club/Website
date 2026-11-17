@@ -234,6 +234,69 @@ test("dues cards reflect signup availability and payment holds", async ({
   ).toHaveAttribute("href", /\/my-aac\/membership\?quarter=\d+/);
 });
 
+test("a numbered tent moves from an officer to a borrower and back to Unknown", async ({
+  page,
+}, info) => {
+  const activity = "Tent custody " + info.project.name + " " + Date.now();
+  async function inventory() {
+    await page.getByRole("button", { name: "Inventory", exact: true }).click();
+    const row = page
+      .getByRole("row")
+      .filter({ hasText: "VEVOR 4-person tent" });
+    await row.getByRole("button", { name: "Custody" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Inventory copy").selectOption("3");
+    return dialog;
+  }
+  await enter(page, "helper", "inventory");
+  let dialog = await inventory();
+  await dialog.getByLabel("Held by").selectOption({
+    label: "Jamie Chen",
+  });
+  await dialog.getByRole("button", { name: "Save custody" }).click();
+  await expect(dialog).toHaveCount(0);
+  await page.getByRole("button", { name: "Assign gear" }).click();
+  await page.getByLabel("Search members").fill("Alex Rivera");
+  await page.getByRole("button", { name: /Alex Rivera ·/ }).click();
+  await page.getByRole("checkbox", { name: /VEVOR/ }).check();
+  await page
+    .getByRole("textbox", { name: /Please briefly describe the activities/ })
+    .fill(activity);
+  await page.getByRole("button", { name: "Assign and approve rental" }).click();
+  async function startHandoff(verb: string) {
+    await page.getByLabel("Search rentals").fill(activity);
+    await page.getByRole("button", { name: "Details", exact: true }).click();
+    await page.getByRole("button", { name: verb, exact: true }).click();
+    return page.getByRole("dialog");
+  }
+  dialog = await startHandoff("Record pickup");
+  await dialog
+    .getByLabel("Copy for VEVOR 4-person tent")
+    .selectOption({ label: "Copy 3 · Jamie Chen" });
+  await dialog
+    .getByRole("button", { name: "Record pickup", exact: true })
+    .click();
+  await expect(dialog).toHaveCount(0);
+  dialog = await inventory();
+  await expect(
+    dialog.getByText("Alex Rivera has this copy.", { exact: false }),
+  ).toBeVisible();
+  await expect(
+    dialog.getByRole("button", { name: "Save custody" }),
+  ).toHaveCount(0);
+  await dialog.getByRole("button", { name: "Close", exact: true }).click();
+  await page.getByRole("button", { name: "Rentals", exact: true }).click();
+  dialog = await startHandoff("Record return");
+  await dialog.getByLabel("Received by").selectOption({ label: "Unknown" });
+  await dialog
+    .getByRole("button", { name: "Record return", exact: true })
+    .click();
+  await expect(dialog).toHaveCount(0);
+  dialog = await inventory();
+  await expect(dialog.getByLabel("Held by")).toHaveValue("");
+  await accessible(page);
+});
+
 test("a gear helper adds inventory and assigns an approved rental", async ({
   page,
 }, info) => {
