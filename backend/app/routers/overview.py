@@ -6,6 +6,7 @@ from ..db import get_db
 from ..domain import default_quarter, utcnow
 from ..models import Event, Member, Membership, Receipt, Recap, Signup
 from ..projections import events_projection
+from ..services.gear import attention as gear_attention
 from ..services.finance import report
 from ..schemas import AdminOverview
 
@@ -19,6 +20,7 @@ def overview(quarter_id: int | None = None, user=Depends(officer), db=Depends(ge
     pending_url = f"/admin/members?quarter={q.id}&status=pending" if q else "/admin/members?status=pending"
     attention = ([{"kind": "approval", "count": approvals, "title": "New members waiting for approval",
                    "url": pending_url}] if approvals else [])
+    attention.extend(gear_attention(db))
     if q is None:
         return {"quarter_id": None, "statistics": {"pending_approval": approvals}, "events": [], "attention": attention}
     events = list(

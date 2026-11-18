@@ -258,6 +258,34 @@ async function visibleTabs(page: Page) {
     .allTextContents();
 }
 
+for (const [role, section, home] of [
+  ["full officer", "/admin/settings", "/admin/overview"],
+  ["guest officer", "/admin/reimbursements", "/admin/events"],
+] as const) {
+  test(`Officer Tools stays highlighted across sections for a ${role}`, async ({
+    page,
+  }) => {
+    await fixture(page, ["reimbursements"], role === "full officer");
+    await page.goto(section + "?quarter=1");
+    await expect(page.locator(".workspace-bar")).toBeVisible();
+    const menu = page.getByRole("button", { name: "Open navigation" });
+    const mobile = await menu.isVisible();
+    const nav = page.getByRole("navigation", {
+      name: mobile ? "Mobile navigation" : "Main navigation",
+    });
+    if (mobile) await menu.click();
+    const tools = nav.getByRole("link", { name: "Officer Tools", exact: true });
+    await expect(tools).toHaveAttribute("href", home);
+    await expect(tools).toHaveAttribute("aria-current", "page");
+    await expect(tools).toHaveClass(/\bactive\b/);
+    await nav.getByRole("link", { name: "My AAC", exact: true }).click();
+    await expect(page).toHaveURL(/\/my-aac$/);
+    if (mobile) await menu.click();
+    await expect(nav.locator("a.active")).toHaveText("My AAC");
+    await expect(nav.locator('a[aria-current="page"]')).toHaveText("My AAC");
+  });
+}
+
 for (const [permission, path, tabs] of [
   ["events", "/admin/events", ["Events"]],
   ["participation", "/admin/events", ["Events", "Check In"]],

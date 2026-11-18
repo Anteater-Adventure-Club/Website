@@ -1928,6 +1928,264 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/gear": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Catalog */
+    get: operations["catalog_api_gear_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/me/gear-access": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Gear Access */
+    get: operations["gear_access_api_me_gear_access_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/me/gear-rentals": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Own Rentals */
+    get: operations["own_rentals_api_me_gear_rentals_get"];
+    put?: never;
+    /** Request Rental */
+    post: operations["request_rental_api_me_gear_rentals_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/me/gear-rentals/{rid}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Own Detail */
+    get: operations["own_detail_api_me_gear_rentals__rid__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/me/gear-rentals/{rid}/cancel": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Cancel */
+    post: operations["cancel_api_me_gear_rentals__rid__cancel_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/gear/catalog": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Member Catalog */
+    get: operations["member_catalog_api_admin_gear_catalog_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/gear/inventory": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Inventory */
+    get: operations["inventory_api_admin_gear_inventory_get"];
+    put?: never;
+    /** Create Item */
+    post: operations["create_item_api_admin_gear_inventory_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/gear/types": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create Type */
+    post: operations["create_type_api_admin_gear_types_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/gear/inventory/{iid}/custody/{number}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Transfer Custody */
+    put: operations["transfer_custody_api_admin_gear_inventory__iid__custody__number__put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/gear/types/{tid}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Update Type */
+    put: operations["update_type_api_admin_gear_types__tid__put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/gear/inventory/{iid}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Update Item */
+    put: operations["update_item_api_admin_gear_inventory__iid__put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/gear/rentals": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Rentals */
+    get: operations["rentals_api_admin_gear_rentals_get"];
+    put?: never;
+    /** Assign */
+    post: operations["assign_api_admin_gear_rentals_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/gear/rentals/{rid}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Detail */
+    get: operations["detail_api_admin_gear_rentals__rid__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/gear/rentals/{rid}/actions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Action */
+    post: operations["action_api_admin_gear_rentals__rid__actions_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/gear/rentals/{rid}/dates": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Dates */
+    put: operations["dates_api_admin_gear_rentals__rid__dates_put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3319,6 +3577,415 @@ export interface components {
        */
       ends_at: string;
     };
+    /** GearAccess */
+    GearAccess: {
+      /** First Pickup */
+      first_pickup: string | null;
+      /** Quarter Id */
+      quarter_id: number | null;
+      /** Quarter Name */
+      quarter_name: string | null;
+    };
+    /** GearAction */
+    GearAction: {
+      /** Expected Revision */
+      expected_revision: number;
+      /** Line Ids */
+      line_ids: number[];
+      /**
+       * Action
+       * @enum {string}
+       */
+      action: "approve" | "deny" | "cancel" | "pickup" | "return";
+      /**
+       * Message
+       * @default
+       */
+      message: string;
+      /** Pickup Copies */
+      pickup_copies?: {
+        [key: string]: components["schemas"]["GearPickupCopy"];
+      };
+      /**
+       * Return To
+       * @description For returns, omit to record the acting officer, send null for Unknown, or send the receiving officer or gear helper’s member ID.
+       */
+      return_to?: number | null;
+    };
+    /** GearAssignment */
+    GearAssignment: {
+      /**
+       * Start
+       * Format: date
+       */
+      start: string;
+      /**
+       * End
+       * Format: date
+       */
+      end: string;
+      /** Activity */
+      activity: string;
+      /**
+       * Comments
+       * @default
+       */
+      comments: string;
+      /** Item Ids */
+      item_ids: number[];
+      /** Member Id */
+      member_id: number;
+      /**
+       * Reason
+       * @default
+       */
+      reason: string;
+    };
+    /** GearCatalog */
+    GearCatalog: {
+      /** Quarter Id */
+      quarter_id: number | null;
+      /** Quarter Name */
+      quarter_name: string | null;
+      /** Eligible */
+      eligible: boolean;
+      /** Items */
+      items: components["schemas"]["GearChoice"][];
+    };
+    /** GearChoice */
+    GearChoice: {
+      /** Id */
+      id: number;
+      /** Type Id */
+      type_id: number;
+      /** Type Name */
+      type_name: string;
+      /** Name */
+      name: string;
+      /** Description */
+      description: string;
+      /**
+       * Ownership
+       * @enum {string}
+       */
+      ownership: "club" | "officer";
+      /** Available */
+      available: number;
+      /** Type Reserved */
+      type_reserved: boolean;
+    };
+    /** GearCustodyEdit */
+    GearCustodyEdit: {
+      /** Expected Revision */
+      expected_revision: number;
+      /** Officer Id */
+      officer_id: number | null;
+    };
+    /** GearHolder */
+    GearHolder: {
+      /** Item Id */
+      item_id: number;
+      /** Copy Number */
+      copy_number: number;
+      /** Holder Id */
+      holder_id: number;
+      /** Name */
+      name: string;
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "officer" | "borrower";
+    };
+    /** GearInventory */
+    GearInventory: {
+      /** Types */
+      types: components["schemas"]["GearTypeView"][];
+      /** Items */
+      items: components["schemas"]["GearItemView"][];
+      /** Holders */
+      holders: components["schemas"]["GearHolder"][];
+      /** Officers */
+      officers: components["schemas"]["GearOfficer"][];
+    };
+    /** GearItemEdit */
+    GearItemEdit: {
+      /** Expected Revision */
+      expected_revision: number;
+      /** Type Id */
+      type_id: number;
+      /** Name */
+      name: string;
+      /**
+       * Description
+       * @default
+       */
+      description: string;
+      /** Quantity */
+      quantity: number;
+      /**
+       * Rentable
+       * @default false
+       */
+      rentable: boolean;
+      /**
+       * Archived
+       * @default false
+       */
+      archived: boolean;
+      /**
+       * Ownership
+       * @default club
+       * @enum {string}
+       */
+      ownership: "club" | "officer";
+      /**
+       * Owner
+       * @default
+       */
+      owner: string;
+      /** Loan Start */
+      loan_start?: string | null;
+      /** Loan End */
+      loan_end?: string | null;
+    };
+    /** GearItemView */
+    GearItemView: {
+      /** Type Id */
+      type_id: number;
+      /** Name */
+      name: string;
+      /**
+       * Description
+       * @default
+       */
+      description: string;
+      /** Quantity */
+      quantity: number;
+      /**
+       * Rentable
+       * @default false
+       */
+      rentable: boolean;
+      /**
+       * Archived
+       * @default false
+       */
+      archived: boolean;
+      /**
+       * Ownership
+       * @default club
+       * @enum {string}
+       */
+      ownership: "club" | "officer";
+      /**
+       * Owner
+       * @default
+       */
+      owner: string;
+      /** Loan Start */
+      loan_start?: string | null;
+      /** Loan End */
+      loan_end?: string | null;
+      /** Id */
+      id: number;
+      /** Revision */
+      revision: number;
+    };
+    /** GearItemWrite */
+    GearItemWrite: {
+      /** Type Id */
+      type_id: number;
+      /** Name */
+      name: string;
+      /**
+       * Description
+       * @default
+       */
+      description: string;
+      /** Quantity */
+      quantity: number;
+      /**
+       * Rentable
+       * @default false
+       */
+      rentable: boolean;
+      /**
+       * Archived
+       * @default false
+       */
+      archived: boolean;
+      /**
+       * Ownership
+       * @default club
+       * @enum {string}
+       */
+      ownership: "club" | "officer";
+      /**
+       * Owner
+       * @default
+       */
+      owner: string;
+      /** Loan Start */
+      loan_start?: string | null;
+      /** Loan End */
+      loan_end?: string | null;
+    };
+    /** GearLineView */
+    GearLineView: {
+      /** Id */
+      id: number;
+      /** Item Id */
+      item_id: number;
+      /** Copy Number */
+      copy_number: number | null;
+      /** Name */
+      name: string;
+      /** Type Name */
+      type_name: string;
+      /**
+       * Ownership
+       * @enum {string}
+       */
+      ownership: "club" | "officer";
+      /**
+       * Status
+       * @enum {string}
+       */
+      status:
+        | "pending"
+        | "approved"
+        | "denied"
+        | "picked_up"
+        | "returned"
+        | "cancelled";
+      /** Message */
+      message: string;
+      /** Overdue */
+      overdue: boolean;
+      /** Missed */
+      missed: boolean;
+      /** At Risk */
+      at_risk: boolean;
+    };
+    /** GearOfficer */
+    GearOfficer: {
+      /** Id */
+      id: number;
+      /** Name */
+      name: string;
+    };
+    /** GearPickupCopy */
+    GearPickupCopy: {
+      /** Expected Revision */
+      expected_revision: number;
+      /** Copy Number */
+      copy_number: number;
+    };
+    /** GearRentalView */
+    GearRentalView: {
+      /**
+       * Start
+       * Format: date
+       */
+      start: string;
+      /**
+       * End
+       * Format: date
+       */
+      end: string;
+      /** Id */
+      id: number;
+      /** Member Id */
+      member_id: number;
+      /** Member Name */
+      member_name: string;
+      /** Activity */
+      activity: string;
+      /** Comments */
+      comments: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Revision */
+      revision: number;
+      /** Status */
+      status: string;
+      /** Lines */
+      lines: components["schemas"]["GearLineView"][];
+    };
+    /** GearRequest */
+    GearRequest: {
+      /**
+       * Start
+       * Format: date
+       */
+      start: string;
+      /**
+       * End
+       * Format: date
+       */
+      end: string;
+      /** Activity */
+      activity: string;
+      /**
+       * Comments
+       * @default
+       */
+      comments: string;
+      /** Item Ids */
+      item_ids: number[];
+    };
+    /** GearReschedule */
+    GearReschedule: {
+      /** Expected Revision */
+      expected_revision: number;
+      /**
+       * Start
+       * Format: date
+       */
+      start: string;
+      /**
+       * End
+       * Format: date
+       */
+      end: string;
+      /**
+       * Reason
+       * @default
+       */
+      reason: string;
+    };
+    /** GearSelection */
+    GearSelection: {
+      /** Expected Revision */
+      expected_revision: number;
+      /** Line Ids */
+      line_ids: number[];
+    };
+    /** GearTypeEdit */
+    GearTypeEdit: {
+      /** Expected Revision */
+      expected_revision: number;
+      /** Name */
+      name: string;
+    };
+    /** GearTypeView */
+    GearTypeView: {
+      /** Name */
+      name: string;
+      /** Id */
+      id: number;
+      /** Revision */
+      revision: number;
+    };
+    /** GearTypeWrite */
+    GearTypeWrite: {
+      /** Name */
+      name: string;
+    };
     /** GuestOfficerGrant */
     GuestOfficerGrant: {
       /** Permissions */
@@ -3328,6 +3995,7 @@ export interface components {
         | "members"
         | "reimbursements"
         | "board"
+        | "gear"
       )[];
       /**
        * Expires At
@@ -3346,6 +4014,7 @@ export interface components {
         | "members"
         | "reimbursements"
         | "board"
+        | "gear"
       )[];
       /**
        * Expires At
@@ -3364,6 +4033,7 @@ export interface components {
         | "members"
         | "reimbursements"
         | "board"
+        | "gear"
       )[];
       /**
        * Expires At
@@ -3793,6 +4463,7 @@ export interface components {
         | "members"
         | "reimbursements"
         | "board"
+        | "gear"
       )[];
       /** Expires At */
       expires_at: string | null;
@@ -3896,6 +4567,13 @@ export interface components {
     Page_GalleryRow_: {
       /** Items */
       items: components["schemas"]["GalleryRow"][];
+      /** Total */
+      total: number;
+    };
+    /** Page[GearRentalView] */
+    Page_GearRentalView_: {
+      /** Items */
+      items: components["schemas"]["GearRentalView"][];
       /** Total */
       total: number;
     };
@@ -9431,6 +10109,604 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["EventFormSheetView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  catalog_api_gear_get: {
+    parameters: {
+      query: {
+        start: string;
+        end: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GearCatalog"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  gear_access_api_me_gear_access_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GearAccess"];
+        };
+      };
+    };
+  };
+  own_rentals_api_me_gear_rentals_get: {
+    parameters: {
+      query?: {
+        search?: string;
+        status?:
+          | "all"
+          | "pending"
+          | "approved"
+          | "denied"
+          | "picked_up"
+          | "returned"
+          | "cancelled"
+          | "overdue"
+          | "missed"
+          | "at_risk";
+        limit?: number | null;
+        offset?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Page_GearRentalView_"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  request_rental_api_me_gear_rentals_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GearRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GearRentalView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  own_detail_api_me_gear_rentals__rid__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        rid: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GearRentalView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  cancel_api_me_gear_rentals__rid__cancel_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        rid: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GearSelection"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GearRentalView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  member_catalog_api_admin_gear_catalog_get: {
+    parameters: {
+      query: {
+        member_id: number;
+        start: string;
+        end: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GearCatalog"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  inventory_api_admin_gear_inventory_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GearInventory"];
+        };
+      };
+    };
+  };
+  create_item_api_admin_gear_inventory_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GearItemWrite"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GearItemView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_type_api_admin_gear_types_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GearTypeWrite"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GearTypeView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  transfer_custody_api_admin_gear_inventory__iid__custody__number__put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        iid: number;
+        number: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GearCustodyEdit"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GearItemView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_type_api_admin_gear_types__tid__put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        tid: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GearTypeEdit"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GearTypeView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_item_api_admin_gear_inventory__iid__put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        iid: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GearItemEdit"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GearItemView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  rentals_api_admin_gear_rentals_get: {
+    parameters: {
+      query?: {
+        search?: string;
+        status?:
+          | "all"
+          | "pending"
+          | "approved"
+          | "denied"
+          | "picked_up"
+          | "returned"
+          | "cancelled"
+          | "overdue"
+          | "missed"
+          | "at_risk";
+        limit?: number | null;
+        offset?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Page_GearRentalView_"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  assign_api_admin_gear_rentals_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GearAssignment"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GearRentalView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  detail_api_admin_gear_rentals__rid__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        rid: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GearRentalView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  action_api_admin_gear_rentals__rid__actions_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        rid: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GearAction"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GearRentalView"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  dates_api_admin_gear_rentals__rid__dates_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        rid: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GearReschedule"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GearRentalView"];
         };
       };
       /** @description Validation Error */

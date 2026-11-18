@@ -43,9 +43,10 @@ def revision(obj, expected):
         )
 
 
-def advisory(db, key):
+def advisory(db, key, *, shared=False):
     if db.bind.dialect.name == "postgresql":
-        db.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": key})
+        function = "pg_advisory_xact_lock_shared" if shared else "pg_advisory_xact_lock"
+        db.execute(text(f"SELECT {function}(:key)"), {"key": key})
 
 
 def audit(db, actor, action, entity, data=None):

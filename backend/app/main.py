@@ -19,7 +19,7 @@ from .auth import bootstrap, make_oauth, router as auth_router
 from .config import Settings
 from .db import make_engine, session_factory
 from .schemas import SiteSettings
-from .routers import guest_officers, applications, bans, editorial, events, finance, forms, google_sheets, imports, members, overview, participation, social
+from .routers import guest_officers, applications, bans, editorial, events, finance, forms, gear, google_sheets, imports, members, overview, participation, social
 from .services.event_activity import emit
 
 logger = logging.getLogger("aac.http")
@@ -41,7 +41,7 @@ def create_app(settings=None, engine=None):
         # Keep synchronous authentication/handlers below the ten-connection
         # pool capacity so waiting dependencies cannot exhaust worker threads.
         app.state.request_limit = asyncio.Semaphore(8)
-        with sessions() as db:
+        with sessions.begin() as db:
             bootstrap(db, settings)
         yield
         engine.dispose()
@@ -166,6 +166,7 @@ def create_app(settings=None, engine=None):
         overview.router,
         social.router,
         google_sheets.router,
+        gear.router,
     ):
         app.include_router(router)
     return app

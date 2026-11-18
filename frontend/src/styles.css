@@ -3992,6 +3992,53 @@ dialog::backdrop {
   }
 }
 
+.gear-form, .gear-lines, .gear-options { overflow-wrap: anywhere; }
+.gear-form .panel > * + *, .gear-form label > textarea { margin-top: .65rem; }
+.gear-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 1rem; }
+.gear-fields > *, .gear-form input[type=date] { min-width: 0; }
+.gear-options { margin: 1rem 0; padding: .8rem; border: 1px solid var(--line, #ccd3ca); border-radius: .65rem; }
+.gear-options legend { font-weight: 700; padding: 0 .35rem; }
+.gear-options label { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .75rem; padding: .6rem .25rem; }
+.gear-options label:has(:checked) { background: #edf5ec; }
+.gear-options label small, .gear-lines small, .gear-warning { display: block; }
+.gear-warning { color: #794907; }
+.gear-lines > div { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem; padding: .8rem 0; border-top: 1px solid var(--line, #ccd3ca); }
+@media (max-width: 600px) {
+  .gear-options label { grid-template-columns: auto minmax(0, 1fr); }
+  .gear-options label > small { grid-column: 2; }
+}
+
+.gear-membership-card { max-width: 48rem; }
+.gear-membership-card h2 { color: var(--forest); }
+.gear-membership-card p { color: var(--muted); line-height: 1.55; }
+.gear-filters .field { font-size: .88rem; }
+.gear-filters input, .gear-filters select { height: 3rem; font-size: 1rem; font-weight: 400; }
+.gear-filters { display: grid; grid-template-columns: minmax(0, 1fr) minmax(12rem, 18rem); align-items: end; gap: .75rem; }
+.gear-table td { overflow-wrap: anywhere; }
+.gear-table td > div, .gear-table td > span { min-width: 0; }
+.gear-table .gear-detail-row > td { padding: .8rem 1rem; background: #f8faf6; }
+.gear-request-detail { text-align: left; }
+.gear-request-detail h3 { margin: 0 0 .5rem; }
+.gear-request-detail .gear-lines > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+.gear-request-detail .gear-lines + .actions { margin-top: .5rem; }
+.gear-row-actions { gap: .4rem; }
+.gear-table .button.small { font-size: .8rem; overflow-wrap: normal; }
+@media (min-width: 768px) {
+  .gear-inventory-filters { grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  .gear-inventory-filters { grid-template-columns: minmax(0,1fr); }
+  .gear-table td[data-label]::before { flex-shrink: 0; }
+  .gear-table .gear-detail-row { padding: 0; }
+  .gear-table .gear-detail-row > td { display: block; text-align: left; }
+  .gear-table .gear-detail-row > td::before { display: none; }
+  .gear-table .gear-request-detail .actions { justify-content: flex-start; }
+  .gear-table .gear-request-detail .gear-lines > div { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .gear-filters { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* Event follow-up forms */
 .form-attention {
   background: #fff1aa;

@@ -156,7 +156,7 @@ Run the [production proxy checks](development.md#production-proxy-checks) after 
 
 New Google signups without a UCI email must complete an application before using member tools, signing up for events, or submitting dues. Existing member records are grandfathered in, including imported members who have not signed in. New members deliberately added by officers or imported from a roster are admitted automatically. Adding or importing an existing applicant does not override their application status.
 
-Until an application is approved, direct visits to any My AAC member tab redirect to the application page. This covers Overview, My Signups, Membership, Profile & Cars, and Reimbursements. Member APIs and event signups also reject these accounts, while public pages remain available. Pending payment confirmation is separate and does not impose this application restriction.
+Until an application is approved, direct visits to protected My AAC member tabs redirect to the application page. This covers Overview, My Signups, Membership, Profile & Cars, and Reimbursements. The Gear Rental tab shows an application card with a link to the next step. Member APIs and event signups also reject these accounts, while public pages remain available. Pending payment confirmation is separate and does not impose this application restriction.
 
 Open **Forms → External application → Edit application questions** to change the questionnaire. It uses the same question editor and validation as event forms, including email fields, word limits, and conditions based on an earlier yes/no or multiple-choice answer. Submitted applications retain their original questions and answers. An applicant filling an older version must review the updated questions before submitting.
 
@@ -191,6 +191,7 @@ Full officers can grant temporary access from **Officers → Guest officer acces
 | Members & Dues | Member records/imports, dues, external application reviews and reapplication |
 | Reimbursements | Drivers, eligibility, trips, mileage, payout records |
 | Board Profiles | Board years, profiles, ordering, visibility, photos |
+| Gear | Inventory, requests, assignments, pickups, returns, and custody |
 
 Guest navigation includes only the assigned tools. Full officers retain Dashboard, Settings, access management, bans and their private reasons, application-form configuration, Google Sheets, audit history, budgets, and quarter finalization/archival. Shared member pickers omit payout details; guests without Reimbursements cannot retrieve payout fields from member records.
 
@@ -201,3 +202,13 @@ can continue editing signup questions manually under Events permission and
 managing attendance under Participation permission. Follow-up response statuses
 and missing-response filters are full-officer only. Guest officers who sign up
 for an event can access their own participant forms normally.
+
+## Gear rentals
+
+Full officers can open **Officer Tools → Gear → Inventory** to add equipment and manage gear types. Use the same type for different models of the same equipment, such as all tents. Enter the number of interchangeable units, then enable **Available for member rental**. Record officer-owned stock separately with the lender and their inclusive loan dates. Disable rentability to stop new requests. Resolve outstanding commitments before reducing capacity below reserved stock, changing ownership or archiving equipment.
+
+**Current holder** shows who has each model’s numbered copies. Use **Custody** to choose a copy and record its officer, gear helper, or **Unknown**. Use the copy numbers on the physical gear so officers can identify the same tent or bag at handoff. Recording pickup transfers that copy to the borrower. On return, choose the receiving officer or **Unknown**. Filter inventory by **Held by** to find a person’s equipment or copies with unknown custody.
+
+Members use **My AAC → Gear Rental**. Pickup and return both count toward the seven-day limit. The pickup date determines the membership quarter. Approved reservations, pending requests and checked-out gear all count toward stock for overlapping dates. A borrower can hold one item of each type across all their requests. Cancel an item before pickup to release its hold.
+
+Use **Officer Tools → Gear → Rentals** to approve or deny individual items, record pickups and returns, or adjust dates. Include a message when a borrower needs an explanation. **Assign gear** creates an approved rental on behalf of a paid member. Longer rentals require an officer’s reason. When an item is overdue, record its actual return or resolve competing reservations before handing out gear. The dashboard links to pending and overdue rentals. Full officers can delegate Gear under the existing temporary guest permissions.

@@ -112,6 +112,7 @@ export function useAPI<K extends keyof components["schemas"]>(
   url: string,
   options?: {
     enabled?: boolean;
+    pollIntervalMs?: number;
     poll?: boolean | ((data: Schema<K> | undefined) => boolean);
   },
 ) {
@@ -122,7 +123,8 @@ export function useAPI<K extends keyof components["schemas"]>(
     queryFn: ({ signal }) => request(url, "GET", undefined, signal),
     enabled: options?.enabled ?? true,
     staleTime: (query) => (polling(query.state.data) ? 0 : 20_000),
-    refetchInterval: (query) => (polling(query.state.data) ? 2000 : false),
+    refetchInterval: (query) =>
+      polling(query.state.data) ? (options?.pollIntervalMs ?? 2000) : false,
     refetchIntervalInBackground: false,
     retry: (count, error) => error.status >= 500 && count < 1,
   });

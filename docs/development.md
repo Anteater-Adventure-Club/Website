@@ -176,3 +176,27 @@ rosters, and form-status filtering require a full officer. Guests retain their
 existing event editing and participation tools; they can still respond to their
 own event forms as members. The browser CI matrix includes both forms and Guest
 access, with separate databases and artifacts for each job.
+
+## Gear rental demo and checks
+
+Run `alembic upgrade head` before starting the updated API and frontend. Revision `48f2c718ac61` joins the gear custody and event forms migration histories. An upgrade from either previous head preserves existing records and applies the missing migrations. The gear migration creates five gear types. Officers populate production inventory from their records.
+
+The local HTML launcher serves the production frontend build and FastAPI application with synthetic accounts. Create a dedicated PostgreSQL database called `aac_gear_demo` on loopback. From the repository root, with the repository Python and Node runtimes installed:
+
+```bash
+export DATABASE_URL=postgresql+psycopg://aac:aac@127.0.0.1:55432/aac_gear_demo
+export APP_ENV=development
+export APP_URL=http://127.0.0.1:5178
+export INITIAL_OFFICER_EMAILS=officer@uci.edu
+export SESSION_SECRET="$(openssl rand -hex 32)"
+(cd backend && ../.venv/bin/alembic upgrade head)
+(cd frontend && npm run build)
+.venv/bin/python scripts/gear-demo.py seed
+.venv/bin/python scripts/gear-demo.py serve
+```
+
+Open [the demo launcher](http://127.0.0.1:5178/demo). Each button starts a fresh session for that synthetic account and opens the indicated page. To repeat a scenario from scratch, rerun the seed command against the demo database. This replaces its fixtures. The same server serves the regenerated data immediately. The launcher lives under `artifacts/gear-demo/`; its sign-in controls exist only in the local demo process.
+
+The gear Playwright suite runs against a separate migrated database named `aac_gear_demo_test` on port 5179. Set `DATABASE_URL` to that database, `GEAR_DEMO_PORT=5179` and `APP_URL=http://127.0.0.1:5179`. Keep the other demo settings above. Run `scripts/gear-demo.py reset-test` with the repository Python before starting this server with `serve`. From `frontend/`, run `npx playwright test --config playwright.gear.config.ts`. Each test and retry restores the fixture before opening a browser. Set `E2E_PYTHON` or `GEAR_CHROMIUM_PATH` to use a different local interpreter or Chromium executable. The gear CI job runs these journeys on phone, tablet, and desktop and retains failure traces.
+
+Run backend integration tests separately with `TEST_DATABASE_URL` pointing to the disposable `aac_test` database.

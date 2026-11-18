@@ -9,6 +9,7 @@ import {
   Navigate,
   Outlet,
   useLocation,
+  useMatch,
   useNavigate,
 } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -28,13 +29,19 @@ const memberLinks = [
   ["/my-aac", "Overview"],
   ["/my-aac/signups", "My Signups"],
   ["/my-aac/membership", "Membership"],
+  ["/my-aac/gear", "Gear Rental"],
   ["/my-aac/profile", "Profile & Cars"],
   ["/my-aac/reimbursements", "Reimbursements"],
+];
+const applicantLinks = [
+  ["/my-aac/application", "Your application"],
+  ["/my-aac/gear", "Gear Rental"],
 ];
 const adminLinks = [
   ["/admin/overview", "Dashboard"],
   ["/admin/events", "Events"],
   ["/admin/check-in", "Check In"],
+  ["/admin/gear", "Gear"],
   ["/admin/members", "Members"],
   ["/admin/forms", "Forms"],
   ["/admin/reimbursements", "Reimbursements"],
@@ -71,6 +78,7 @@ export function Layout() {
   const cache = useQueryClient();
   const navigate = useNavigate();
   const location = useLocation();
+  const inOfficerTools = !!useMatch("/admin/*");
   const membership = useAPI(
     "MembershipView",
     `/api/me/memberships/${quarter?.id}`,
@@ -89,8 +97,31 @@ export function Layout() {
           ],
         ]
       : []),
-    ...(hasTools(session) ? [[officerHome(session), "Officer Tools"]] : []),
   ];
+  const primaryLinks = (
+    <>
+      {nav.map(([url, label]) => (
+        <NavLink
+          end={url === "/"}
+          key={url}
+          to={url}
+          onClick={() => setMenu(false)}
+        >
+          {label}
+        </NavLink>
+      ))}
+      {hasTools(session) && (
+        <Link
+          to={officerHome(session)}
+          className={inOfficerTools ? "active" : undefined}
+          aria-current={inOfficerTools ? "page" : undefined}
+          onClick={() => setMenu(false)}
+        >
+          Officer Tools
+        </Link>
+      )}
+    </>
+  );
   async function logout() {
     await request("/api/auth/logout", "POST");
     cache.clear();
@@ -117,36 +148,29 @@ export function Layout() {
           {quarter && !needsApproval(session?.member) && ` · ${quarter.name}`}
         </Pill>
       </div>
-      {(needsApproval(session?.member)
-        ? [["/my-aac/application", "Your application"]]
-        : memberLinks
-      ).map(([url, label]) => (
-        <Link
-          key={url}
-          to={quarterURL(url, quarter?.id)}
-          onClick={() => {
-            setAccount(false);
-            setMenu(false);
-          }}
-        >
-          {label}
-        </Link>
-      ))}
+      {(needsApproval(session?.member) ? applicantLinks : memberLinks).map(
+        ([url, label]) => (
+          <Link
+            key={url}
+            to={quarterURL(url, quarter?.id)}
+            onClick={() => {
+              setAccount(false);
+              setMenu(false);
+            }}
+          >
+            {label}
+          </Link>
+        ),
+      )}
       {hasTools(session) && (
         <Link
-          to={
-            location.pathname.startsWith("/admin")
-              ? "/my-aac"
-              : officerHome(session)
-          }
+          to={inOfficerTools ? "/my-aac" : officerHome(session)}
           onClick={() => {
             setAccount(false);
             setMenu(false);
           }}
         >
-          {location.pathname.startsWith("/admin")
-            ? "Member View"
-            : "Officer Tools"}
+          {inOfficerTools ? "Member View" : "Officer Tools"}
         </Link>
       )}
       <Button variant="quiet" onClick={logout}>
@@ -179,11 +203,7 @@ export function Layout() {
           <Menu />
         </Button>
         <nav aria-label="Main navigation" className="desktop-navigation">
-          {nav.map(([url, label]) => (
-            <NavLink end={url === "/"} key={url} to={url}>
-              {label}
-            </NavLink>
-          ))}
+          {primaryLinks}
         </nav>
         {session?.member ? (
           <div
@@ -217,16 +237,7 @@ export function Layout() {
       {menu && (
         <Dialog title="Explore AAC" onClose={() => setMenu(false)}>
           <nav className="drawer-navigation" aria-label="Mobile navigation">
-            {nav.map(([url, label]) => (
-              <NavLink
-                end={url === "/"}
-                key={url}
-                to={url}
-                onClick={() => setMenu(false)}
-              >
-                {label}
-              </NavLink>
-            ))}
+            {primaryLinks}
             {session?.member && accountContents}
           </nav>
         </Dialog>
@@ -326,9 +337,14 @@ export function Workspace({ admin = false }: { admin?: boolean }) {
   const { session } = useIdentity();
   const links = admin
     ? adminLinks.filter(([url]) => canVisit(session, url))
-    : memberLinks;
+    : needsApproval(session?.member)
+      ? applicantLinks
+      : memberLinks;
   const [sections, setSections] = useState(false);
   const location = useLocation();
+  const globalGear = ["/my-aac/gear", "/admin/gear"].includes(
+    location.pathname,
+  );
   const selected =
     links.find(([url]) => location.pathname === url)?.[1] ||
     (admin ? "Officer Tools" : "My AAC");
@@ -354,7 +370,7 @@ export function Workspace({ admin = false }: { admin?: boolean }) {
           {selected} <Menu size={18} />
         </Button>
         <div className="workspace-controls">
-          <QuarterPicker />
+          {!globalGear && <QuarterPicker />}
           {hasTools(session) && (
             <Link
               className="mode-switch"
@@ -385,7 +401,7 @@ export function Workspace({ admin = false }: { admin?: boolean }) {
         </Dialog>
       )}
       <div className="page workspace-page">
-        {invalid ? (
+        {invalid && !globalGear ? (
           <Empty title="Quarter not found">
             Choose an available quarter from the menu above.
           </Empty>

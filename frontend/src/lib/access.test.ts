@@ -30,12 +30,14 @@ describe("Guest navigation", () => {
     ["members", "/admin/members", []],
     ["reimbursements", "/admin/events", ["trips"]],
     ["board", "/admin/officers", []],
+    ["gear", "/admin/gear", []],
   ] as [Permission, string, string[]][])(
     "%s exposes only useful tools",
     (permission, home, tabs) => {
       const session = guest(permission);
       expect(officerHome(session)).toBe(home);
       expect(hasTools(session)).toBe(true);
+      expect(canVisit(session, "/admin/gear")).toBe(permission === "gear");
       for (const tab of [
         "signups",
         "carpools",

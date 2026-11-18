@@ -575,7 +575,7 @@ class DuplicateWrite(DTO):
     ends_at: AwareDatetime
 
 
-Permission = Literal["events", "participation", "members", "reimbursements", "board"]
+Permission = Literal["events", "participation", "members", "reimbursements", "board", "gear"]
 
 
 class OfficerAccess(DTO):
@@ -585,7 +585,7 @@ class OfficerAccess(DTO):
 
 
 class GuestOfficerWrite(DTO):
-    permissions: list[Permission] = Field(min_length=1, max_length=5)
+    permissions: list[Permission] = Field(min_length=1, max_length=6)
     expires_at: AwareDatetime
 
     @field_validator("permissions")
