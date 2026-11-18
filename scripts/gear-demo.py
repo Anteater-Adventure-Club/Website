@@ -8,7 +8,7 @@ from pathlib import Path
 
 from fastapi import HTTPException, Request
 from fastapi.responses import FileResponse, RedirectResponse
-from sqlalchemy import select, text
+from sqlalchemy import event, select, text
 from sqlalchemy.engine import make_url
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.staticfiles import StaticFiles
@@ -34,15 +34,17 @@ from app.models import (  # noqa: E402
     Membership,
     Quarter,
 )
-from app.services.gear import create, lock_gear  # noqa: E402
+from app.services.gear import create  # noqa: E402
 
 PORT = int(os.environ.get("GEAR_DEMO_PORT", "5178"))
+DEMO_RESET_LOCK = 760
 ORIGIN = f"http://127.0.0.1:{PORT}"
 settings = Settings()
 url = make_url(settings.database_url)
 if (
     url.host != "127.0.0.1"
     or url.database not in {"aac_gear_demo", "aac_gear_demo_test"}
+    or (PORT == 5179) != (url.database == "aac_gear_demo_test")
     or settings.environment != "development"
     or settings.app_url != ORIGIN
     or settings.initial_officers != "officer@uci.edu"
@@ -100,8 +102,7 @@ def seed_previous_quarter_rental(db, current, member, officer, bag):
 
 def seed():
     with sessions.begin() as db:
-        advisory(db, 700)
-        lock_gear(db)
+        advisory(db, DEMO_RESET_LOCK)
         if db.get(Marker, "gear_demo"):
             tables = ",".join(f'"{name}"' for name in Base.metadata.tables)
             db.execute(text(f"TRUNCATE {tables} RESTART IDENTITY CASCADE"))
@@ -261,10 +262,16 @@ Use your browser’s Back button or return to <a href="/demo">this launcher</a> 
     return page
 
 
+def lock_demo_reader(connection):
+    # Take this before authentication or any application table lock.
+    connection.execute(text("SELECT pg_advisory_xact_lock_shared(:key)"), {"key": DEMO_RESET_LOCK})
+
+
 def serve():
     if not (DIST / "index.html").is_file():
         sys.exit("Build the frontend and point GEAR_DEMO_DIST at its dist directory.")
     page = launcher()
+    event.listen(engine, "begin", lock_demo_reader)
     app = create_app(settings, engine)
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1"])
 

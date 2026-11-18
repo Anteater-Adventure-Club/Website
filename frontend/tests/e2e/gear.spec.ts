@@ -354,11 +354,14 @@ test("inventory and handoffs work while the previous API is serving", async ({
   ).toBeVisible();
   let status: "approved" | "picked_up" = "approved";
   await page.route("**/api/admin/gear/rentals?**", async (route) => {
-    const response = await route.fetch();
+    const response = await route.fetch({
+      url: route.request().url().split("?")[0],
+    });
     const data: Schema<"Page_GearRentalView_"> = await response.json();
     const rental = data.items[0];
     rental.start = "2000-01-01";
     rental.end = "2099-01-01";
+    rental.activity = "Legacy handoff";
     rental.status = status;
     rental.lines = [
       {
@@ -369,7 +372,14 @@ test("inventory and handoffs work while the previous API is serving", async ({
         overdue: false,
       },
     ];
-    await route.fulfill({ response, json: { items: [rental] } });
+    const history = Array.from({ length: 50 }, (_, i) => ({
+      ...rental,
+      id: -(i + 1),
+      activity: `Archived trip ${i + 1}`,
+      status: "returned",
+      lines: [{ ...rental.lines[0], status: "returned" }],
+    }));
+    await route.fulfill({ response, json: { items: [rental, ...history] } });
   });
   const writes: Record<string, unknown>[] = [];
   await page.route("**/api/admin/gear/rentals/*/actions", (route) => {
@@ -378,6 +388,18 @@ test("inventory and handoffs work while the previous API is serving", async ({
     return route.fulfill({ json: {} });
   });
   await page.getByRole("button", { name: "Rentals", exact: true }).click();
+  await expect(page.getByText("1–50 of 51 rentals")).toBeVisible();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await expect(
+    page.getByRole("cell", { name: /Archived trip 50/ }),
+  ).toBeVisible();
+  await page.getByLabel("Rental status").selectOption("overdue");
+  await expect(
+    page.getByRole("heading", { name: "No matching rentals" }),
+  ).toBeVisible();
+  await page.getByLabel("Rental status").selectOption("all");
+  await page.getByLabel("Search rentals").fill("legacy handoff");
+  await expect(page.getByRole("cell", { name: /Legacy handoff/ })).toBeVisible();
   await page.getByRole("button", { name: "Details", exact: true }).click();
   for (const verb of ["Record pickup", "Record return"]) {
     await page.getByRole("button", { name: verb, exact: true }).click();

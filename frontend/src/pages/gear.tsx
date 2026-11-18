@@ -462,6 +462,35 @@ function OfficerRentalTable({
   );
 }
 
+function rentalPage(
+  data: { items: Rental[]; total?: number } | undefined,
+  term: string,
+  status: string,
+  offset: number,
+  limit: number,
+) {
+  if (!data || data.total !== undefined) return data;
+  // Earlier gear APIs return the entire history without a total.
+  const search = term.toLowerCase();
+  const matches = data.items.filter((r) => {
+    const fields = [r.member_name, r.activity, ...r.lines.map((l) => l.name)];
+    if (!fields.some((field) => field.toLowerCase().includes(search)))
+      return false;
+    return (
+      status === "all" ||
+      r.lines.some((line) => {
+        if (status === "overdue" || status === "missed" || status === "at_risk")
+          return line[status];
+        return line.status === status && !(status === "pending" && line.missed);
+      })
+    );
+  });
+  return {
+    items: matches.slice(offset, offset + limit),
+    total: matches.length,
+  };
+}
+
 function Rentals({ admin = false }: { admin?: boolean }) {
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState("");
@@ -481,13 +510,14 @@ function Rentals({ admin = false }: { admin?: boolean }) {
     poll: true,
     pollIntervalMs: 30000,
   });
-  const total = data.data?.total;
+  const result = rentalPage(data.data, term, status, offset, pageSize);
+  const total = result?.total;
   useEffect(() => {
     if (total !== undefined && offset > 0 && offset >= total) {
       setOffset(Math.floor(Math.max(0, total - 1) / pageSize) * pageSize);
     }
   }, [total, offset]);
-  const rows = pending ? [] : (data.data?.items ?? []);
+  const rows = pending ? [] : (result?.items ?? []);
   const empty = !!data.data && !data.error && !pending && !rows.length;
   return (
     <div className="stack">

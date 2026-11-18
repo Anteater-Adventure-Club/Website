@@ -7,20 +7,44 @@ from uuid import uuid4
 import pytest
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import func, select, text
+from sqlalchemy import event, func, select, text
 from sqlalchemy.orm import sessionmaker
 
 from app.models import GearRental, Marker, Member
 
 
-def test_seed_is_atomic_on_first_run_and_reseed(engine, monkeypatch):
+@pytest.fixture
+def demo(monkeypatch):
     root = Path(__file__).resolve().parents[2]
     monkeypatch.setenv("DATABASE_URL", "postgresql+psycopg://aac:aac@127.0.0.1:55432/aac_gear_demo_test")
     monkeypatch.setenv("APP_ENV", "development")
     monkeypatch.setenv("APP_URL", "http://127.0.0.1:5179")
     monkeypatch.setenv("GEAR_DEMO_PORT", "5179")
     monkeypatch.setenv("INITIAL_OFFICER_EMAILS", "officer@uci.edu")
-    seed = runpy.run_path(str(root / "scripts/gear-demo.py"))["seed"]
+    return runpy.run_path(str(root / "scripts/gear-demo.py"))
+
+
+def test_interactive_database_cannot_serve_test_port(demo, monkeypatch):
+    monkeypatch.setenv("DATABASE_URL", "postgresql+psycopg://aac:aac@127.0.0.1:55432/aac_gear_demo")
+    with pytest.raises(SystemExit, match="dedicated local"):
+        runpy.run_path(demo["__file__"])
+
+
+def test_live_demo_read_precedes_exclusive_reset(demo, engine):
+    with engine.connect() as reader, engine.connect() as reset:
+        event.listen(reader, "begin", demo["lock_demo_reader"])
+        reader.execute(select(Member.id).limit(1))
+        try_reset = text("SELECT pg_try_advisory_xact_lock(:key)")
+        key = {"key": demo["DEMO_RESET_LOCK"]}
+        assert not reset.scalar(try_reset, key)
+        reader.execute(text("SELECT pg_advisory_xact_lock(759)"))
+        reader.rollback()
+        assert reset.scalar(try_reset, key)
+
+
+def test_seed_is_atomic_on_first_run_and_reseed(demo, engine, monkeypatch):
+    seed = demo["seed"]
+    root = demo["ROOT"]
     with engine.connect() as connection:
         schema = "gear_seed_" + uuid4().hex
         connection.execute(text(f"CREATE SCHEMA {schema}"))
