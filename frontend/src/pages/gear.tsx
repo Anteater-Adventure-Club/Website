@@ -1,4 +1,5 @@
-import { useState, Fragment } from "react";
+import { useEffect, useState, Fragment } from "react";
+import { useSearchQuery } from "../lib/search-query";
 import { useSearchParams } from "react-router";
 import { dateLabel, pacificDate, useAction, useAPI } from "../lib/api";
 import type { Schema } from "../lib/api";
@@ -61,15 +62,21 @@ function allowed(line: Line, r: Rental, admin: boolean): Action[] {
   if (line.status === "picked_up") return admin ? ["return"] : [];
   if (line.status === "pending")
     return admin
-      ? line.missed
+      ? line.missed || line.at_risk
         ? ["deny", "cancel"]
         : ["approve", "deny", "cancel"]
       : ["cancel"];
   if (line.status === "approved")
-    return admin && !line.missed && r.start <= pacificDate()
+    return admin && !line.missed && !line.at_risk && r.start <= pacificDate()
       ? ["pickup", "cancel"]
       : ["cancel"];
   return [];
+}
+function approvalLabel(r: Rental, count: number) {
+  const partial =
+    count < r.lines.filter((line) => line.status === "pending").length;
+  if (partial) return `Approve ${count} eligible item${count === 1 ? "" : "s"}`;
+  return count === 1 ? "Approve" : "Approve all pending";
 }
 type Edit = { r: Rental; action: Action | "dates"; lines: Line[] };
 function RentalDialog({
@@ -298,15 +305,20 @@ function RentalItems({ r, admin, setEdit }: RentalActionsProps) {
             const lines = r.lines.filter((l) =>
               allowed(l, r, true).includes(a),
             );
+            const multiple =
+              a === "approve"
+                ? r.lines.filter((line) => line.status === "pending").length > 1
+                : lines.length > 1;
             return (
-              lines.length > 1 && (
+              multiple &&
+              lines.length > 0 && (
                 <Button
                   key={a}
                   variant="secondary"
                   onClick={() => setEdit({ r, action: a, lines })}
                 >
                   {a === "approve"
-                    ? "Approve all pending"
+                    ? approvalLabel(r, lines.length)
                     : actions[a] + " for all eligible items"}
                 </Button>
               )
@@ -362,7 +374,7 @@ function OfficerRentalTable({
                     : l.missed
                       ? ["Missed pickup"]
                       : l.at_risk
-                        ? ["At risk"]
+                        ? ["At risk from an overdue return"]
                         : [],
                 ),
               ),
@@ -411,7 +423,7 @@ function OfficerRentalTable({
                             setEdit({ r, action: "approve", lines: canApprove })
                           }
                         >
-                          {canApprove.length === 1 ? "Approve" : "Approve all"}
+                          {approvalLabel(r, canApprove.length)}
                         </Button>
                       )}
                       <Button
@@ -454,44 +466,39 @@ function Rentals({ admin = false }: { admin?: boolean }) {
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const [edit, setEdit] = useState<Edit | null>(null);
-  const data = useAPI(
-    "Items_GearRentalView_",
-    admin ? "/api/admin/gear/rentals" : "/api/me/gear-rentals",
-    { poll: true },
-  );
+  const pageSize = 50;
+  const [offset, setOffset] = useState(0);
+  const { query: term, pending } = useSearchQuery(search);
   const status = params.get("status") || "all";
-  if (data.error) return <Message error={data.error} />;
-  if (!data.data) return <Loading />;
-  if (!admin && data.data.items.length === 0)
-    return (
-      <Panel>
-        <h2>No rentals yet</h2>
-        <p>Your gear rentals from every quarter will appear here.</p>
-      </Panel>
-    );
-  const rows = data.data.items.filter(
-    (r) =>
-      [r.member_name, r.activity, ...r.lines.map((l) => l.name)]
-        .join(" ")
-        .toLowerCase()
-        .includes(search.toLowerCase()) &&
-      (status === "all" ||
-        r.lines.some((l) =>
-          status === "pending"
-            ? l.status === "pending" && !l.missed
-            : l.status === status ||
-              (status === "overdue" && l.overdue) ||
-              (status === "missed" && l.missed) ||
-              (status === "at_risk" && l.at_risk),
-        )),
-  );
+  const query = new URLSearchParams({
+    search: term,
+    status,
+    limit: String(pageSize),
+    offset: String(offset),
+  });
+  const base = admin ? "/api/admin/gear/rentals" : "/api/me/gear-rentals";
+  const data = useAPI("Page_GearRentalView_", base + "?" + query, {
+    poll: true,
+    pollIntervalMs: 30000,
+  });
+  const total = data.data?.total;
+  useEffect(() => {
+    if (total !== undefined && offset > 0 && offset >= total) {
+      setOffset(Math.floor(Math.max(0, total - 1) / pageSize) * pageSize);
+    }
+  }, [total, offset]);
+  const rows = pending ? [] : (data.data?.items ?? []);
+  const empty = !!data.data && !data.error && !pending && !rows.length;
   return (
     <div className="stack">
       <div className="gear-filters">
         <Field
           label="Search rentals"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setOffset(0);
+          }}
         />
         <label className="field">
           Rental status
@@ -500,6 +507,7 @@ function Rentals({ admin = false }: { admin?: boolean }) {
             onChange={(e) => {
               const p = new URLSearchParams(params);
               p.set("status", e.target.value);
+              setOffset(0);
               setParams(p);
             }}
           >
@@ -514,9 +522,15 @@ function Rentals({ admin = false }: { admin?: boolean }) {
           </select>
         </label>
       </div>
-      {!rows.length && (
+      {data.error && <Failure error={data.error} retry={data.refetch} />}
+      {(pending || data.isPending) && <Loading />}
+      {empty && (
         <Panel>
-          <h3>No matching rentals</h3>
+          <h3>
+            {!admin && !term && status === "all"
+              ? "No rentals yet"
+              : "No matching rentals"}
+          </h3>
           <p>Requests and their decisions will appear here.</p>
         </Panel>
       )}
@@ -542,6 +556,29 @@ function Rentals({ admin = false }: { admin?: boolean }) {
             <RentalItems r={r} admin={false} setEdit={setEdit} />
           </Panel>
         ))}
+      {total !== undefined && total > pageSize && (
+        <div className="toolbar">
+          <small className="muted">
+            {offset + 1}–{Math.min(offset + pageSize, total)} of {total} rentals
+          </small>
+          <div className="actions">
+            <Button
+              variant="secondary"
+              disabled={!offset}
+              onClick={() => setOffset(offset - pageSize)}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={offset + pageSize >= total}
+              onClick={() => setOffset(offset + pageSize)}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
       {edit && (
         <RentalDialog edit={edit} admin={admin} close={() => setEdit(null)} />
       )}

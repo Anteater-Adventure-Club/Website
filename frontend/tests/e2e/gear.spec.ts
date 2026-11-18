@@ -1,6 +1,29 @@
+import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import type { Schema } from "../../src/lib/api";
+
+const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
+test.beforeEach(() => {
+  execFileSync(
+    process.env.E2E_PYTHON || ".venv/bin/python",
+    ["scripts/gear-demo.py", "reset-test"],
+    {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        DATABASE_URL:
+          process.env.DATABASE_URL ||
+          "postgresql+psycopg://aac:aac@127.0.0.1:55432/aac_gear_demo_test",
+        GEAR_DEMO_PORT: "5179",
+        APP_URL: "http://127.0.0.1:5179",
+        INITIAL_OFFICER_EMAILS: "officer@uci.edu",
+      },
+      timeout: 30000,
+    },
+  );
+});
 
 async function enter(page: Page, role: string, destination: string) {
   await page.goto("/demo");
@@ -26,6 +49,7 @@ test("request, approve, pick up and return an officer-owned tent", async ({
 }, info) => {
   const activity = "Tent handoff " + info.project.name + " " + Date.now();
   await enter(page, "member", "request");
+  await expect(page.getByText(/Your request holds a unit/)).toBeVisible();
   const tent = page.getByRole("checkbox", { name: /Naturehike Cloud Up 2/ });
   await tent.check();
   await expect(page.getByRole("checkbox", { name: /VEVOR/ })).toBeDisabled();
@@ -41,6 +65,9 @@ test("request, approve, pick up and return an officer-owned tent", async ({
   await page.getByRole("button", { name: "Submit gear request" }).click();
   await expect(page.getByRole("heading", { name: activity })).toBeVisible();
   await enter(page, "second", "request");
+  await expect(
+    page.getByText("Tent already reserved for overlapping dates").first(),
+  ).toBeVisible();
   await expect(
     page.getByRole("checkbox", { name: /Naturehike Cloud Up 2/ }),
   ).toBeDisabled();
@@ -265,6 +292,9 @@ test("a numbered tent moves from an officer to a borrower and back to Unknown", 
   await page.getByRole("button", { name: "Assign gear" }).click();
   await page.getByLabel("Search members").fill("Alex Rivera");
   await page.getByRole("button", { name: /Alex Rivera ·/ }).click();
+  await expect(
+    page.getByText(/Assigning gear approves the rental immediately/),
+  ).toBeVisible();
   await page.getByRole("checkbox", { name: /VEVOR/ }).check();
   await page
     .getByRole("textbox", { name: /Please briefly describe the activities/ })
@@ -323,14 +353,22 @@ test("inventory and handoffs work while the previous API is serving", async ({
     page.getByRole("button", { name: "Edit", exact: true }).first(),
   ).toBeVisible();
   let status: "approved" | "picked_up" = "approved";
-  await page.route("**/api/admin/gear/rentals", async (route) => {
+  await page.route("**/api/admin/gear/rentals?**", async (route) => {
     const response = await route.fetch();
-    const data: Schema<"Items_GearRentalView_"> = await response.json();
+    const data: Schema<"Page_GearRentalView_"> = await response.json();
     const rental = data.items[0];
     rental.start = "2000-01-01";
     rental.end = "2099-01-01";
     rental.status = status;
-    rental.lines = [{ ...rental.lines[0], status, missed: false }];
+    rental.lines = [
+      {
+        ...rental.lines[0],
+        status,
+        missed: false,
+        at_risk: false,
+        overdue: false,
+      },
+    ];
     await route.fulfill({ response, json: { items: [rental] } });
   });
   const writes: Record<string, unknown>[] = [];
@@ -398,4 +436,100 @@ test("a gear helper adds inventory and assigns an approved rental", async ({
   await expect(
     page.locator(".gear-lines").getByText("Cancelled", { exact: true }),
   ).toBeVisible();
+});
+
+test("an overdue return blocks only the affected gear", async ({ page }) => {
+  await enter(page, "officer", "rentals");
+  await page.getByLabel("Rental status").selectOption("at_risk");
+  const row = page.getByRole("row").filter({ hasText: "Camp cooking" });
+  await row.getByRole("button", { name: "Approve 1 eligible item" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toContainText("Big Agnes");
+  await expect(dialog).not.toContainText("Ozark");
+  await dialog.getByRole("button", { name: "Approve", exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  await row.getByRole("button", { name: "Details" }).click();
+  const stove = page.locator(".gear-lines > div").filter({ hasText: "Ozark" });
+  await expect(stove).toContainText("Pending · At risk from an overdue return");
+  await expect(stove.getByRole("button", { name: "Approve" })).toHaveCount(0);
+  await expect(
+    page.locator(".gear-lines > div").filter({ hasText: "Big Agnes" }),
+  ).toContainText("Approved");
+  const pickup = page
+    .getByRole("row")
+    .filter({ hasText: "Stove pickup today" });
+  await pickup.getByRole("button", { name: "Details" }).click();
+  await expect(page.locator(".gear-lines")).toContainText(
+    "Approved · At risk from an overdue return",
+  );
+  await expect(
+    page.getByRole("button", { name: "Record pickup", exact: true }),
+  ).toHaveCount(0);
+  await page.getByLabel("Rental status").selectOption("overdue");
+  await page.getByRole("button", { name: "Details" }).click();
+  await page.getByRole("button", { name: "Record return" }).click();
+  await dialog
+    .getByRole("button", { name: "Record return", exact: true })
+    .click();
+  await expect(dialog).toHaveCount(0);
+  await page.getByLabel("Rental status").selectOption("pending");
+  await expect(
+    row.getByRole("button", { name: "Approve", exact: true }),
+  ).toBeVisible();
+  await page.getByLabel("Rental status").selectOption("approved");
+  await pickup.getByRole("button", { name: "Details" }).click();
+  await expect(
+    page.getByRole("button", { name: "Record pickup", exact: true }),
+  ).toBeVisible();
+});
+
+test("rental history pages and search reset for members and officers", async ({
+  page,
+}) => {
+  await enter(page, "member", "request");
+  const start = await page.getByLabel("Pickup date").inputValue();
+  const api = page.request;
+  const origin = new URL(page.url()).origin;
+  const catalog = await api.get("/api/gear", { params: { start, end: start } });
+  expect(catalog.ok()).toBe(true);
+  const { items }: Schema<"GearCatalog"> = await catalog.json();
+  const item = items.find((i) => i.type_name === "Portable camp toilet")!;
+  for (let day = 0; day < 51; day++) {
+    const when = new Date(start);
+    when.setUTCDate(when.getUTCDate() + day);
+    const date = when.toISOString().slice(0, 10);
+    const saved = await api.post("/api/me/gear-rentals", {
+      headers: { Origin: origin },
+      data: {
+        start: date,
+        end: date,
+        item_ids: [item.id],
+        activity: `Pagination trip ${day}`,
+      },
+    });
+    expect(saved.status()).toBe(201);
+  }
+  for (const [role, dest] of [
+    ["member", "history"],
+    ["officer", "rentals"],
+  ]) {
+    await enter(page, role, dest);
+    const search = page.getByLabel("Search rentals");
+    await search.fill("Pagination trip");
+    await expect(page.getByText("1–50 of 51 rentals")).toBeVisible();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(page.getByText("51–51 of 51 rentals")).toBeVisible();
+    await expect(
+      page.getByText(/Pagination trip 0$/, { exact: false }).first(),
+    ).toBeVisible();
+    await search.fill("Pagination trip 49");
+    await expect(page.getByText(/Pagination trip 49$/).first()).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Next", exact: true }),
+    ).toHaveCount(0);
+    await search.fill("Pagination trip");
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await page.getByLabel("Rental status").selectOption("pending");
+    await expect(page.getByText("1–50 of 51 rentals")).toBeVisible();
+  }
 });

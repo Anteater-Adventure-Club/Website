@@ -2,8 +2,8 @@
 # Start only a disposable integration-test database; never reset an existing container.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-database="${1:?Pass aac_test or aac_browser}"
-case "$database" in aac_test|aac_browser) ;; *) echo "Use a disposable test database" >&2; exit 1 ;; esac
+database="${1:?Pass aac_test, aac_browser or aac_gear_demo_test}"
+case "$database" in aac_test|aac_browser|aac_gear_demo_test) ;; *) echo "Use a disposable test database" >&2; exit 1 ;; esac
 engine="${AAC_CONTAINER_ENGINE:-docker}"
 name="${AAC_TEST_POSTGRES_NAME:-aac-ci-postgres}"
 port="${AAC_TEST_POSTGRES_PORT:-55432}"

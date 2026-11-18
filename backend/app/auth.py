@@ -130,7 +130,6 @@ def bootstrap(db, settings):
         db.add(FormDefinition(key="external-members", questions=external_member_questions()))
         db.flush()
     if db.get(Marker, "officer_bootstrap"):
-        db.commit()
         return
     for email in settings.initial_officers.split(","):
         email = email.strip().lower()
@@ -145,7 +144,7 @@ def bootstrap(db, settings):
             db.add(Officer(member_id=user.id))
     db.add(Marker(key="officer_bootstrap"))
     audit(db, None, "officer.bootstrap", "identity")
-    db.commit()
+    db.flush()
 
 
 def make_oauth(settings):

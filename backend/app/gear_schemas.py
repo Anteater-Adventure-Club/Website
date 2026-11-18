@@ -103,7 +103,14 @@ class GearAccess(DTO):
     first_pickup: date | None
     quarter_id: int | None
     quarter_name: str | None
-    has_rentals: bool
+
+
+class RentalFilters(DTO):
+    search: str = Field(default="", max_length=500)
+    status: Literal["all", "pending", "approved", "denied", "picked_up", "returned",
+                    "cancelled", "overdue", "missed", "at_risk"] = "all"
+    limit: int | None = Field(default=None, ge=1, le=200)
+    offset: int = Field(default=0, ge=0)
 
 
 class GearDates(DTO):
@@ -138,7 +145,10 @@ class GearAction(GearSelection):
     action: Literal["approve", "deny", "cancel", "pickup", "return"]
     message: Description = ""
     pickup_copies: dict[int, GearPickupCopy] = Field(default_factory=dict)
-    return_to: int | None = None
+    return_to: int | None = Field(default=None, description=(
+        "For returns, omit to record the acting officer, send null for Unknown, "
+        "or send the receiving officer or gear helper’s member ID."
+    ))
 
 
 class GearLineView(DTO):

@@ -6166,13 +6166,87 @@
       "get": {
         "summary": "Own Rentals",
         "operationId": "own_rentals_api_me_gear_rentals_get",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 500,
+              "default": "",
+              "title": "Search"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "all",
+                "pending",
+                "approved",
+                "denied",
+                "picked_up",
+                "returned",
+                "cancelled",
+                "overdue",
+                "missed",
+                "at_risk"
+              ],
+              "type": "string",
+              "default": "all",
+              "title": "Status"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 200,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Items_GearRentalView_"
+                  "$ref": "#/components/schemas/Page_GearRentalView_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -6183,14 +6257,14 @@
         "summary": "Request Rental",
         "operationId": "request_rental_api_me_gear_rentals_post",
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/GearRequest"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -6615,13 +6689,87 @@
       "get": {
         "summary": "Rentals",
         "operationId": "rentals_api_admin_gear_rentals_get",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 500,
+              "default": "",
+              "title": "Search"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "all",
+                "pending",
+                "approved",
+                "denied",
+                "picked_up",
+                "returned",
+                "cancelled",
+                "overdue",
+                "missed",
+                "at_risk"
+              ],
+              "type": "string",
+              "default": "all",
+              "title": "Status"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 200,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Items_GearRentalView_"
+                  "$ref": "#/components/schemas/Page_GearRentalView_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -6632,14 +6780,14 @@
         "summary": "Assign",
         "operationId": "assign_api_admin_gear_rentals_post",
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/GearAssignment"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -10726,10 +10874,6 @@
               }
             ],
             "title": "Quarter Name"
-          },
-          "has_rentals": {
-            "type": "boolean",
-            "title": "Has Rentals"
           }
         },
         "additionalProperties": false,
@@ -10737,8 +10881,7 @@
         "required": [
           "first_pickup",
           "quarter_id",
-          "quarter_name",
-          "has_rentals"
+          "quarter_name"
         ],
         "title": "GearAccess"
       },
@@ -10791,7 +10934,8 @@
                 "type": "null"
               }
             ],
-            "title": "Return To"
+            "title": "Return To",
+            "description": "For returns, omit to record the acting officer, send null for Unknown, or send the receiving officer or gear helper\u2019s member ID."
           }
         },
         "additionalProperties": false,
@@ -12242,23 +12386,6 @@
         ],
         "title": "Items[FormTemplateView]"
       },
-      "Items_GearRentalView_": {
-        "properties": {
-          "items": {
-            "items": {
-              "$ref": "#/components/schemas/GearRentalView"
-            },
-            "type": "array",
-            "title": "Items"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "items"
-        ],
-        "title": "Items[GearRentalView]"
-      },
       "Items_GuestOfficerView_": {
         "properties": {
           "items": {
@@ -13479,6 +13606,28 @@
           "total"
         ],
         "title": "Page[GalleryRow]"
+      },
+      "Page_GearRentalView_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/GearRentalView"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "Page[GearRentalView]"
       },
       "Page_QuarterPrivate_": {
         "properties": {

@@ -1,12 +1,13 @@
 from datetime import date
-from fastapi import APIRouter, Depends
+from typing import Annotated
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
 from ..auth import member, permission
 from ..db import get_db
 from .. import gear_schemas as s
 from ..models import GearType, GearItem
-from ..schemas import Items
-from ..services import gear
+from ..schemas import Page
+from ..services import gear, gear_rentals
 from ..services import gear_custody as custody
 from ..domain import require
 
@@ -25,27 +26,27 @@ def gear_access(user=Depends(member), db=database):
     return gear.member_access(db, user.id)
 
 
-@router.get("/me/gear-rentals", response_model=Items[s.GearRentalView])
-def own_rentals(user=Depends(member), db=database):
-    return {"items": gear.rental_views(db, mid=user.id)}
+@router.get("/me/gear-rentals", response_model=Page[s.GearRentalView])
+def own_rentals(filters: Annotated[s.RentalFilters, Query()], user=Depends(member), db=database):
+    return gear_rentals.page(db, filters, member_id=user.id)
 
 
 @router.get("/me/gear-rentals/{rid}", response_model=s.GearRentalView)
 def own_detail(rid: int, user=Depends(member), db=database):
     gear.rental_or_404(db, rid, user.id)
-    return gear.rental_views(db, mid=user.id, rid=rid)[0]
+    return gear_rentals.views(db, [rid])[0]
 
 
 @router.post("/me/gear-rentals", response_model=s.GearRentalView, status_code=201)
 def request_rental(value: s.GearRequest, user=Depends(member), db=database):
     rental = gear.create(db, user, value)
-    return gear.rental_views(db, rid=rental.id)[0]
+    return gear_rentals.views(db, [rental.id])[0]
 
 
 @router.post("/me/gear-rentals/{rid}/cancel", response_model=s.GearRentalView)
 def cancel(rid: int, value: s.GearSelection, user=Depends(member), db=database):
     gear.change(db, user, rid, value, own=True)
-    return gear.rental_views(db, rid=rid)[0]
+    return gear_rentals.views(db, [rid])[0]
 
 
 @router.get("/admin/gear/catalog", response_model=s.GearCatalog)
@@ -92,30 +93,30 @@ def update_item(iid: int, value: s.GearItemEdit, user=officer, db=database):
     return gear.write_item(db, user, value, iid)
 
 
-@router.get("/admin/gear/rentals", response_model=Items[s.GearRentalView])
-def rentals(user=officer, db=database):
-    return {"items": gear.rental_views(db)}
+@router.get("/admin/gear/rentals", response_model=Page[s.GearRentalView])
+def rentals(filters: Annotated[s.RentalFilters, Query()], user=officer, db=database):
+    return gear_rentals.page(db, filters)
 
 
 @router.get("/admin/gear/rentals/{rid}", response_model=s.GearRentalView)
 def detail(rid: int, user=officer, db=database):
     gear.rental_or_404(db, rid)
-    return gear.rental_views(db, rid=rid)[0]
+    return gear_rentals.views(db, [rid])[0]
 
 
 @router.post("/admin/gear/rentals", response_model=s.GearRentalView, status_code=201)
 def assign(value: s.GearAssignment, user=officer, db=database):
     rental = gear.create(db, user, value, assigned=True)
-    return gear.rental_views(db, rid=rental.id)[0]
+    return gear_rentals.views(db, [rental.id])[0]
 
 
 @router.post("/admin/gear/rentals/{rid}/actions", response_model=s.GearRentalView)
 def action(rid: int, value: s.GearAction, user=officer, db=database):
     gear.change(db, user, rid, value)
-    return gear.rental_views(db, rid=rid)[0]
+    return gear_rentals.views(db, [rid])[0]
 
 
 @router.put("/admin/gear/rentals/{rid}/dates", response_model=s.GearRentalView)
 def dates(rid: int, value: s.GearReschedule, user=officer, db=database):
     gear.reschedule(db, user, rid, value)
-    return gear.rental_views(db, rid=rid)[0]
+    return gear_rentals.views(db, [rid])[0]

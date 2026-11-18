@@ -66,11 +66,11 @@ def test_member_access_follows_paid_quarters_and_keeps_existing_rentals_reachabl
         return response.json()
 
     unpaid = person(api, 1)["id"]
-    assert access(unpaid) == dict(first_pickup=None, quarter_id=None, quarter_name=None, has_rentals=False)
+    assert access(unpaid) == dict(first_pickup=None, quarter_id=None, quarter_name=None)
     current = quarter(api, ends_on=dates(0, 8)["end"])
     future = quarter(api, name="Next quarter", starts_on=dates(9, 9)["start"])
     assert access(unpaid) == dict(
-        first_pickup=None, quarter_id=current["id"], quarter_name=current["name"], has_rentals=False
+        first_pickup=None, quarter_id=current["id"], quarter_name=current["name"]
     )
     mid = borrower(api, future, 2)
     assert access(mid)["first_pickup"] == future["starts_on"]
@@ -80,8 +80,8 @@ def test_member_access_follows_paid_quarters_and_keeps_existing_rentals_reachabl
     with api.app.state.sessions.begin() as db:
         db.scalar(select(Membership).where(Membership.member_id == mid)).status = "pending"
     assert access(mid)["first_pickup"] is None
-    assert access(mid)["has_rentals"]
-    assert not access(unpaid)["has_rentals"]
+    assert api.get(OWN, headers=headers(mid)).json()["total"] == 1
+    assert api.get(OWN, headers=headers(unpaid)).json()["total"] == 0
 
 
 def test_quantities_and_type_races(api):
@@ -354,3 +354,122 @@ def test_inventory_edit_races_request_and_gear_permission_expires(api):
     assert api.get(ADMIN + "/inventory", headers=headers(actor["id"])).is_success
     assert api.delete(f"/api/admin/guest-officers/{actor['id']}").is_success
     assert api.post(ADMIN + "/rentals", json=assignments, headers=headers(actor["id"])).status_code == 403
+
+
+def test_missed_rental_retyped_item_requires_replacement(api):
+    q = quarter(api)
+    mid = borrower(api, q, 1)
+    items = [inventory(api, n) for n in ("Tent", "Stove", "Pad")]
+    tent, stove, pad = items
+    rental = api.post(ADMIN + "/rentals", json={**body([tent, stove]), "member_id": mid}).json()
+    with api.app.state.sessions.begin() as db:
+        previous = db.get(GearRental, rental["id"])
+        previous.start = previous.end = today() - timedelta(days=1)
+    edit = {k: v for k, v in tent.items() if k not in ("id", "revision")}
+    assert api.put(f"{ADMIN}/inventory/{tent['id']}", json={
+        **edit, "type_id": pad["type_id"], "expected_revision": tent["revision"],
+    }).is_success
+    url = f"{ADMIN}/rentals/{rental['id']}"
+    before = api.get(url).json()
+    failed = api.put(url + "/dates", json={**dates(), "expected_revision": before["revision"]})
+    assert failed.status_code == 409
+    assert "Tent" in failed.text and "replacement" in failed.text
+    assert api.get(url).json() == before
+    cancelled = action(api, before, "cancel", 0).json()
+    assert api.put(url + "/dates", json={**dates(), "expected_revision": cancelled["revision"]}).is_success
+    assert api.post(ADMIN + "/rentals", json={**body([tent]), "member_id": mid}).is_success
+    assert api.post(OWN, headers=headers(mid), json=body([pad])).status_code == 409
+
+
+def test_rental_pages_filter_before_counting_and_keep_all_lines(api):
+    from app.models import GearLine
+    q = quarter(api)
+    mid, other = [borrower(api, q, n) for n in (1, 2)]
+    bag, tent, mat = [inventory(api, n) for n in ("Bag", "Tent", "Mat")]
+    late = api.post(ADMIN + "/rentals", json={**body([tent]), "member_id": other}).json()
+    assert action(api, late, "pickup", 0).is_success
+    risk = api.post(OWN, headers=headers(mid), json={**body([tent, bag], 1, 2), "activity": "River camp"}).json()
+    with api.app.state.sessions.begin() as db:
+        overdue = db.get(GearRental, late["id"])
+        overdue.start = overdue.end = today() - timedelta(days=1)
+        for i in range(56):
+            rental = GearRental(member_id=mid, created_by=mid, start=today(), end=today(),
+                                activity="Trip 100%" if i == 0 else f"Day {i}", comments="")
+            db.add(rental)
+            db.flush()
+            db.add(GearLine(rental_id=rental.id, item_id=mat["id"], type_id=mat["type_id"],
+                            name="Sleeping mat", type_name="Mat", ownership="club", status="returned"))
+    def page(**params):
+        response = api.get(ADMIN + "/rentals", params=params)
+        assert response.is_success, response.text
+        return response.json()
+    all_rentals = page()["items"]
+    first, second = page(limit=50), page(limit=50, offset=50)
+    assert first["total"] == second["total"] == len(all_rentals) == 58
+    assert first["items"] + second["items"] == all_rentals
+    for status in ["all", "pending", "approved", "denied", "picked_up", "returned",
+                   "cancelled", "overdue", "missed", "at_risk"]:
+        def matches(line):
+            if status in ("missed", "overdue", "at_risk"):
+                return line[status]
+            return status == "all" or line["status"] == status and not (status == "pending" and line["missed"])
+        matching = [r for r in all_rentals if any(matches(line) for line in r["lines"])]
+        result = page(status=status, limit=2)
+        assert result == {"total": len(matching), "items": matching[:2]}
+    assert page(search="100%")["total"] == 1
+    for search in ("rIvEr", "Bag"):
+        result = page(search=search, status="at_risk", limit=1)
+        assert result["total"] == 1 and result["items"][0]["id"] == risk["id"]
+        assert [line["at_risk"] for line in result["items"][0]["lines"]] == [True, False]
+    assert api.get(OWN, headers=headers(other), params={"status": "at_risk","limit": 1}).json()["total"] == 0
+    assert api.get(OWN, headers=headers(mid), params={"limit": 50, "offset": 50}).json()["total"] == 57
+
+
+def test_over_capacity_ranges_match_inclusive_peak():
+    from types import SimpleNamespace
+    from app.services.gear import peak
+    from app.services.gear_rentals import overloaded_ranges
+    now = today()
+    rows = [SimpleNamespace(start=now + timedelta(days=a), end=now + timedelta(days=b), status=s)
+            for a, b, s in [(-2, -1, "picked_up"), (1, 4, "pending"), (4, 5, "approved"), (8, 8, "pending")]]
+    for quantity in (1, 2, 3):
+        ranges = overloaded_ranges(rows, now, quantity)
+        for a in range(10):
+            for b in range(a, 10):
+                start, end = now + timedelta(days=a), now + timedelta(days=b)
+                hit = any(x <= end.toordinal() and y >= start.toordinal() for x, y in ranges)
+                assert hit == (peak(rows, start, end) > quantity)
+
+
+def test_at_risk_list_scans_each_models_holds_once(api, monkeypatch):
+    from app.models import GearLine
+    from app.services import gear_rentals
+    q = quarter(api)
+    mid, other = [borrower(api, q, n) for n in (1, 2)]
+    tent = inventory(api, "Tent")
+    out = api.post(ADMIN + "/rentals", json={**body([tent]), "member_id": other}).json()
+    assert action(api, out, "pickup", 0).is_success
+    with api.app.state.sessions.begin() as db:
+        late = db.get(GearRental, out["id"])
+        late.start = late.end = today() - timedelta(days=1)
+    visits = []
+    original = gear_rentals.usage_changes
+
+    def counted(rows, start, end):
+        visits.append(len(rows))
+        return original(rows, start, end)
+
+    monkeypatch.setattr(gear_rentals, "usage_changes", counted)
+    for batch in range(2):
+        with api.app.state.sessions.begin() as db:
+            for i in range(100):
+                day = today() + timedelta(days=100 * batch + i)
+                r = GearRental(member_id=mid, created_by=mid, start=day, end=day, activity="Camp", comments="")
+                db.add(r)
+                db.flush()
+                db.add(GearLine(rental_id=r.id, item_id=tent["id"], type_id=tent["type_id"],
+                                name="Tent", type_name="Tent", ownership="club", status="pending"))
+        result = api.get(ADMIN + "/rentals", params={"status": "at_risk", "limit": 1}).json()
+        assert result["total"] == (batch + 1) * 100
+        assert result["items"][0]["lines"][0]["at_risk"]
+    assert visits == [101, 201]

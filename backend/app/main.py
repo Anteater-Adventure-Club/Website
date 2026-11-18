@@ -41,7 +41,7 @@ def create_app(settings=None, engine=None):
         # Keep synchronous authentication/handlers below the ten-connection
         # pool capacity so waiting dependencies cannot exhaust worker threads.
         app.state.request_limit = asyncio.Semaphore(8)
-        with sessions() as db:
+        with sessions.begin() as db:
             bootstrap(db, settings)
         yield
         engine.dispose()

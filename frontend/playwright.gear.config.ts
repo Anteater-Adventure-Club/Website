@@ -6,7 +6,7 @@ export default defineConfig({
   testMatch: "gear.spec.ts",
   workers: 1,
   use: {
-    baseURL: `http://127.0.0.1:${process.env.GEAR_DEMO_PORT || "5178"}`,
+    baseURL: "http://127.0.0.1:5179",
     launchOptions: { executablePath: process.env.GEAR_CHROMIUM_PATH },
     trace: "retain-on-failure",
   },

@@ -181,8 +181,10 @@ export function GearRequestForm({
         <Panel>
           <h2>Choose gear</h2>
           <p className="muted">
-            Choose one item per type. Your request holds a unit while an officer
-            reviews it.
+            Choose one item per type.{" "}
+            {assign
+              ? "Assigning gear approves the rental immediately."
+              : "Your request holds a unit while an officer reviews it."}
           </p>
           {choices.length === 0 && <p>No rentable inventory is listed.</p>}
           {Array.from(new Set(choices.map((i) => i.type_id))).map((typeId) => (
@@ -219,7 +221,7 @@ export function GearRequestForm({
                       </span>
                       <small>
                         {i.type_reserved
-                          ? "Already requested for these dates"
+                          ? `${i.type_name} already reserved for overlapping dates`
                           : i.available
                             ? i.available + " available"
                             : "Unavailable"}

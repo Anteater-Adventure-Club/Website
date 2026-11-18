@@ -3585,8 +3585,6 @@ export interface components {
       quarter_id: number | null;
       /** Quarter Name */
       quarter_name: string | null;
-      /** Has Rentals */
-      has_rentals: boolean;
     };
     /** GearAction */
     GearAction: {
@@ -3608,7 +3606,10 @@ export interface components {
       pickup_copies?: {
         [key: string]: components["schemas"]["GearPickupCopy"];
       };
-      /** Return To */
+      /**
+       * Return To
+       * @description For returns, omit to record the acting officer, send null for Unknown, or send the receiving officer or gear helper’s member ID.
+       */
       return_to?: number | null;
     };
     /** GearAssignment */
@@ -4193,11 +4194,6 @@ export interface components {
       /** Items */
       items: components["schemas"]["FormTemplateView"][];
     };
-    /** Items[GearRentalView] */
-    Items_GearRentalView_: {
-      /** Items */
-      items: components["schemas"]["GearRentalView"][];
-    };
     /** Items[GuestOfficerView] */
     Items_GuestOfficerView_: {
       /** Items */
@@ -4571,6 +4567,13 @@ export interface components {
     Page_GalleryRow_: {
       /** Items */
       items: components["schemas"]["GalleryRow"][];
+      /** Total */
+      total: number;
+    };
+    /** Page[GearRentalView] */
+    Page_GearRentalView_: {
+      /** Items */
+      items: components["schemas"]["GearRentalView"][];
       /** Total */
       total: number;
     };
@@ -10173,7 +10176,22 @@ export interface operations {
   };
   own_rentals_api_me_gear_rentals_get: {
     parameters: {
-      query?: never;
+      query?: {
+        search?: string;
+        status?:
+          | "all"
+          | "pending"
+          | "approved"
+          | "denied"
+          | "picked_up"
+          | "returned"
+          | "cancelled"
+          | "overdue"
+          | "missed"
+          | "at_risk";
+        limit?: number | null;
+        offset?: number;
+      };
       header?: never;
       path?: never;
       cookie?: never;
@@ -10186,7 +10204,16 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["Items_GearRentalView_"];
+          "application/json": components["schemas"]["Page_GearRentalView_"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };
@@ -10517,7 +10544,22 @@ export interface operations {
   };
   rentals_api_admin_gear_rentals_get: {
     parameters: {
-      query?: never;
+      query?: {
+        search?: string;
+        status?:
+          | "all"
+          | "pending"
+          | "approved"
+          | "denied"
+          | "picked_up"
+          | "returned"
+          | "cancelled"
+          | "overdue"
+          | "missed"
+          | "at_risk";
+        limit?: number | null;
+        offset?: number;
+      };
       header?: never;
       path?: never;
       cookie?: never;
@@ -10530,7 +10572,16 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["Items_GearRentalView_"];
+          "application/json": components["schemas"]["Page_GearRentalView_"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };

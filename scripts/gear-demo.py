@@ -19,7 +19,7 @@ sys.path.insert(0, str(ROOT / "backend"))
 from app.auth import bootstrap  # noqa: E402
 from app.config import Settings  # noqa: E402
 from app.db import Base, make_engine, session_factory  # noqa: E402
-from app.domain import PACIFIC, today, utcnow  # noqa: E402
+from app.domain import PACIFIC, advisory, today, utcnow  # noqa: E402
 from app.gear_schemas import GearRequest, GearAssignment  # noqa: E402
 from app.main import create_app  # noqa: E402
 from app.models import (  # noqa: E402
@@ -34,7 +34,7 @@ from app.models import (  # noqa: E402
     Membership,
     Quarter,
 )
-from app.services.gear import create  # noqa: E402
+from app.services.gear import create, lock_gear  # noqa: E402
 
 PORT = int(os.environ.get("GEAR_DEMO_PORT", "5178"))
 ORIGIN = f"http://127.0.0.1:{PORT}"
@@ -100,14 +100,14 @@ def seed_previous_quarter_rental(db, current, member, officer, bag):
 
 def seed():
     with sessions.begin() as db:
+        advisory(db, 700)
+        lock_gear(db)
         if db.get(Marker, "gear_demo"):
             tables = ",".join(f'"{name}"' for name in Base.metadata.tables)
             db.execute(text(f"TRUNCATE {tables} RESTART IDENTITY CASCADE"))
         elif db.scalar(select(Member.id).limit(1)):
             sys.exit("This database contains members and was not created by the demo seeder.")
-    with sessions() as db:
         bootstrap(db, settings)
-    with sessions.begin() as db:
         db.add(Marker(key="gear_demo"))
         names = ["Sleeping bag", "Sleeping pad", "Tent", "Portable camp toilet", "Camp stove"]
         kinds = {}
@@ -209,8 +209,9 @@ def seed():
         )
         pad.status, pad.message = "denied", "The pad needs a valve repair."
         late = rental("helper", "Stove checkout", ["Ozark Trail stove"], 0, True)
-        rental("second", "Camp cooking", ["Ozark Trail stove"], 4, True)
+        rental("second", "Camp cooking", ["Ozark Trail stove", "Big Agnes Anthracite 20 · Regular"], 4)
         late.start, late.end = today() - timedelta(days=5), today() - timedelta(days=1)
+        rental("member", "Stove pickup today", ["Ozark Trail stove"], 0, True)
         stove = db.scalar(select(GearLine).where(GearLine.rental_id == late.id))
         stove.status, stove.copy_number, stove.picked_up_at, stove.picked_up_by = (
             "picked_up",
@@ -300,7 +301,9 @@ def serve():
 if __name__ == "__main__":
     if sys.argv[1:] == ["seed"]:
         seed()
+    elif sys.argv[1:] == ["reset-test"] and url.database == "aac_gear_demo_test" and PORT == 5179:
+        seed()
     elif sys.argv[1:] == ["serve"]:
         serve()
     else:
-        sys.exit("Usage: gear-demo.py seed|serve")
+        sys.exit("Usage: gear-demo.py seed|serve|reset-test")

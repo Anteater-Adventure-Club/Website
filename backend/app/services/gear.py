@@ -4,7 +4,7 @@ from collections import Counter, defaultdict
 from datetime import date
 from sqlalchemy import func, or_, select
 from ..domain import advisory, audit, fail, paid, require, revision, today, utcnow
-from ..models import GearItem, GearLine, GearRental, GearType, Member, Membership, Quarter
+from ..models import GearItem, GearLine, GearRental, GearType, Membership, Quarter
 from .approval import enforce_approval
 from . import gear_custody as custody
 
@@ -34,7 +34,6 @@ def member_access(db, mid):
         "first_pickup": max(day, paid_quarter.starts_on) if paid_quarter else None,
         "quarter_id": quarter.id if quarter else None,
         "quarter_name": quarter.name if quarter else None,
-        "has_rentals": db.scalar(select(select(GearRental.id).where(GearRental.member_id == mid).exists())),
     }
 
 
@@ -60,7 +59,7 @@ def validate_duration(start, end, reason):
         fail(422, "gear_duration", "For more than seven days, contact an officer for a duration exception.")
 
 
-def holds(db, start, end, exclude=None):
+def holds(db, start, end, exclude=None, *, item_ids=None):
     query = (
         select(
             GearLine.item_id,
@@ -77,6 +76,8 @@ def holds(db, start, end, exclude=None):
             or_(GearRental.end >= start, GearLine.status == "picked_up"),
         )
     )
+    if item_ids is not None:
+        query = query.where(GearLine.item_id.in_(item_ids))
     if exclude is not None:
         query = query.where(GearRental.id != exclude)
     return list(db.execute(query))
@@ -86,16 +87,20 @@ def effective_end(hold):
     return date.max if hold.status == "picked_up" and hold.end < today() else hold.end
 
 
-def peak(rows, start, end):
+def usage_changes(rows, start, end):
     changes = Counter()
     for row in rows:
         first, last = max(row.start, start), min(effective_end(row), end)
         if first <= last:
             changes[first.toordinal()] += 1
             changes[last.toordinal() + 1] -= 1
+    return sorted(changes.items())
+
+
+def peak(rows, start, end):
     used = maximum = 0
-    for day in sorted(changes):
-        used += changes[day]
+    for _, change in usage_changes(rows, start, end):
+        used += change
         maximum = max(maximum, used)
     return maximum
 
@@ -233,6 +238,17 @@ def rental_or_404(db, rid, mid=None):
     return rental
 
 
+def reserved_items(db, lines):
+    items = []
+    for line in lines:
+        item = require(db, GearItem, line.item_id)
+        if item.type_id != line.type_id:
+            fail(409, "gear_type_changed",
+                 f"The gear type for {line.name} has changed. Cancel this item and request or assign a replacement.")
+        items.append(item)
+    return items
+
+
 def change(db, actor, rid, value, *, own=False):
     lock_gear(db)
     rental = rental_or_404(db, rid, actor.id if own else None)
@@ -253,7 +269,7 @@ def change(db, actor, rid, value, *, own=False):
             rental.member_id,
             max(today(), rental.start),
             rental.end,
-            [require(db, GearItem, line.item_id) for line in selected],
+            reserved_items(db, selected),
             exclude=rid,
         )
     message = "" if own else value.message
@@ -297,14 +313,7 @@ def reschedule(db, actor, rid, value):
     validate_dates(value.start, value.end, allow_past=value.start == rental.start)
     validate_duration(value.start, value.end, value.reason)
     require_eligible(db, rental.member_id, value.start)
-    check_items(
-        db,
-        rental.member_id,
-        value.start,
-        value.end,
-        [require(db, GearItem, line.item_id) for line in active],
-        exclude=rid,
-    )
+    check_items(db, rental.member_id, value.start, value.end, reserved_items(db, active), exclude=rid)
     audit(
         db,
         actor,
@@ -369,70 +378,6 @@ def write_item(db, actor, value, iid=None):
     db.flush()
     audit(db, actor, "gear.inventory", item.id, value.model_dump(mode="json", exclude={"expected_revision"}))
     return item
-
-
-def rental_views(db, mid=None, rid=None):
-    query = (
-        select(GearRental, Member.name, GearLine, GearItem.quantity)
-        .join(Member, Member.id == GearRental.member_id)
-        .join(GearLine, GearLine.rental_id == GearRental.id)
-        .join(GearItem, GearItem.id == GearLine.item_id)
-    )
-    if mid is not None:
-        query = query.where(GearRental.member_id == mid)
-    if rid is not None:
-        query = query.where(GearRental.id == rid)
-    rows = db.execute(query.order_by(GearRental.created_at.desc(), GearRental.id.desc(), GearLine.id)).all()
-    records = {}
-    current = today()
-    upcoming_holds = defaultdict(list)
-    overdue_items = set()
-    overdue_borrower_types = set()
-    if rows:
-        for hold in holds(db, current, date.max):
-            upcoming_holds[hold.item_id].append(hold)
-            if hold.status == "picked_up" and hold.end < current:
-                overdue_items.add(hold.item_id)
-                overdue_borrower_types.add((hold.member_id, hold.type_id))
-    for rental, name, line, quantity in rows:
-        if rental.id not in records:
-            records[rental.id] = {
-                key: getattr(rental, key)
-                for key in (
-                    "id",
-                    "start",
-                    "end",
-                    "activity",
-                    "comments",
-                    "revision",
-                    "member_id",
-                    "created_at",
-                )
-            }
-            records[rental.id].update(member_name=name, lines=[])
-        waiting = line.status in ("approved", "pending")
-        payload = {
-            key: getattr(line, key)
-            for key in ("id", "item_id", "copy_number", "name", "type_name", "ownership", "message", "status")
-        }
-        payload.update(
-            overdue=line.status == "picked_up" and rental.end < current,
-            missed=waiting and rental.end < current,
-            at_risk=waiting
-            and rental.end >= current
-            and (
-                (rental.member_id, line.type_id) in overdue_borrower_types
-                or (
-                    line.item_id in overdue_items
-                    and peak(upcoming_holds[line.item_id], max(current, rental.start), rental.end) > quantity
-                )
-            ),
-        )
-        records[rental.id]["lines"].append(payload)
-    for record in records.values():
-        statuses = {line["status"] for line in record["lines"]}
-        record["status"] = statuses.pop() if len(statuses) == 1 else "mixed"
-    return list(records.values())
 
 
 def attention(db):

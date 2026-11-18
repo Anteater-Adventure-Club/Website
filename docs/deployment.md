@@ -160,3 +160,16 @@ Test restoration into disposable database and media resources using a compatible
 Retain compatible frontend and API revisions in Coolify. Roll back application images together when necessary; preserve the database and media volumes. Routine rollback requires migrations that remain compatible with the previous application. If restoring a matched backup is necessary, account for writes made since that backup before replacing live data.
 
 Monitor Coolify health, API errors and readiness failures, failed or overdue backups, disk use, and memory pressure. Use container logs and release identifiers to diagnose failures; keep session cookies, secrets, member details, and payment destinations out of shared logs.
+
+### Gear helper grants during rollout and rollback
+
+Use a quiet window to migrate the database and roll out the API and frontend. Wait for all previous API workers to drain before granting Gear access to helpers. Before rolling back to a version that predates Gear, run the following read-only check in PostgreSQL. It includes expired grants because older API versions also read these in the officer grant list.
+
+```sql
+SELECT member_id, permissions, expires_at
+FROM guest_officer_access
+WHERE permissions::jsonb ? 'gear'
+ORDER BY member_id;
+```
+
+If the check returns rows, record them for the officers managing the rollback. With the current officer tools, remove Gear from mixed grants and revoke Gear-only grants, including expired ones. For an expired mixed grant, record its original expiry and revoke it instead of renewing it. Repeat the check and switch to the older images once it returns zero rows. Reapply still-authorized grants through Officer Tools when Gear returns, respecting their original expiry.
